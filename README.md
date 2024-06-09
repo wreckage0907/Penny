@@ -13,7 +13,7 @@
    pip install -r requirements.txt
    ```
 
-### Movile 
+### Mobile 
 
 1. Navigate to the `mobile` directory.
 2. Run : 
