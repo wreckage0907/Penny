@@ -50,3 +50,29 @@ class PasswordField extends StatelessWidget {
     );
   }
 }
+
+
+class EmailField extends StatelessWidget {
+  const EmailField({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const TextField(
+      style: TextStyle(
+        fontSize: 32,
+        fontWeight: FontWeight.w400,
+        color: Colors.black54,
+      ),
+      decoration: InputDecoration(
+        hintText: 'Email',
+        hintStyle: TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.w400,
+          color: Colors.black54,
+        ),
+        prefixIcon: Icon(Icons.email_rounded, size: 36),
+        prefixIconColor: Colors.black54,
+      ),
+    );
+  }
+}
