@@ -10,7 +10,7 @@ class LoginPage extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color.fromARGB(255, 240, 229, 223),
+        scaffoldBackgroundColor: const Color.fromARGB(255, 246, 229, 223),
       ),
       home: const Scaffold(
         body: Padding(
