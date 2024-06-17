@@ -9,18 +9,21 @@ class SignUp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
+      backgroundColor: Color.fromRGBO(255, 246, 229, 1),
       body: Padding(
         padding: const EdgeInsets.all(36),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'SIGN UP',
-              style: TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: Color.fromRGBO(0, 0, 0, 0.7),
+            const Center(
+              child:  Text(
+                'SIGN UP',
+                style: TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromRGBO(0, 0, 0, 0.7),
+                ),
               ),
             ),
             const SizedBox(height: 26),
@@ -42,7 +45,12 @@ class SignUp extends StatelessWidget {
                 ),
               ),
             ),
-            const SignInWithGoogleButton(),
+            const Row(
+              children: [
+                 SignInWithGoogleButton(),
+                 FacebookButton(),
+              ],
+            ),
             const SizedBox(height: 26),
             RichText(
               text: TextSpan(

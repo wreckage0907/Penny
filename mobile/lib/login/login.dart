@@ -9,18 +9,21 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromRGBO(255, 246, 229, 1),
       body: Padding(
         padding: const EdgeInsets.all(36),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'LOGIN',
-              style: TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: Color.fromRGBO(0, 0, 0, 0.7),
+            const Center(
+              child:  Text(
+                'LOGIN',
+                style: TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromRGBO(0, 0, 0, 0.7),
+                ),
               ),
             ),
             const SizedBox(height: 26),
@@ -39,7 +42,12 @@ class LoginPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            const SignInWithGoogleButton(),
+            const Row(
+              children: [
+                 SignInWithGoogleButton(),
+                 FacebookButton(),
+              ],
+            ),
             const SizedBox(height: 20),
             const LoginButton(),
             const SizedBox(height: 26),
@@ -51,9 +59,9 @@ class LoginPage extends StatelessWidget {
                   color: Colors.black87,
                 ),
                 children: [
-                  const TextSpan(text: 'Having trouble logging in? '),
+                  const TextSpan(text: 'Don\'t have an account?'),
                   TextSpan(
-                    text: 'Try Signing Up',
+                    text: ' Sign Up',
                     style: const TextStyle(
                       color: Colors.blue,
                       decoration: TextDecoration.underline,

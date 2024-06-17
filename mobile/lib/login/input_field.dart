@@ -18,7 +18,7 @@ class UsernameField extends StatelessWidget {
           fontWeight: FontWeight.w400,
           color: Colors.black54,
         ),
-        prefixIcon: Icon(Icons.person, size: 36),
+        prefixIcon: Icon(Icons.person_outlined, size: 36),
         prefixIconColor: Colors.black54,
       ),
     );
@@ -44,7 +44,7 @@ class PasswordField extends StatelessWidget {
           fontWeight: FontWeight.w400,
           color: Colors.black54,
         ),
-        prefixIcon: Icon(Icons.lock_rounded, size: 36),
+        prefixIcon: Icon(Icons.lock_outline, size: 36),
         prefixIconColor: Colors.black54,
       ),
     );
@@ -70,7 +70,7 @@ class EmailField extends StatelessWidget {
           fontWeight: FontWeight.w400,
           color: Colors.black54,
         ),
-        prefixIcon: Icon(Icons.email_rounded, size: 36),
+        prefixIcon: Icon(Icons.email_outlined, size: 36),
         prefixIconColor: Colors.black54,
       ),
     );

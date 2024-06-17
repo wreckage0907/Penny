@@ -1,61 +1,93 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class SignInWithGoogleButton extends StatelessWidget {
   const SignInWithGoogleButton({super.key});
 
   static void printstatement() {
-    if(kDebugMode) print("Google Clicked");
+    if (kDebugMode) print("Google Clicked");
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(
-        left: 14,
-        right: 14,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: TextButton.icon(
         onPressed: printstatement,
         style: const ButtonStyle(
-          backgroundColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 229, 223)),
-          padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
-          minimumSize: WidgetStatePropertyAll(Size(double.infinity, 20)),
+          backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+          padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+          minimumSize: WidgetStatePropertyAll(Size(120, 40)),
           shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(
               side: BorderSide(
-                color: Colors.black54,
+                color: Colors.black38,
                 width: 2,
               ),
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-            )
-          )
+              borderRadius: BorderRadius.all(Radius.circular(8)),
+            ),
+          ),
+          elevation: WidgetStatePropertyAll(2),
         ),
-        icon: const Icon(
-          MdiIcons.google,
-          size: 32,
-          color: Colors.blue,
+        icon: const Center(
+          child:  Icon(
+            MdiIcons.google,
+            size: 32,
+          ),
         ),
-        label: const Text(
-          'Sign in with Google',
-          style: TextStyle(
-            color: Color.fromRGBO(0, 0, 0, 0.7),
-            fontSize: 25,
-            fontWeight: FontWeight.w400,
-          )
-        ), 
+        label: const Text(''), 
       ),
     );
   }
 }
 
+class FacebookButton extends StatelessWidget {
+  const FacebookButton({super.key});
+
+  static void printstatement() {
+    if (kDebugMode) print("Facebook Clicked");
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: TextButton.icon(
+        onPressed: printstatement,
+        style: const ButtonStyle(
+            backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+            padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+            minimumSize: WidgetStatePropertyAll(Size(120, 40)),
+            shape: WidgetStatePropertyAll(
+              RoundedRectangleBorder(
+                side: BorderSide(
+                  color: Colors.black38,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              ),
+            ),
+            elevation: WidgetStatePropertyAll(2),
+          ),
+        icon: const Center(
+          child:  Icon(
+            MdiIcons.facebook,
+            size: 36,
+            ),
+        ),
+        label: const Text(''), 
+      ),
+    );
+  }
+}
 
 class LoginButton extends StatelessWidget {
   const LoginButton({super.key});
 
   static void printstatement() {
-    if(kDebugMode) print("Login Clicked");
+    if (kDebugMode) print("Login Clicked");
   }
 
   @override
@@ -63,27 +95,27 @@ class LoginButton extends StatelessWidget {
     return const ElevatedButton(
       onPressed: printstatement,
       style: ButtonStyle(
-        backgroundColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 229, 223)),
-        padding: WidgetStatePropertyAll(EdgeInsets.all(16)),
-        minimumSize: WidgetStatePropertyAll(Size(double.infinity, 20)),
-        shape: WidgetStatePropertyAll(
+        backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+        padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 16, horizontal: 32)),
+        minimumSize:  WidgetStatePropertyAll(Size(double.infinity, 48)),
+        shape:  WidgetStatePropertyAll(
           RoundedRectangleBorder(
             side: BorderSide(
-              color: Colors.black54,
-              width: 2,
+              color: Color.fromRGBO(109, 109, 109, 1),
+              width: 1.5,
             ),
-            borderRadius: BorderRadius.all(Radius.circular(38)),
-          )
-        )
+            borderRadius: BorderRadius.all(Radius.circular(28)),
+          ),
+        ),
       ),
-      child: Text(
+      child:  Text(
         'Login',
         style: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w600,
-          color: Color.fromRGBO(0, 0, 0, 0.7),
-        )
-      )
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Color.fromRGBO(109, 109, 109, 1),
+        ),
+      ),
     );
   }
 }
@@ -92,7 +124,7 @@ class SignUpButton extends StatelessWidget {
   const SignUpButton({super.key});
 
   static void printstatement() {
-    if(kDebugMode) print("Sign Up Clicked");
+    if (kDebugMode) print("Sign Up Clicked");
   }
 
   @override
@@ -100,27 +132,27 @@ class SignUpButton extends StatelessWidget {
     return const ElevatedButton(
       onPressed: printstatement,
       style: ButtonStyle(
-        backgroundColor: WidgetStatePropertyAll(Color.fromARGB(255, 240, 229, 223)),
-        padding: WidgetStatePropertyAll(EdgeInsets.all(16)),
-        minimumSize: WidgetStatePropertyAll(Size(double.infinity, 20)),
-        shape: WidgetStatePropertyAll(
+        backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+        padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 16, horizontal: 32)),
+        minimumSize:  WidgetStatePropertyAll(Size(double.infinity, 48)),
+        shape:  WidgetStatePropertyAll(
           RoundedRectangleBorder(
             side: BorderSide(
-              color: Colors.black54,
-              width: 2,
+              color: Color.fromRGBO(109, 109, 109, 1),
+              width: 1.5,
             ),
-            borderRadius: BorderRadius.all(Radius.circular(38)),
-          )
-        )
+            borderRadius: BorderRadius.all(Radius.circular(28)),
+          ),
+        ),
       ),
-      child: Text(
+      child:  Text(
         'Sign Up',
         style: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w600,
-          color: Color.fromRGBO(0, 0, 0, 0.7),
-        )
-      )
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Color.fromRGBO(109, 109, 109, 1),
+        ),
+      ),
     );
   }
 }
