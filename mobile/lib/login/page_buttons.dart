@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class SignInWithGoogleButton extends StatelessWidget {
@@ -32,10 +32,11 @@ class SignInWithGoogleButton extends StatelessWidget {
           elevation: WidgetStatePropertyAll(2),
         ),
         icon: const Center(
-          child:  Icon(
-            MdiIcons.google,
+          child:  FaIcon(
+            FontAwesomeIcons.google,
+            color: Colors.black,
             size: 32,
-          ),
+          )
         ),
         label: const Text(''), 
       ),
@@ -72,10 +73,11 @@ class FacebookButton extends StatelessWidget {
             elevation: WidgetStatePropertyAll(2),
           ),
         icon: const Center(
-          child:  Icon(
-            MdiIcons.facebook,
-            size: 36,
-            ),
+          child:  FaIcon(
+            FontAwesomeIcons.facebookF,
+            color: Colors.black,
+            size: 32,
+          )
         ),
         label: const Text(''), 
       ),
