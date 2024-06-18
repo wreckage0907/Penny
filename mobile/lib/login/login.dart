@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart'; // Add this line to import the gesture_detector.dart file
 import 'package:mobile/login/page_buttons.dart';
 import 'package:mobile/login/input_field.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -11,21 +12,29 @@ class LoginPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(255, 246, 229, 1),
       body: Padding(
-        padding: const EdgeInsets.all(36),
+        padding: const EdgeInsets.all(28),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Center(
-              child:  Text(
-                'LOGIN',
-                style: TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromRGBO(0, 0, 0, 0.7),
+            Center(
+              child: Container(
+                width: 200,
+                child:  const Image(
+                   image: AssetImage('assets/title.png'),
                 ),
               ),
             ),
+            const SizedBox(height: 20,),
+            Center(
+              child:  Text(
+                'Welcome Back!',
+                style: GoogleFonts.spectral(
+                  fontSize: 45,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.black87,
+              ),
+            ),),
             const SizedBox(height: 26),
             const UsernameField(),
             const SizedBox(height: 14),
