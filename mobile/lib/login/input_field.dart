@@ -9,17 +9,16 @@ class UsernameField extends StatelessWidget {
     return TextField(
       decoration: const InputDecoration(
         hintText: 'Username',
-        hintStyle: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.w400,
-          color: Colors.black54,
+        prefixIcon: Padding(
+          padding: EdgeInsets.only(right: 14),
+          child: Icon(Icons.person_outlined, size: 36),
         ),
-        prefixIcon: Icon(Icons.person_outlined, size: 36),
         prefixIconColor: Colors.black54,
+        contentPadding: EdgeInsets.only(top:10)
       ),
 
       style: GoogleFonts.spectral(
-        fontSize: 32,
+        fontSize: 24,
         fontWeight: FontWeight.w400,
         color: Colors.black54,
       ),
@@ -36,14 +35,18 @@ class PasswordField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextField(
       style: GoogleFonts.spectral(
-        fontSize: 32,
+        fontSize: 24,
         fontWeight: FontWeight.w400,
         color: Colors.black54,
       ),
       decoration: const InputDecoration(
         hintText: 'Password',
-        prefixIcon: Icon(Icons.lock_outline, size: 36),
+        prefixIcon: Padding(
+          padding: EdgeInsets.only(right:14),
+          child: Icon(Icons.lock_outline, size: 36),
+        ),
         prefixIconColor: Colors.black54,
+        contentPadding: EdgeInsets.only(top:10)
       ),
     );
   }
@@ -55,21 +58,20 @@ class EmailField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const TextField(
-      style: TextStyle(
-        fontSize: 32,
+    return TextField(
+      style: GoogleFonts.spectral(
+        fontSize: 24,
         fontWeight: FontWeight.w400,
         color: Colors.black54,
       ),
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         hintText: 'Email',
-        hintStyle: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.w400,
-          color: Colors.black54,
+        prefixIcon: Padding(
+          padding: EdgeInsets.only(right:14),
+          child: Icon(Icons.email_outlined, size: 36),
         ),
-        prefixIcon: Icon(Icons.email_outlined, size: 36),
         prefixIconColor: Colors.black54,
+        contentPadding: EdgeInsets.only(top:10)
       ),
     );
   }
