@@ -5,6 +5,17 @@ class Home extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text('Home Page');
+    return  Scaffold(
+      appBar: AppBar(
+          title: const Text('Basic Flutter Progress Bar'),
+        ),
+        body:  const Center(
+          child: CircularProgressIndicator(
+  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+  strokeWidth: 5.0, // Width of the circular line
+),
+
+        ),
+    );
   }
 }
