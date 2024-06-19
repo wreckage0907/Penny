@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
-import './login/login.dart';
-import './login/signup.dart';
-import './home/home.dart';
+import 'package:mobile/Pages/login/login.dart';
+import 'package:mobile/Pages/login/signup.dart';
+import 'package:mobile/Pages/home/home.dart';
 
-void main(){
+import 'package:firebase_core/firebase_core.dart';
+import 'package:mobile/firebase_options.dart';
+
+void main()async{
+  WidgetsFlutterBinding.ensureInitialized(); 
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  ); 
   runApp(const MyApp());
 }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -14,10 +20,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const LoginPage(),
+      home: LoginPage(),
       initialRoute: '/login',
       routes: {
-        '/login': (context) => const LoginPage(),
+        '/login': (context) => LoginPage(),
         '/signup': (context) =>  SignUp(),
         '/home': (context) => const Home(),
       },

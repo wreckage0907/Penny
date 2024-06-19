@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:mobile/Services/auth.dart';
 
 
 
@@ -79,44 +80,6 @@ class AppleButton extends StatelessWidget {
     );  
   }
 }
-// class LoginButton extends StatelessWidget {
-//   const LoginButton({super.key});
-
-//   static void printstatement() {
-//     if (kDebugMode) print("Login Clicked");
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return const ElevatedButton(
-//       onPressed: printstatement,
-//       style: ButtonStyle(
-//         backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
-//         padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 16, horizontal: 32)),
-//         minimumSize:  WidgetStatePropertyAll(Size(double.infinity, 48)),
-//         shape:  WidgetStatePropertyAll(
-//           RoundedRectangleBorder(
-//             side: BorderSide(
-//               color: Color.fromRGBO(109, 109, 109, 1),
-//               width: 1.5,
-//             ),
-//             borderRadius: BorderRadius.all(Radius.circular(28)),
-//           ),
-//         ),
-//       ),
-//       child:  Text(
-//         'Login',
-//         style: TextStyle(
-//           fontSize: 20,
-//           fontWeight: FontWeight.bold,
-//           color: Color.fromRGBO(109, 109, 109, 1),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-
 class LoginButton extends StatelessWidget {
   const LoginButton({super.key});
 
@@ -156,13 +119,19 @@ class LoginButton extends StatelessWidget {
 }
 
 class SignUpButton extends StatelessWidget {
-  const SignUpButton({super.key});
+  final String username;
+  final String email;
+  final String password;
+  const SignUpButton({super.key, required this.username, required this.email, required this.password});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 20,right:20,top: 20,bottom: 5),
-      child: TextButton(onPressed:()=> print('Signup Clicked'), 
+      child: TextButton(onPressed:  ()async=> {
+        print(username+email+'sdfghjk'+password),
+        await Auth().Signup(email: email, password: password, username: username)
+      }, 
       style:const ButtonStyle(alignment: Alignment.center,
       backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(175, 92, 92, 0.8)),
       padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 16, horizontal:  24)),

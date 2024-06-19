@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class UsernameField extends StatelessWidget {
-  const UsernameField({super.key});
+  final TextEditingController controller;
+  const UsernameField({Key? key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       decoration: const InputDecoration(
         hintText: 'Username',
         prefixIcon: Padding(
@@ -29,11 +31,13 @@ class UsernameField extends StatelessWidget {
 
 
 class PasswordField extends StatelessWidget {
-  const PasswordField({super.key});
+  final TextEditingController controller;
+  PasswordField({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       style: GoogleFonts.spectral(
         fontSize: 24,
         fontWeight: FontWeight.w400,
@@ -54,11 +58,13 @@ class PasswordField extends StatelessWidget {
 
 
 class EmailField extends StatelessWidget {
-  const EmailField({super.key});
+  final TextEditingController controller;
+  EmailField({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       style: GoogleFonts.spectral(
         fontSize: 24,
         fontWeight: FontWeight.w400,

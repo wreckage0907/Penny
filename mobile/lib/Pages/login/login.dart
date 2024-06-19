@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/login/input_field.dart';
-import 'package:mobile/login/page_buttons.dart';
-import 'package:flutter/gestures.dart';
+import 'package:flutter/gestures.dart'; // Add this line to import the gesture_detector.dart file
+import 'package:mobile/Pages/login/page_buttons.dart';
+import 'package:mobile/Pages/login/input_field.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class SignUp extends StatelessWidget {
-  SignUp({Key? key}) : super(key: key);
+class LoginPage extends StatelessWidget {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(255, 246, 229, 1),
       body: Padding(
-        padding: const EdgeInsets.all(36),
+        padding: const EdgeInsets.all(28),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -30,7 +32,7 @@ class SignUp extends StatelessWidget {
             ),
             Center(
               child: Text(
-                'Create Account!',
+                'Welcome Back!',
                 style: GoogleFonts.spectral(
                   fontSize: 45,
                   fontWeight: FontWeight.w300,
@@ -39,14 +41,10 @@ class SignUp extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 26),
-            const UsernameField(),
+            UsernameField(controller: _usernameController,),
             const SizedBox(height: 14),
-            const EmailField(),
-            const SizedBox(height: 14),
-            const PasswordField(),
-            const SizedBox(height: 26),
-            const SignUpButton(),
-            const SizedBox(height: 20),
+            PasswordField(controller: _passwordController,),
+            const SizedBox(height: 25),
             Center(
               child: Text(
                 'or continue with',
@@ -66,7 +64,9 @@ class SignUp extends StatelessWidget {
                 AppleButton()
               ],
             ),
-            const SizedBox(height: 26),
+            const SizedBox(height: 20),
+            const LoginButton(),
+            const SizedBox(height: 30),
             Center(
               child: RichText(
                 text: TextSpan(
@@ -76,16 +76,16 @@ class SignUp extends StatelessWidget {
                     color: Colors.black,
                   ),
                   children: [
-                    const TextSpan(text: 'Already have an account? '),
+                    const TextSpan(text: 'Don\'t have an account? '),
                     TextSpan(
-                      text: 'Login',
+                      text: 'Sign Up',
                       style: const TextStyle(
                         color: Colors.redAccent,
                         decoration: TextDecoration.underline,
                       ),
                       recognizer: TapGestureRecognizer()
                         ..onTap = () {
-                          Navigator.pushNamed(context, '/login');
+                          Navigator.pushNamed(context, '/signup');
                         },
                     ),
                   ],
