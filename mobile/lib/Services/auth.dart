@@ -44,24 +44,24 @@ class Auth {
       print('Error signing in: ${e.code}');
     }
   }
+  
+  Future<UserCredential?> loginWithGoogle() async {
+    try{
+      final googleUser = await GoogleSignIn().signIn();
 
-  Future<void> otherLogin({
-    required String provider,
-  }) async {
-    if (provider == 'Google') {
-      try{
-          final user = await GoogleSignIn().signIn();
-          
-      }
-      catch (e){
-        print(e.toString());
-      }
-    } else if (provider == 'Facebook') {
-      // Implement Facebook Sign-In logic here
-      // You'll need to use the flutter_facebook_auth package and follow the official Firebase guide
-    } else if (provider == 'Apple') {
-      // Implement Apple Sign-In logic here
-      // You'll need to use the sign_in_with_apple package and follow the official Firebase guide
+      final googleAuth = await googleUser?.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        idToken: googleAuth?.idToken, 
+        accessToken: googleAuth?.accessToken
+      );
+      
+      print("Signed In");
+      return await _auth.signInWithCredential(credential);
+    } catch(e) {
+      print("Sign In Failed");
+      print(e.toString());
     }
+    return null;
   }
 }

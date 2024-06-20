@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart'; 
+import 'package:flutter/gestures.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart'; 
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/Pages/login/input_field.dart';
 import 'package:mobile/Pages/login/page_buttons.dart';
@@ -73,12 +74,31 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 10),
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SignInWithGoogleButton(),
-                  FacebookButton(),
-                  AppleButton()
+                  IconButton(
+                    onPressed: () async {
+                      await _authService.loginWithGoogle();
+                    },
+                    icon: const FaIcon(FontAwesomeIcons.google, color: Colors.black, size: 32),
+                    style: const ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+                      padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
+                      minimumSize: WidgetStatePropertyAll(Size(80, 20)),
+                      shape: WidgetStatePropertyAll(
+                        CircleBorder(
+                          side: BorderSide( 
+                            color: Colors.black38,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      elevation: WidgetStatePropertyAll(2),
+                    ),
+                  ),
+                  const FacebookButton(),
+                  const AppleButton()
                 ],
               ),
               const SizedBox(height: 20),
