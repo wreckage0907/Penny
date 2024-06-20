@@ -84,7 +84,7 @@ class _LoginPageState extends State<LoginPage> {
               padding: const EdgeInsets.only(left: 20,right:20,top: 20,bottom: 5),
               child: TextButton(
                 onPressed: () async {
-                  _authService.Login(email: _usernameController.text,password:_passwordController.text);
+                  _authService.login(email: _usernameController.text,password:_passwordController.text);
                 },
                 style: const ButtonStyle(
                   alignment: Alignment.center,

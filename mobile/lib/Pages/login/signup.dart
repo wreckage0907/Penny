@@ -191,7 +191,7 @@ class _SignUpPageState extends State<SignUpPage> {
               padding: const EdgeInsets.only(left: 20,right:20,top: 20,bottom: 5),
               child: TextButton(
                 onPressed: () async {
-                  _authService.Signup(username:_usernameController.text,email: _emailController.text,password:_passwordController.text);
+                  _authService.signUp(username:_usernameController.text,email: _emailController.text,password:_passwordController.text);
                 },
                 style: const ButtonStyle(
                   alignment: Alignment.center,
