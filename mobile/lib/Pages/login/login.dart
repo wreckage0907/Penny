@@ -1,13 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart'; // Add this line to import the gesture_detector.dart file
-import 'package:mobile/Pages/login/page_buttons.dart';
-import 'package:mobile/Pages/login/input_field.dart';
+import 'package:flutter/gestures.dart'; 
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile/Pages/login/input_field.dart';
+import 'package:mobile/Pages/login/page_buttons.dart';
+import 'package:mobile/Services/auth.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  const LoginPage({Key? key}) : super(key: key);
+
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  LoginPage({super.key});
+  final Auth _authService = Auth();
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +80,37 @@ class LoginPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
-            const LoginButton(),
+            Padding(
+              padding: const EdgeInsets.only(left: 20,right:20,top: 20,bottom: 5),
+              child: TextButton(
+                onPressed: () async {
+                  _authService.Login(email: _usernameController.text,password:_passwordController.text);
+                },
+                style: const ButtonStyle(
+                  alignment: Alignment.center,
+                  backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(175, 92, 92, 0.8)),
+                  padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 16, horizontal: 24)),
+                  minimumSize: WidgetStatePropertyAll(Size(double.infinity, 24)),
+                  shape: WidgetStatePropertyAll(
+                    RoundedRectangleBorder(
+                      side: BorderSide(
+                        color: Color.fromRGBO(109, 109, 109, 1),
+                        width: 1.5,
+                      ),
+                      borderRadius: BorderRadius.all(Radius.circular(28)),
+                    ),
+                  ),
+                ),
+                child: Text(
+                  'Sign In',
+                  style: GoogleFonts.spectral(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 30),
             Center(
               child: RichText(
