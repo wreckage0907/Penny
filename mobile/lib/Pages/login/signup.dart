@@ -108,6 +108,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/Pages/login/input_field.dart'; // Assuming EmailField is defined here
 import 'package:mobile/Pages/login/page_buttons.dart';
 import 'package:mobile/Services/auth.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import the UserCredential class from the firebase_auth package
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({Key? key}) : super(key: key);
@@ -187,7 +188,10 @@ class _SignUpPageState extends State<SignUpPage> {
                 children: [
                   IconButton(
                     onPressed: () async {
-                      await _authService.loginWithGoogle();
+                      UserCredential? ans=await _authService.loginWithGoogle();
+                      if(ans!=null){
+                        Navigator.pushNamed(context, '/home');
+                      }
                     },
                     icon: const FaIcon(FontAwesomeIcons.google, color: Colors.black, size: 32),
                     style: const ButtonStyle(

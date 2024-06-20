@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart'; 
@@ -79,7 +80,11 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   IconButton(
                     onPressed: () async {
-                      await _authService.loginWithGoogle();
+                      print("dcfvghj");
+                      UserCredential? ans=await _authService.loginWithGoogle();
+                      if(ans!=null){
+                        Navigator.pushNamed(context, '/home');
+                      }
                     },
                     icon: const FaIcon(FontAwesomeIcons.google, color: Colors.black, size: 32),
                     style: const ButtonStyle(

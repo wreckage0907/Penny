@@ -33,12 +33,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const Home(),
+      home: const home(),
       initialRoute: userState() == 1 ? '/home' : '/login',
       routes: {
         '/login': (context) => LoginPage(),
         '/signup': (context) =>  SignUpPage(),
-        '/home': (context) => const Home(),
+        '/home': (context) => home(),
       },
     );
   }

@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:mobile/Services/auth.dart';
 
-class Home extends StatelessWidget {
-  const Home({super.key});
+class home extends StatefulWidget {
+  const home({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return  Scaffold(
-      appBar: AppBar(
-          title: const Text('Basic Flutter Progress Bar'),
-        ),
-        body:  const Center(
-          child: CircularProgressIndicator(
-  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-  strokeWidth: 5.0, // Width of the circular line
-),
+  State<home> createState() => _homeState();
+}
 
-        ),
+class _homeState extends State<home> {
+  final Auth _authService = Auth();
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Home'),
+      ),
+      body: Center(
+        child: TextButton(onPressed: () async { _authService.signout(context: context);}, child: const Text('Sign Out'),
+      ),
+    )
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -29,20 +30,25 @@ class Auth {
     }
   }
 
-  Future<void> login({
+  Future<UserCredential?> login({
     required String email,
     required String password,
   }) async {
     try {
       print('login called $email $password');
       // Sign in with email and password
-      await _auth.signInWithEmailAndPassword(
+      // await _auth.signInWithEmailAndPassword(
+      //   email: email,
+      //   password: password,
+      // );
+      return await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
     } on FirebaseAuthException catch (e) {
       print('Error signing in: ${e.code}');
     }
+    return null;
   }
   
   Future<UserCredential?> loginWithGoogle() async {
@@ -63,5 +69,13 @@ class Auth {
       print(e.toString());
     }
     return null;
+  }
+
+  Future<void> signout({
+    required BuildContext context
+  }) async {
+    await FirebaseAuth.instance.signOut();
+    await Future.delayed(const Duration(seconds: 1));
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 }
