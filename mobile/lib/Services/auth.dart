@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -56,28 +55,11 @@ class Auth {
 
     return await _auth.signInWithCredential(credential);
   }
-
-  
-Future<UserCredential?> signinWithFacebook() async {
-  try {
-    final LoginResult loginResult = await FacebookAuth.instance.login(
-      permissions: ["public_profile", "email"]
-    );
-
-    if (loginResult.status == LoginStatus.success) {
-      final OAuthCredential facebookAuthCredential = FacebookAuthProvider.credential(loginResult.accessToken!.token);
-      return await FirebaseAuth.instance.signInWithCredential(facebookAuthCredential);
-    } else {
-      // Handle different statuses, such as cancelled or failed login
-      print('Facebook login failed: ${loginResult.status}');
-      return null;
-    }
-  } catch (e) {
-    print('Error during Facebook login: $e');
-    return null;
-  }
+Future<UserCredential?> signInWithGithub() async {
+  GithubAuthProvider githubProvider = GithubAuthProvider();
+  return await FirebaseAuth.instance.signInWithProvider(githubProvider);
 }
-
+  
 
   Future<void> signout({
     required BuildContext context
@@ -87,3 +69,5 @@ Future<UserCredential?> signinWithFacebook() async {
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 }
+
+

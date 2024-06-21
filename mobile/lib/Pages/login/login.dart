@@ -100,13 +100,13 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   IconButton(
                     onPressed: () async {
-                      UserCredential? user =await _authService.signinWithFacebook();
+                      UserCredential? user =await _authService.signInWithGithub();
                       if(user != null){
                         Navigator.pushNamed(context, '/home');
                       }
                       
                     },
-                    icon: const FaIcon(FontAwesomeIcons.facebookF, color: Colors.black, size: 32),
+                    icon: const FaIcon(FontAwesomeIcons.github, color: Colors.black, size: 32),
                     style: const ButtonStyle(
                       backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
                       padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
