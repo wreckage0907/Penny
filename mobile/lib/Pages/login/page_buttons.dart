@@ -52,13 +52,13 @@ class FacebookButton extends StatelessWidget {
   }
 }
 
-class AppleButton extends StatelessWidget {
-  const AppleButton({super.key});
+class MicrosoftButton extends StatelessWidget {
+  const MicrosoftButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(onPressed: () => print("Facebook Clicked"),
-    icon: const FaIcon(FontAwesomeIcons.apple, color: Colors.black, size: 32),
+    return IconButton(onPressed: () => print("Microsoft Clicked"),
+    icon: const FaIcon(FontAwesomeIcons.microsoft, color: Colors.black, size: 32),
     style: const ButtonStyle(
       backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
       padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),

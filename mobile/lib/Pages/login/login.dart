@@ -1,10 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart'; 
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/Pages/login/input_field.dart';
-import 'package:mobile/Pages/login/page_buttons.dart';
 import 'package:mobile/Services/auth.dart';
 
 class LoginPage extends StatefulWidget {
@@ -80,11 +78,8 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   IconButton(
                     onPressed: () async {
-                      print("dcfvghj");
-                      UserCredential? ans=await _authService.loginWithGoogle();
-                      if(ans!=null){
-                        Navigator.pushNamed(context, '/home');
-                      }
+                      await _authService.signinWithGoogle();
+                      Navigator.pushNamed(context, '/home');
                     },
                     icon: const FaIcon(FontAwesomeIcons.google, color: Colors.black, size: 32),
                     style: const ButtonStyle(
@@ -102,8 +97,45 @@ class _LoginPageState extends State<LoginPage> {
                       elevation: WidgetStatePropertyAll(2),
                     ),
                   ),
-                  const FacebookButton(),
-                  const AppleButton()
+                  IconButton(
+                    onPressed: () async {
+                      await _authService.signinWithFacebook();
+                      Navigator.pushNamed(context, '/home');
+                    },
+                    icon: const FaIcon(FontAwesomeIcons.facebookF, color: Colors.black, size: 32),
+                    style: const ButtonStyle(
+                      backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+                      padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
+                      minimumSize:  WidgetStatePropertyAll(Size(80,20)),
+                      shape:  WidgetStatePropertyAll(
+                        CircleBorder(
+                          side: BorderSide(
+                            color: Colors.black38,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      elevation:  WidgetStatePropertyAll(2),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => print("Microsoft Clicked"),
+                    icon: const FaIcon(FontAwesomeIcons.microsoft, color: Colors.black, size: 32),
+                    style: const ButtonStyle(
+                      backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+                      padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
+                      minimumSize:  WidgetStatePropertyAll(Size(80,20)),
+                      shape:  WidgetStatePropertyAll(
+                        CircleBorder(
+                          side: BorderSide(
+                            color: Colors.black38,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      elevation:  WidgetStatePropertyAll(2),
+                    ),
+                  ),  
                 ],
               ),
               const SizedBox(height: 20),
