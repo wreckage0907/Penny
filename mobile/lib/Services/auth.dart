@@ -6,29 +6,26 @@ import 'package:firebase_auth/firebase_auth.dart';
 class Auth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<void> signUp({
+  Future<UserCredential?> signUp({
     required String email,
     required String password,
     required String username,
   }) async {
     try {
       print('signup called $email $password $username');
-      // Create a new user with email and password
-      await _auth.createUserWithEmailAndPassword(
+      return await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      // You can also update the user's display name or other profile information here
-      // await _auth.currentUser?.updateDisplayName(username);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         print('The password provided is too weak.');
-      } else if (e.code == 'email-already-in-use') {
         print('The account already exists for that email.');
       }
     } catch (e) {
       print(e.toString());
     }
+    return null;
   }
 
   Future<UserCredential?> login({
@@ -37,11 +34,6 @@ class Auth {
   }) async {
     try {
       print('login called $email $password');
-      // Sign in with email and password
-      // await _auth.signInWithEmailAndPassword(
-      //   email: email,
-      //   password: password,
-      // );
       return await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -65,15 +57,26 @@ class Auth {
     return await _auth.signInWithCredential(credential);
   }
 
-  Future<UserCredential> signinWithFacebook() async {
+  
+Future<UserCredential?> signinWithFacebook() async {
+  try {
     final LoginResult loginResult = await FacebookAuth.instance.login(
       permissions: ["public_profile", "email"]
     );
 
-    final OAuthCredential facebookAuthCredential = FacebookAuthProvider.credential(loginResult.accessToken!.token);
-
-    return FirebaseAuth.instance.signInWithCredential(facebookAuthCredential);
+    if (loginResult.status == LoginStatus.success) {
+      final OAuthCredential facebookAuthCredential = FacebookAuthProvider.credential(loginResult.accessToken!.token);
+      return await FirebaseAuth.instance.signInWithCredential(facebookAuthCredential);
+    } else {
+      // Handle different statuses, such as cancelled or failed login
+      print('Facebook login failed: ${loginResult.status}');
+      return null;
+    }
+  } catch (e) {
+    print('Error during Facebook login: $e');
+    return null;
   }
+}
 
 
   Future<void> signout({

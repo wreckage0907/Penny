@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart'; 
@@ -99,8 +100,11 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   IconButton(
                     onPressed: () async {
-                      await _authService.signinWithFacebook();
-                      Navigator.pushNamed(context, '/home');
+                      UserCredential? user =await _authService.signinWithFacebook();
+                      if(user != null){
+                        Navigator.pushNamed(context, '/home');
+                      }
+                      
                     },
                     icon: const FaIcon(FontAwesomeIcons.facebookF, color: Colors.black, size: 32),
                     style: const ButtonStyle(
@@ -143,7 +147,10 @@ class _LoginPageState extends State<LoginPage> {
                 padding: const EdgeInsets.only(left: 20,right:20,top: 20,bottom: 5),
                 child: TextButton(
                   onPressed: () async {
-                    _authService.login(email: _usernameController.text,password:_passwordController.text);
+                    UserCredential? user = await _authService.login(email: _usernameController.text,password:_passwordController.text);
+                    if(user != null){
+                      Navigator.pushNamed(context, '/home');
+                    }
                   },
                   style: const ButtonStyle(
                     alignment: Alignment.center,
