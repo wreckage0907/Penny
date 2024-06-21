@@ -7,10 +7,10 @@ import 'package:mobile/Pages/login/input_field.dart';
 import 'package:mobile/Services/auth.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
@@ -29,27 +29,24 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromRGBO(255, 246, 229, 1),
-      body: Padding(
-        padding: const EdgeInsets.all(28),
+      body: Container(
+        alignment: Alignment.center,
         child: SingleChildScrollView(
-          child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 700),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
+          child: Padding(
+            padding: const EdgeInsets.all(28),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(
                   width: 200,
-                  child: const Image(
+                  child: Image(
                     image: AssetImage('assets/title.png'),
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Center(
-                child: Text(
+                const SizedBox(
+                  height: 20,
+                ),
+                Text(
                   'Welcome Back!',
                   style: GoogleFonts.spectral(
                     fontSize: 45,
@@ -57,14 +54,12 @@ class _LoginPageState extends State<LoginPage> {
                     color: Colors.black87,
                   ),
                 ),
-              ),
-              const SizedBox(height: 26),
-              UsernameField(controller: _usernameController,),
-              const SizedBox(height: 14),
-              PasswordField(controller: _passwordController,),
-              const SizedBox(height: 25),
-              Center(
-                child: Text(
+                const SizedBox(height: 26),
+                UsernameField(controller: _usernameController,),
+                const SizedBox(height: 14),
+                PasswordField(controller: _passwordController,),
+                const SizedBox(height: 25),
+                Text(
                   'or continue with',
                   style: GoogleFonts.spectral(
                     fontSize: 24,
@@ -72,114 +67,113 @@ class _LoginPageState extends State<LoginPage> {
                     color: Colors.black87,
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: () async {
-                      await _authService.signinWithGoogle();
-                      Navigator.pushNamed(context, '/home');
-                    },
-                    icon: const FaIcon(FontAwesomeIcons.google, color: Colors.black, size: 32),
-                    style: const ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
-                      padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
-                      minimumSize: WidgetStatePropertyAll(Size(80, 20)),
-                      shape: WidgetStatePropertyAll(
-                        CircleBorder(
-                          side: BorderSide( 
-                            color: Colors.black38,
-                            width: 2,
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      onPressed: () async {
+                        UserCredential? user = await _authService.signinWithGoogle();
+                        if(user != null) {
+                          Navigator.pushNamed(context, '/home');
+                        }
+                      },
+                      icon: const FaIcon(FontAwesomeIcons.google, color: Colors.black, size: 32),
+                      style: const ButtonStyle(
+                        backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+                        padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
+                        minimumSize: WidgetStatePropertyAll(Size(80, 20)),
+                        shape: WidgetStatePropertyAll(
+                          CircleBorder(
+                            side: BorderSide( 
+                              color: Colors.black38,
+                              width: 2,
+                            ),
                           ),
                         ),
+                        elevation: WidgetStatePropertyAll(2),
                       ),
-                      elevation: WidgetStatePropertyAll(2),
                     ),
-                  ),
-                  IconButton(
+                    IconButton(
+                      onPressed: () async {
+                        UserCredential? user =await _authService.signInWithGithub();
+                        if(user != null){
+                          Navigator.pushNamed(context, '/home');
+                        }
+                      },
+                      icon: const FaIcon(FontAwesomeIcons.github, color: Colors.black, size: 32),
+                      style: const ButtonStyle(
+                        backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+                        padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
+                        minimumSize:  WidgetStatePropertyAll(Size(80,20)),
+                        shape:  WidgetStatePropertyAll(
+                          CircleBorder(
+                            side: BorderSide(
+                              color: Colors.black38,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        elevation:  WidgetStatePropertyAll(2),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => print("Microsoft Clicked"),
+                      icon: const FaIcon(FontAwesomeIcons.microsoft, color: Colors.black, size: 32),
+                      style: const ButtonStyle(
+                        backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+                        padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
+                        minimumSize:  WidgetStatePropertyAll(Size(80,20)),
+                        shape:  WidgetStatePropertyAll(
+                          CircleBorder(
+                            side: BorderSide(
+                              color: Colors.black38,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        elevation:  WidgetStatePropertyAll(2),
+                      ),
+                    ),  
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20,right:20,top: 20,bottom: 5),
+                  child: TextButton(
                     onPressed: () async {
-                      UserCredential? user =await _authService.signInWithGithub();
+                      UserCredential? user = await _authService.login(email: _usernameController.text,password:_passwordController.text);
                       if(user != null){
                         Navigator.pushNamed(context, '/home');
                       }
-                      
                     },
-                    icon: const FaIcon(FontAwesomeIcons.github, color: Colors.black, size: 32),
                     style: const ButtonStyle(
-                      backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
-                      padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
-                      minimumSize:  WidgetStatePropertyAll(Size(80,20)),
-                      shape:  WidgetStatePropertyAll(
-                        CircleBorder(
+                      alignment: Alignment.center,
+                      backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(175, 92, 92, 0.8)),
+                      padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 16, horizontal: 24)),
+                      minimumSize: WidgetStatePropertyAll(Size(double.infinity, 24)),
+                      shape: WidgetStatePropertyAll(
+                        RoundedRectangleBorder(
                           side: BorderSide(
-                            color: Colors.black38,
-                            width: 2,
+                            color: Color.fromRGBO(109, 109, 109, 1),
+                            width: 1.5,
                           ),
+                          borderRadius: BorderRadius.all(Radius.circular(28)),
                         ),
                       ),
-                      elevation:  WidgetStatePropertyAll(2),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () => print("Microsoft Clicked"),
-                    icon: const FaIcon(FontAwesomeIcons.microsoft, color: Colors.black, size: 32),
-                    style: const ButtonStyle(
-                      backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
-                      padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
-                      minimumSize:  WidgetStatePropertyAll(Size(80,20)),
-                      shape:  WidgetStatePropertyAll(
-                        CircleBorder(
-                          side: BorderSide(
-                            color: Colors.black38,
-                            width: 2,
-                          ),
-                        ),
+                    child: Text(
+                      'Sign In',
+                      style: GoogleFonts.spectral(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                      elevation:  WidgetStatePropertyAll(2),
-                    ),
-                  ),  
-                ],
-              ),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.only(left: 20,right:20,top: 20,bottom: 5),
-                child: TextButton(
-                  onPressed: () async {
-                    UserCredential? user = await _authService.login(email: _usernameController.text,password:_passwordController.text);
-                    if(user != null){
-                      Navigator.pushNamed(context, '/home');
-                    }
-                  },
-                  style: const ButtonStyle(
-                    alignment: Alignment.center,
-                    backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(175, 92, 92, 0.8)),
-                    padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 16, horizontal: 24)),
-                    minimumSize: WidgetStatePropertyAll(Size(double.infinity, 24)),
-                    shape: WidgetStatePropertyAll(
-                      RoundedRectangleBorder(
-                        side: BorderSide(
-                          color: Color.fromRGBO(109, 109, 109, 1),
-                          width: 1.5,
-                        ),
-                        borderRadius: BorderRadius.all(Radius.circular(28)),
-                      ),
-                    ),
-                  ),
-                  child: Text(
-                    'Sign In',
-                    style: GoogleFonts.spectral(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              Center(
-                child: RichText(
+                const SizedBox(height: 30),
+                RichText(
                   text: TextSpan(
                     style: GoogleFonts.spectral(
                       fontSize: 19,
@@ -202,10 +196,9 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
         ),
       ),
     );

@@ -43,7 +43,7 @@ class Auth {
     return null;
   }
   
-  Future<UserCredential> signinWithGoogle() async {
+  Future<UserCredential?> signinWithGoogle() async {
     final googleUser = await GoogleSignIn().signIn();
 
     final googleAuth = await googleUser!.authentication;
@@ -55,11 +55,11 @@ class Auth {
 
     return await _auth.signInWithCredential(credential);
   }
-Future<UserCredential?> signInWithGithub() async {
-  GithubAuthProvider githubProvider = GithubAuthProvider();
-  return await FirebaseAuth.instance.signInWithProvider(githubProvider);
-}
-  
+
+  Future<UserCredential?> signInWithGithub() async {
+    GithubAuthProvider githubProvider = GithubAuthProvider();
+    return await FirebaseAuth.instance.signInWithProvider(githubProvider);
+  }
 
   Future<void> signout({
     required BuildContext context
