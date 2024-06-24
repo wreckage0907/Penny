@@ -19,7 +19,14 @@ class _homeState extends State<home> {
       body: Center(
         child: TextButton(onPressed: () async { _authService.signout(context: context);}, child: const Text('Sign Out'),
       ),
-    )
+      
+    ),
+    floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/expense');
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }
