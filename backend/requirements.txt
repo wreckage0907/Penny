@@ -1,2 +1,6 @@
 fastapi
 uvicorn
+firebase-admin
+httpx
+pytest
+
