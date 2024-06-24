@@ -1,9 +1,13 @@
 from fastapi import APIRouter
 from firebase_admin import credentials, firestore, initialize_app
+import os
+
 
 router = APIRouter()
 
-cred = credentials.ApplicationDefault()
+current = os.path.dirname(__file__)
+path = os.path.join(current, "../firebase.json")
+cred = credentials.Certificate(path)
 initialize_app(cred)
 db = firestore.client()
 
@@ -14,8 +18,5 @@ def get_user(user_id: str):
     return user
 
 
-@router.post("/user")
-def create_user(user_id: str, user: dict):
-    user_ref = db.collection("users").document(user_id)
-    user_ref.set(user)
-    return user
+
+
