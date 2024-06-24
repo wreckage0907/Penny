@@ -1,13 +1,1 @@
-{
-  "type": "service_account",
-  "project_id": "penny-89979",
-  "private_key_id": "caf69c39b69f9c6c2063f3c4487d59fd436b5719",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDi5qvjFd8Ff2gg\nB6XseZWhqWePP308MQPa/3i0kKpzeY6LRBQXNjmOmbx+JohoV4p6pAvLwGntl8AZ\nzGoppcWdT/RwqQIiCILKSVCzelKT+O5Ec/bodLeB9HM//+Q/z67Z9WLC4Aohekp8\nxYVGBgi0Nd45zq9zyasBK9VIPg4f7qtMFEkxbekLtFAarTjqKEwxVnJX6LFDEEQp\nu3YYbd7buocCvI26opc/8pL9V0hykufjlv1N2aIKlDPHAX0feuESuVGOJEyYAXZo\nVThbrZNgM4SflGvPeSHjK+0Vk/7omQ8NfIp4F45PZd/HIhorewKy0WCWqMf3gO96\nwnHRQzSdAgMBAAECggEAHp23dcW+uRQu7Zt6lQT23sBn+9k6QcPvXD56gArBJSGy\nzTHbcCJd89LkrzTt1P5y7gdynASThn6iahi9/m6i0o42UnlLk2IIm9j2rbEEsXi2\nVcA8AbO2Cy/72RfjKYURd9F3iQoH8+p3YIyaZg9sXzyhhrVP0VTV4SuT9NKCv2YI\n1zdoYVHTa/ASb/FK73LI6oeGIT9BnAcr+Dw8NsNTbOMSIOhq6dt+yte7Wy0kE86j\nkidATSBD7CnNL6r0lj2nvZuPiLzUlCqPxGpE6sUYf11FkZSG0epLKL004vPMYptS\n/meW86pC0rCJ8i8pLVtAuYPH9L5nVoaSPCgnKjyzQQKBgQD7lMgKLEToqpg3eAY2\n1WU+lHJFunEG6dnF3QopMLB/JHVG+TsLR7khZL1MLEeJnngjopXk5hNvDAHrt4Sj\npDWddTJNkaY0OrwCno8reHM537Te0qkQ+jfLE/EiEqIIok+qblD5m/SPDBlcjr/+\ntpI71uyvs2MWLrBuEGBHKmQYDQKBgQDm4urfNJLKTwCGhu02zjhf7524nwxpb4Kh\nZ0qLucCcW9zbpBvuXU3HxgB++zKQc/i9dPHa0aen93yd/3ISrhHhHyeB2ZGn5VRk\nY0M32PNUMNyIXPgUu84tED1SjFkvnJfqYEZrrnLEhp/0mCUZrQA5N00RrfdEnjuC\ndzJkBLNa0QKBgQCq0jv9hE+Jt4PBbhKyGrUzB7KLm+tw6Un/6nUiwLemrMeg2Et5\n/ko63V8XIJ22WM50S8oBcSNS7FFFjwdV4YKyFkiAmNvEbPkJwkWuG4wJiNcT0PAQ\n4gUOM80v+Hzi5eq36026HmWw12NFEHxW4/po/ScaqfAmuK79HMtyptrt5QKBgFdv\n6gi7jTemcYmAwYb20+yo/u7y9K1dOHhNeLKvltzgASUA4j8EALe+KWPtV3nTIYkG\nJ615pmd61yuymI2wdD7wIHMRZRLTS4F1Afi9ZXEly+6sXprjgLIaK07+ravVPsbY\nzPJsrzPz09G6aJpvpN0GL16ZpkHLNrgy0deE3DNxAoGAZbaX8Wp1dyVtFwjFUgjo\noa8kdYcX6W8r89DfSks40Cn0n5I0aLhJyA0gs+VTrs1Z2L+OErqGdp8ZEPF8eR7y\n5p98Y0eoRXkzg7ePuTpUyTiPgsdMHIzr3Fk9OO6b0ykQxbK/GDec229YfaNxRi3U\no6x1VaRtQgL0l0dpp0o8o1U=\n-----END PRIVATE KEY-----\n",
-  "client_email": "penny-448@penny-89979.iam.gserviceaccount.com",
-  "client_id": "103856183241476659352",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/penny-448%40penny-89979.iam.gserviceaccount.com",
-  "universe_domain": "googleapis.com"
-}
+{"flutter":{"platforms":{"android":{"default":{"projectId":"penny-89979","appId":"1:176271187302:android:f6f27df3ff4dfab9ec3ca7","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"penny-89979","configurations":{"android":"1:176271187302:android:f6f27df3ff4dfab9ec3ca7","ios":"1:176271187302:ios:e0bc03937f805df4ec3ca7","macos":"1:176271187302:ios:e0bc03937f805df4ec3ca7","web":"1:176271187302:web:08e659231b10b79cec3ca7","windows":"1:176271187302:web:e5ed2ad03aba3198ec3ca7"}}}}}}
