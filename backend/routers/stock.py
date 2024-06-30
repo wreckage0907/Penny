@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from schema.stock import Stock
+from schema.stock import Stock 
 from database.firebase import StockDatabase
 from database.firebase_init import db
 

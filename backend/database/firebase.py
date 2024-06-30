@@ -1,4 +1,4 @@
-from schema.stock import Stock
+from schema.stock import Stock  
 from .firebase_init import db
 
 class StockDatabase:

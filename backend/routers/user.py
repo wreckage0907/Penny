@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from database.firebase_init import db
 
 router = APIRouter()
@@ -6,5 +6,7 @@ router = APIRouter()
 @router.get("/user")
 def get_user(user_id: str):
     user_ref = db.collection("users").document(user_id)
-    user = user_ref.get().to_dict()
-    return user
+    user = user_ref.get()
+    if user.exists:
+        return user.to_dict()
+    raise HTTPException(status_code=404, detail="User not found")

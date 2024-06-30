@@ -13,7 +13,5 @@ async def get_file(folder: str, subfolder: str, filename: str):
             return {"content": content}
         else:
             raise HTTPException(status_code=404, detail="File not found")
-    except HTTPException as e:
-        raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
