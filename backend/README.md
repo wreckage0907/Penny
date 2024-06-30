@@ -27,22 +27,4 @@ Firebase configuration file containing project settings and credentials.
 This structure separates concerns, enhancing modularity and maintainability. It centralizes database initialization, separates API handlers, defines clear data models, and isolates background tasks.
 
 
-backend/
-│
-├── main.py
-│
-├── database/
-│   └── firebase_init.py
-│
-├── routers/
-│   ├── user.py
-│   ├── stock.py
-│   └── file.py
-│
-├── schemas/
-│   └── stock.py
-│
-├── services/
-│   └── stock_simulator.py
-│
-└── firebase.json
+![image](https://github.com/wreckage0907/Penny/assets/119794177/11f7a595-e7a5-4587-b054-f265da8f8aad)
