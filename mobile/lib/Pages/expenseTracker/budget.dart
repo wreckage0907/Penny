@@ -1,7 +1,7 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 class Expense {
   final String name;
@@ -10,16 +10,25 @@ class Expense {
   Expense(this.name, this.amount);
 }
 
+class CategoryExpense {
+  final String category;
+  final Expense expense;
+
+  CategoryExpense(this.category, this.expense);
+}
+
 class Category extends StatefulWidget {
   final String categoryName;
   final IconData iconData;
   final List<Expense> expenses;
+  final Function(Expense) onExpenseAdded;
 
   Category({
     Key? key,
     required this.categoryName,
     required this.iconData,
     List<Expense>? expenses,
+    required this.onExpenseAdded,
   }) : expenses = expenses ?? [], super(key: key);
 
   @override
@@ -112,9 +121,11 @@ class _CategoryState extends State<Category> {
               ),
               onPressed: () {
                 if (expenseName.isNotEmpty && amount > 0) {
+                  final newExpense = Expense(expenseName, amount);
                   setState(() {
-                    widget.expenses.add(Expense(expenseName, amount));
+                    widget.expenses.add(newExpense);
                   });
+                  widget.onExpenseAdded(newExpense);  
                   Navigator.of(context).pop();
                 }
               },
@@ -140,7 +151,7 @@ class _CategoryState extends State<Category> {
                 Row(
                   children: [
                     Icon(widget.iconData, color: Colors.black, size: 20),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         widget.categoryName,
@@ -161,7 +172,7 @@ class _CategoryState extends State<Category> {
                     ),
                   ],
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Column(
                   children: widget.expenses.map((expense) {
                     return Row(
@@ -204,14 +215,41 @@ class Budget extends StatefulWidget {
 }
 
 class _BudgetState extends State<Budget> {
-  int _monthlyBudget = 800;
-  List<Category> _categories = [
-    Category(
+  final int _monthlyBudget = 800;
+  final List<Category> _categories = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _categories.add(Category(
       categoryName: "Travel and Transport",
       iconData: FontAwesomeIcons.car,
       expenses: [Expense("Car Insurance", 350.0)],
-    ),
-  ];
+      onExpenseAdded: _handleExpenseAdded,
+    ));
+    _categories.add(Category(
+      categoryName: "Utility Charges",
+      iconData: FontAwesomeIcons.lightbulb,
+      expenses: [Expense("Electricity", 100.0)],
+      onExpenseAdded: _handleExpenseAdded,
+    ));
+    _categories.add(Category(
+      categoryName: "Food",
+      iconData: FontAwesomeIcons.utensils,
+      expenses: [Expense("Groceries", 200.0)],
+      onExpenseAdded: _handleExpenseAdded,
+    ));
+    _categories.add(Category(
+      categoryName: "Subscriptions",
+      iconData: FontAwesomeIcons.tv,
+      expenses: [Expense("Youtube", 100.0), Expense("Spotify", 150.0), Expense("Hotstar", 150.0), Expense("Prime", 250.0)],
+      onExpenseAdded: _handleExpenseAdded,
+    ));
+  }
+
+  void _handleExpenseAdded(Expense expense) {
+    setState(() {});
+  }
 
   void _showAddCategoryDialog() {
     String categoryName = '';
@@ -275,7 +313,8 @@ class _BudgetState extends State<Budget> {
                     _categories.add(Category(
                       categoryName: categoryName,
                       iconData: FontAwesomeIcons.moneyBill,
-                      expenses: [],
+                      expenses: const [],
+                      onExpenseAdded: _handleExpenseAdded, 
                     ));
                   });
                   Navigator.of(context).pop();
@@ -290,6 +329,36 @@ class _BudgetState extends State<Budget> {
 
   @override
   Widget build(BuildContext context) {
+    List<CategoryExpense> allCategoryExpenses = _categories.expand((category) => 
+      category.expenses.map((expense) => CategoryExpense(category.categoryName, expense))
+    ).toList();    
+    double total = allCategoryExpenses.fold(0, (sum, item) => sum + item.expense.amount);
+
+    final TooltipBehavior tooltipBehavior = TooltipBehavior(
+      enable: true,
+      format: 'point.x : \$point.y',
+      textStyle: const TextStyle(color: Colors.white),
+      color: Colors.black.withOpacity(0.7),
+      duration: 3000,
+      canShowMarker: true,
+      shared: false,
+      animationDuration: 1000,
+      builder: (dynamic data, dynamic point, dynamic series, int pointIndex, int seriesIndex) {
+        CategoryExpense categoryExpense = data as CategoryExpense;
+        return Container(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(categoryExpense.category, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+              Text('${categoryExpense.expense.name}: \$${categoryExpense.expense.amount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white)),
+            ],
+          ),
+        );
+      },
+    );
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 70,
@@ -307,7 +376,7 @@ class _BudgetState extends State<Budget> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.only(left: 20, right: 20, top: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -340,24 +409,51 @@ class _BudgetState extends State<Budget> {
                   ),
                   Text(
                     "Monthly Budget:  \$ $_monthlyBudget",
-                    style: GoogleFonts.spectral(),
+                    style: GoogleFonts.spectral(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   )
                 ],
               ),
             ),
-            
+            SfCircularChart(
+              margin: const EdgeInsets.all(0),
+              tooltipBehavior: tooltipBehavior,
+              series: <CircularSeries> [
+                DoughnutSeries <CategoryExpense, String> (
+                  dataSource: allCategoryExpenses,
+                  xValueMapper: (CategoryExpense data, _) => data.expense.name,
+                  yValueMapper: (CategoryExpense data, _) => data.expense.amount,
+                  radius: '90%',
+                  innerRadius: '60%',
+                  enableTooltip: true,
+                  strokeWidth: 5,
+                  strokeColor: const Color.fromRGBO(230, 242, 232, 1),
+                  pointRenderMode: PointRenderMode.segment,
+                ),
+              ],
+              annotations: <CircularChartAnnotation> [
+                CircularChartAnnotation(
+                   widget: Text(
+                    "\$ ${total.toStringAsFixed(2)}",
+                    style: GoogleFonts.spectral(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                )
+              ],
+            ),
             Column(
               children: _categories,
             ),
-
-            
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        
         onPressed: _showAddCategoryDialog,
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

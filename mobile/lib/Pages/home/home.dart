@@ -44,7 +44,7 @@ class _HomeState extends State<Home> {
         '/practice': (context) => PracticeList(),
         '/mcq': (context) => const MCQPage(),
       },  
-      home: Scaffold(
+      home: Scaffold( 
         //backgroundColor: const Color.fromRGBO(232, 245, 233, 1),
         body: Padding(
           padding: const EdgeInsets.all(20.0),
