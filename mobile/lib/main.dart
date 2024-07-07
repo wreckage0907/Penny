@@ -1,13 +1,16 @@
 //Pages Import
 import 'package:flutter/material.dart';
 import 'package:mobile/Pages/chatbot/chatbot_page.dart';
-import 'package:mobile/Pages/home/learning_page.dart';
+import 'package:mobile/Pages/expenseTracker/budget.dart';
+import 'package:mobile/Pages/learningPage/learning_page.dart';
 import 'package:mobile/Pages/login/login.dart';
 import 'package:mobile/Pages/login/signup.dart';
 import 'package:mobile/Pages/home/home.dart';
 
 //Firebase Import
 import 'package:firebase_core/firebase_core.dart';
+import 'package:mobile/Pages/practice/list_of_modules.dart';
+import 'package:mobile/Pages/practice/mcqpage.dart';
 import 'package:mobile/firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -41,9 +44,12 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
-        '/home': (context) => const home(),
+        '/home': (context) => const Home(),
         '/coursepage': (context) => const LearningPage(),
         '/chatbot': (context) => const ChatbotPage(),
+        '/budget': (context) => const Budget(),
+        '/practice': (context) => PracticeList(),
+        '/mcq': (context) => const MCQPage(),
         //'/expense': (context) => const Expense(),
       },
     );
@@ -62,7 +68,7 @@ class AuthWrapper extends StatelessWidget {
           return const CircularProgressIndicator(); // Or a splash screen
         } else {
           if (snapshot.hasData) {
-            return const home();
+            return const Home();
           } else {
             return const LoginPage();
           }
