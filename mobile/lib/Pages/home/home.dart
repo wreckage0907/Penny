@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile/Pages/chatbot/chatbot_page.dart';
 import 'package:mobile/Pages/home/lesson_page.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
@@ -31,7 +32,11 @@ class _HomeState extends State<home> {
       debugShowCheckedModeBanner: false,
       routes: {
         '/coursepage': (context) => const LearningPage(),
-        '/lesson1': (context) => const LessonPage(),
+        '/lesson1': (context) => const LessonPage(
+          lessonName: "Lesson 1",
+          fileName: "assets/1_1.md",
+        ),
+        '/chatbot': (context) => const ChatbotPage(),
       },
       home: Scaffold(
         //backgroundColor: const Color.fromRGBO(232, 245, 233, 1),
@@ -232,30 +237,30 @@ class _HomeState extends State<home> {
             ],
           ),
         ),
-        bottomNavigationBar: const Padding(
-          padding: EdgeInsets.only(bottom: 14),
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.only(bottom: 14),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               IconButton(
-                onPressed: null, 
-                icon: Icon(
+                onPressed: () => Navigator.pushNamed(context, '/home'), 
+                icon: const Icon(
                   Icons.home_filled,
                   size: 40,
                   //color: Color.fromRGBO(53, 51, 58, 1),
                 )
               ),
               IconButton(
-                onPressed: null, 
-                icon: Icon(
+                onPressed: () => Navigator.pushNamed(context, '/coursepage'), 
+                icon: const Icon(
                   Icons.bar_chart_rounded,
                   size: 40,
                   //color: Color.fromRGBO(53, 51, 58, 1),
                 )
               ),
               IconButton(
-                onPressed: null, 
-                icon: Icon(
+                onPressed: () => Navigator.pushNamed(context, '/chatbot'), 
+                icon: const Icon(
                   Icons.chat_rounded,
                   size: 40,
                   //color: Color.fromRGBO(53, 51, 58, 1),

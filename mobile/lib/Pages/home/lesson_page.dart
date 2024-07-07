@@ -3,16 +3,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 class LessonPage extends StatelessWidget {
-  const LessonPage({super.key});
+  const LessonPage({required this.lessonName, required this.fileName, super.key});
+
+  final String lessonName, fileName;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Introduction to Personal Finance"),
+        title: Text(lessonName),
       ),
       body: FutureBuilder(
-        future: rootBundle.loadString("assets/1_1.md"),
+        future: rootBundle.loadString(fileName),
         builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
           if(snapshot.hasData) {
             return Markdown(data: snapshot.data ?? '');
