@@ -37,8 +37,13 @@ dependencies:
   flutter_facebook_auth: '^4.0.3'
   font_awesome_flutter: ^10.2.1
   google_fonts: ^4.0.5
-  flutter_dotenv: ^5.0.2
   percent_indicator: ^4.2.3
+  flutter_markdown: ^0.7.3
+  flutter_gemini: ^2.0.4
+  image_picker: ^1.1.2
+  dash_chat_2: ^0.0.21
+  flutter_dotenv: ^5.1.0
+  fl_chart: ^0.68.0
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
@@ -73,6 +78,9 @@ flutter:
     - assets/predict_stocks.png
     - assets/practice.png
     - assets/expense_tracker.png
+    - assets/background1.png
+    - assets/1_1.md
+    - .env
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

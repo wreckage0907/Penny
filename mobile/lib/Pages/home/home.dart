@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile/Pages/chatbot/chatbot_page.dart';
+import 'package:mobile/Pages/expenseTracker/budget.dart';
+import 'package:mobile/Pages/learningPage/lesson_page.dart';
+import 'package:mobile/Pages/practice/list_of_modules.dart';
+import 'package:mobile/Pages/practice/mcqpage.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import 'package:mobile/Pages/learningPage/learning_page.dart';
 
-class home extends StatefulWidget {
-  const home({super.key});
+class Home extends StatefulWidget {
+  const Home({super.key});
 
   @override
-  State<home> createState() => _HomeState();
+  State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<home> {
+class _HomeState extends State<Home> {
   final Auth _authService = Auth();
 
   String username = "wreckage";
@@ -27,6 +33,17 @@ class _HomeState extends State<home> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      routes: {
+        '/coursepage': (context) => const LearningPage(),
+        '/lesson1': (context) => const LessonPage(
+          lessonName: "Lesson 1",
+          fileName: "assets/1_1.md",
+        ),
+        '/chatbot': (context) => const ChatbotPage(),
+        '/budget': (context) => const Budget(),
+        '/practice': (context) => PracticeList(),
+        '/mcq': (context) => const MCQPage(),
+      },  
       home: Scaffold(
         //backgroundColor: const Color.fromRGBO(232, 245, 233, 1),
         body: Padding(
@@ -132,7 +149,7 @@ class _HomeState extends State<home> {
                     switch (index) {
                       case 0:
                         return GestureDetector(
-                          onTap: () => print("Course Page Clicked"),
+                          onTap: () => Navigator.pushNamed(context, '/coursepage'),
                           child: Card(
                             elevation: 10,
                             //color: const Color.fromRGBO(98, 117, 127, 1),
@@ -187,7 +204,15 @@ class _HomeState extends State<home> {
                         );
                       default:
                         return GestureDetector(
-                          onTap: () => print("Card $index clicked"),
+                          onTap: () => {
+                            if (index == 1) {
+                              Navigator.pushNamed(context, '/budget')
+                            } else if (index == 2) {
+                              Navigator.pushNamed(context, '/mcq')
+                            } else {
+                              Navigator.pushNamed(context, '/practice')
+                            }
+                          },
                           child: Card(
                             elevation: 10,
                             //color: const Color.fromRGBO(98, 117, 127, 1),
@@ -226,30 +251,30 @@ class _HomeState extends State<home> {
             ],
           ),
         ),
-        bottomNavigationBar: const Padding(
-          padding: EdgeInsets.only(bottom: 14),
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.only(bottom: 14),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               IconButton(
-                onPressed: null, 
-                icon: Icon(
+                onPressed: () => Navigator.pushNamed(context, '/home'), 
+                icon: const Icon(
                   Icons.home_filled,
                   size: 40,
                   //color: Color.fromRGBO(53, 51, 58, 1),
                 )
               ),
               IconButton(
-                onPressed: null, 
-                icon: Icon(
+                onPressed: () => Navigator.pushNamed(context, '/coursepage'), 
+                icon: const Icon(
                   Icons.bar_chart_rounded,
                   size: 40,
                   //color: Color.fromRGBO(53, 51, 58, 1),
                 )
               ),
               IconButton(
-                onPressed: null, 
-                icon: Icon(
+                onPressed: () => Navigator.pushNamed(context, '/chatbot'), 
+                icon: const Icon(
                   Icons.chat_rounded,
                   size: 40,
                   //color: Color.fromRGBO(53, 51, 58, 1),
