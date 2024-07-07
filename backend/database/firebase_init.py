@@ -10,4 +10,4 @@ def initialize_firebase():
     })
     return firestore.client(), storage.bucket()
 
-db, firebase_storage = initialize_firebase()
+firestore_db, firebase_storage = initialize_firebase()
