@@ -18,7 +18,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
   ChatUser geminiUser = ChatUser(
     id: "1", 
     firstName: "Gemini",
-    profileImage: "https://seeklogo.com/images/G/google-gemini-logo-A5787B2669-seeklogo.com.png",
+    profileImage: "assets/gemini_logo.webp",
   );
 
   void _sendMessage(ChatMessage chatMessage) {
