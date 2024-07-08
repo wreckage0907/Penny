@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/Pages/chatbot/chatbot_page.dart';
+import 'package:mobile/Pages/coursePage/course_page.dart';
 import 'package:mobile/Pages/expenseTracker/budget.dart';
-import 'package:mobile/Pages/learningPage/lesson_page.dart';
+import 'package:mobile/Pages/coursePage/lesson_page.dart';
 import 'package:mobile/Pages/practice/list_of_modules.dart';
 import 'package:mobile/Pages/practice/mcqpage.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
-import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:mobile/Pages/learningPage/learning_page.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
+
+
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -19,8 +24,85 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final Auth _authService = Auth();
+  Future<void> readJson() async {
+    final String response = await rootBundle.loadString('assets/finance.json');
+    final data = await json.decode(response);
+    setState(() {
+      articles = data['articles'];
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    readJson();
+  }
 
   String username = "wreckage";
+  final _controller = PageController();
+  
+  List<dynamic> articles = [];
+List<Widget> get widgetsList {
+  return List.generate(
+    20,
+    (index) => GestureDetector(
+      onTap: () => launch(articles[index]['url']), // Launch URL on tap
+      child: Card(
+        elevation: 1.5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              child: Image.network(
+                articles[index]['urlToImage'] ?? 'https://via.placeholder.com/300x200',
+                fit: BoxFit.cover,
+                height: 160,
+                width: double.infinity,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 150,
+                    color: Colors.grey,
+                    child: Center(
+                      child: Icon(Icons.error),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      articles[index]['title'] ?? 'No title',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4),
+                    Expanded(
+                      child: Text(
+                        articles[index]['description'] ?? 'No description',
+                        style: TextStyle(fontSize: 12),
+                        overflow: TextOverflow.fade,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
 
   List data = [
     {"title": "Course\nPage", "image": "assets/course_page.png"},
@@ -34,7 +116,7 @@ class _HomeState extends State<Home> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       routes: {
-        '/coursepage': (context) => const LearningPage(),
+        '/coursepage': (context) => CoursePage(),
         '/lesson1': (context) => const LessonPage(
           lessonName: "Lesson 1",
           fileName: "assets/1_1.md",
@@ -72,68 +154,25 @@ class _HomeState extends State<Home> {
                 ],
               ),
               const SizedBox(height: 20),
-              GestureDetector(
-                onTap: () => print("Card clicked"),
-                child: Card(
-                  elevation: 10,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15)
-                  ),
-                  //color: const Color.fromRGBO(167, 196, 188, 1),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Chapter 3',
-                          style: GoogleFonts.darkerGrotesque(
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            //color: const Color.fromRGBO(53, 51, 58, 1),
-                          ),
-                        ),
-                        Text(
-                          'Continue where you left',
-                          style: GoogleFonts.darkerGrotesque(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w600,
-                            //color: const Color.fromRGBO(53, 51, 58, 1),
-                          ),
-                        ),
-                        LinearPercentIndicator(
-                          animation: true,
-                          animationDuration: 500,
-                          lineHeight: 16,
-                          //progressColor: const Color.fromRGBO(98, 117, 127, 1),
-                          //backgroundColor: const Color.fromRGBO(198, 219, 210, 1),
-                          percent: 0.6,
-                          padding: const EdgeInsets.only(top: 4, left: 6),
-                          barRadius: const Radius.circular(8),
-                          leading: Text(
-                            '60%',
-                            style: GoogleFonts.darkerGrotesque(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w600,
-                              //color: const Color.fromRGBO(53, 51, 58, 1),
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
+              SizedBox(
+                height: 260,
+                child: PageView(
+                  controller: _controller,
+                  children: widgetsList
                 ),
               ),
-              const SizedBox(height: 35),
-              Text(
-                'LOREM LIPSUM',
-                style: GoogleFonts.kronaOne(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w500,
-                  //color: const Color.fromRGBO(74, 91, 99, 1),
+              const SizedBox(height: 12),
+              SmoothPageIndicator(
+                controller: _controller, 
+                count: widgetsList.length,
+                effect: const SwapEffect(
+                  activeDotColor: Colors.black87,
+                  dotColor: Colors.black38,
+                  dotHeight: 5,
+                  dotWidth: 5,
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 15),
               Expanded(
                 child: GridView.builder(
                   itemCount: data.length,
@@ -142,8 +181,8 @@ class _HomeState extends State<Home> {
                   shrinkWrap: true,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    mainAxisSpacing: 14,
-                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
                   ), 
                   itemBuilder: (context, index) {
                     switch (index) {
@@ -151,6 +190,7 @@ class _HomeState extends State<Home> {
                         return GestureDetector(
                           onTap: () => Navigator.pushNamed(context, '/coursepage'),
                           child: Card(
+                            color: Color.fromRGBO(72, 75, 106, 1),
                             elevation: 10,
                             //color: const Color.fromRGBO(98, 117, 127, 1),
                             shape: RoundedRectangleBorder(
@@ -166,7 +206,7 @@ class _HomeState extends State<Home> {
                                     child: Text(
                                       data[index]['title'],
                                       style: GoogleFonts.darkerGrotesque(
-                                        //color: const Color.fromRGBO(230, 242, 232, 1),
+                                        color: const Color.fromRGBO(250, 250, 250, 1),
                                         fontSize: 28,
                                         fontWeight: FontWeight.w600,
                                         height: 1.1,
@@ -179,7 +219,7 @@ class _HomeState extends State<Home> {
                                       Text(
                                         '74%',
                                         style: GoogleFonts.darkerGrotesque(
-                                          //color: const Color.fromRGBO(230, 242, 232, 1),
+                                          color: const Color.fromRGBO(250, 250, 250, 1),
                                           fontSize: 28,
                                           fontWeight: FontWeight.w600,
                                         )
@@ -215,6 +255,7 @@ class _HomeState extends State<Home> {
                           },
                           child: Card(
                             elevation: 10,
+                            color: Color.fromRGBO(72, 75, 106, 1),
                             //color: const Color.fromRGBO(98, 117, 127, 1),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
@@ -227,7 +268,7 @@ class _HomeState extends State<Home> {
                                   Text(
                                     data[index]['title'],
                                     style: GoogleFonts.darkerGrotesque(
-                                      //color: const Color.fromRGBO(230, 242, 232, 1),
+                                      color: const Color.fromRGBO(250, 250, 250, 1),
                                       fontSize: 28,
                                       fontWeight: FontWeight.w600,
                                       height: 1.1,

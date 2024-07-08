@@ -1,8 +1,8 @@
 //Pages Import
 import 'package:flutter/material.dart';
 import 'package:mobile/Pages/chatbot/chatbot_page.dart';
+import 'package:mobile/Pages/coursePage/course_page.dart';
 import 'package:mobile/Pages/expenseTracker/budget.dart';
-import 'package:mobile/Pages/learningPage/learning_page.dart';
 import 'package:mobile/Pages/login/login.dart';
 import 'package:mobile/Pages/login/signup.dart';
 import 'package:mobile/Pages/home/home.dart';
@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignUpPage(),
         '/home': (context) => const Home(),
-        '/coursepage': (context) => const LearningPage(),
+        '/coursepage': (context) => CoursePage(),
         '/chatbot': (context) => const ChatbotPage(),
         '/budget': (context) => const Budget(),
         '/practice': (context) => PracticeList(),

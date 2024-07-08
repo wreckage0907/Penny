@@ -59,6 +59,29 @@ class _ChatbotPageState extends State<ChatbotPage> {
     }
   }
 
+  int _selectedIndex = 0;
+
+  static const List<Widget> _widgetOptions = <Widget> [
+    Text(
+      "Hello 1",
+    ),
+    Text(
+      "Hello 2",
+    ),
+    Text(
+      "Hello 3",
+    ),
+    Text(
+      "Hello 4",
+    ),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,11 +89,86 @@ class _ChatbotPageState extends State<ChatbotPage> {
         title: const Text(
           "Gemini Chat",
         ),
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              onPressed: () {
+                Scaffold.of(context).openDrawer(); 
+              },
+              icon: const Icon(Icons.menu),
+            );
+          },
+        ),
       ),
-      body: DashChat(
-        currentUser: currentUser,
-        onSend: _sendMessage,
-        messages: messages,
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              height: 70,
+              child: const Text(
+                "Chat History",
+                style: TextStyle(
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              title: const Text("Hello 1"),
+              selectedTileColor: Colors.black12,
+              selectedColor: Colors.black,
+              selected: _selectedIndex == 0,
+              onTap: () {
+                _onItemTapped(0);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: const Text("Hello 2"),
+              selectedTileColor: Colors.black12,
+              selectedColor: Colors.black,
+              selected: _selectedIndex == 1,
+              onTap: () {
+                _onItemTapped(1);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: const Text("Hello 3"),
+              selectedTileColor: Colors.black12,
+              selectedColor: Colors.black,              
+              selected: _selectedIndex == 2,
+              onTap: () {
+                _onItemTapped(2);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: const Text("Hello 4"),
+              selectedTileColor: Colors.black12,
+              selectedColor: Colors.black,              
+              selected: _selectedIndex == 3,
+              onTap: () {
+                _onItemTapped(3);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        )
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _widgetOptions[_selectedIndex],
+            Expanded(
+              child: DashChat(
+                currentUser: currentUser,
+                onSend: _sendMessage,
+                messages: messages,
+              ),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: Padding(
           padding: const EdgeInsets.only(bottom: 14),

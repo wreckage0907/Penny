@@ -44,6 +44,7 @@ dependencies:
   dash_chat_2: ^0.0.21
   flutter_dotenv: ^5.1.0
   syncfusion_flutter_charts: ^26.1.40
+  smooth_page_indicator: ^1.1.0
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
@@ -82,6 +83,8 @@ flutter:
     - assets/1_1.md
     - .env
     - assets/gemini_logo.webp
+    - assets/finance.json
+    - assets/modules1.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

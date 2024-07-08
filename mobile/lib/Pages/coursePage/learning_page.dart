@@ -1,7 +1,7 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mobile/Pages/learningPage/lesson_page.dart';
+import 'package:mobile/Pages/coursePage/lesson_page.dart';
 
 void main() {
   return runApp(const LearningPage());
