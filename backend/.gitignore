@@ -2,4 +2,6 @@ __pycache__/
 *.pyc
 *.env
 
+finnhub_api.py
+stocks_api.py
 firebase.json

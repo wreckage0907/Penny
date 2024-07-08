@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/Pages/chatbot/chatbot_page.dart';
 import 'package:mobile/Pages/coursePage/course_page.dart';
+import 'package:mobile/Pages/coursePage/learning_page.dart';
+import 'package:mobile/Pages/coursePage/lesson_page.dart';
 import 'package:mobile/Pages/expenseTracker/budget.dart';
 import 'package:mobile/Pages/login/login.dart';
 import 'package:mobile/Pages/login/signup.dart';
@@ -50,6 +52,11 @@ class MyApp extends StatelessWidget {
         '/budget': (context) => const Budget(),
         '/practice': (context) => PracticeList(),
         '/mcq': (context) => const MCQPage(),
+        '/learningpage': (context) => const LearningPage(),
+        '/lesson1': (context) => const LessonPage(
+          lessonName: "Lesson 1",
+          fileName: "assets/1_1.md",
+        ),
         //'/expense': (context) => const Expense(),
       },
     );

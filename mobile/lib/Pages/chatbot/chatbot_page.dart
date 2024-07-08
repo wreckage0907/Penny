@@ -191,8 +191,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
                   //color: Color.fromRGBO(53, 51, 58, 1),
                 )
               ),
-              IconButton(
-                onPressed: () => Navigator.pushNamed(context, '/chatbot'), 
+              const IconButton(
+                onPressed: null, 
                 icon: const Icon(
                   Icons.chat_rounded,
                   size: 40,

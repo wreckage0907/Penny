@@ -10,7 +10,7 @@ class SignInWithGoogleButton extends StatelessWidget {
       onPressed: () => print("Google Clicked"),
       icon: const FaIcon(FontAwesomeIcons.google, color: Colors.black, size: 32),
       style: const ButtonStyle(
-        backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+        //backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
         padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
         minimumSize: WidgetStatePropertyAll(Size(80, 20)),
         shape: WidgetStatePropertyAll(
@@ -35,7 +35,7 @@ class FacebookButton extends StatelessWidget {
     return IconButton(onPressed: () => print("Facebook Clicked"),
     icon: const FaIcon(FontAwesomeIcons.facebookF, color: Colors.black, size: 32),
     style: const ButtonStyle(
-      backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+      //backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
       padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
       minimumSize:  WidgetStatePropertyAll(Size(80,20)),
       shape:  WidgetStatePropertyAll(
@@ -60,7 +60,7 @@ class MicrosoftButton extends StatelessWidget {
     return IconButton(onPressed: () => print("Microsoft Clicked"),
     icon: const FaIcon(FontAwesomeIcons.microsoft, color: Colors.black, size: 32),
     style: const ButtonStyle(
-      backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+      //backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
       padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
       minimumSize:  WidgetStatePropertyAll(Size(80,20)),
       shape:  WidgetStatePropertyAll(
