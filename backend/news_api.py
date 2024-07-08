@@ -1,8 +1,14 @@
 from newsapi import NewsApiClient
 import json
+import os
 from datetime import datetime
+from dotenv import load_dotenv
 
-newsapi = NewsApiClient(api_key='e0fa70d9a02145b9b68c87f8ee2ed62b')
+load_dotenv()
+
+apiKey = os.getenv('NEWS_API_KEY')
+
+newsapi = NewsApiClient(api_key=apiKey)
 
 top_headlines = newsapi.get_top_headlines(category='business',
                                           language='en',
