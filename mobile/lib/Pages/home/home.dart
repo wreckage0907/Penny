@@ -9,6 +9,7 @@ import 'package:mobile/Pages/coursePage/course_page.dart';
 import 'package:mobile/Pages/coursePage/learning_page.dart';
 import 'package:mobile/Pages/expenseTracker/budget.dart';
 import 'package:mobile/Pages/coursePage/lesson_page.dart';
+import 'package:mobile/Pages/home/onboarding_page.dart';
 import 'package:mobile/Pages/practice/list_of_modules.dart';
 import 'package:mobile/Pages/practice/mcqpage.dart';
 import 'package:mobile/Services/auth.dart';
@@ -70,7 +71,7 @@ List<Widget> get widgetsList {
                   return Container(
                     height: 150,
                     color: Colors.grey,
-                    child: Center(
+                    child: const Center(
                       child: Icon(Icons.error),
                     ),
                   );
@@ -79,13 +80,13 @@ List<Widget> get widgetsList {
             ),
             Expanded(
               child: Padding(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       articles[index]['title'] ?? 'No title',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -130,6 +131,7 @@ List<Widget> get widgetsList {
         '/practice': (context) => PracticeList(),
         '/mcq': (context) => const MCQPage(),
         '/learningpage': (context) => const LearningPage(),
+        '/onboarding': (context) => const OnboardingPage(),
       },  
       home: Scaffold( 
         //backgroundColor: const Color.fromRGBO(232, 245, 233, 1),

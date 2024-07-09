@@ -5,6 +5,7 @@ import 'package:mobile/Pages/coursePage/course_page.dart';
 import 'package:mobile/Pages/coursePage/learning_page.dart';
 import 'package:mobile/Pages/coursePage/lesson_page.dart';
 import 'package:mobile/Pages/expenseTracker/budget.dart';
+import 'package:mobile/Pages/home/onboarding_page.dart';
 import 'package:mobile/Pages/login/login.dart';
 import 'package:mobile/Pages/login/signup.dart';
 import 'package:mobile/Pages/home/home.dart';
@@ -57,7 +58,7 @@ class MyApp extends StatelessWidget {
           lessonName: "Lesson 1",
           fileName: "assets/1_1.md",
         ),
-        //'/expense': (context) => const Expense(),
+        '/onboarding': (context) => const OnboardingPage(),
       },
     );
   }

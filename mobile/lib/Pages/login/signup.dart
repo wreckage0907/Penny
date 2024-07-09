@@ -130,7 +130,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       UserCredential? user = await  _authService.signUp(username:_usernameController.text,email: _emailController.text,password:_passwordController.text);
             
                       if(user != null){
-                        Navigator.pushNamed(context, '/home');
+                        Navigator.pushNamed(context, '/onboarding');
                       }
                     },
                     style: const ButtonStyle(

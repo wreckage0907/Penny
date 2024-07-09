@@ -88,6 +88,7 @@ flutter:
     - assets/finance.json
     - assets/modules1.png
     - assets/home_logo.png
+    - assets/onboarding.png
   #   - images/a_dot_ham.jpeg
 
 flutter_launcher_icons:
