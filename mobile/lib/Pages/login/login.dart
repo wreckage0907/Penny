@@ -28,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(255, 246, 229, 1),
+      //backgroundColor: const Color.fromRGBO(255, 246, 229, 1),
       body: Container(
         alignment: Alignment.center,
         child: SingleChildScrollView(
@@ -80,7 +80,7 @@ class _LoginPageState extends State<LoginPage> {
                       },
                       icon: const FaIcon(FontAwesomeIcons.google, color: Colors.black, size: 32),
                       style: const ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+                        //backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
                         padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
                         minimumSize: WidgetStatePropertyAll(Size(80, 20)),
                         shape: WidgetStatePropertyAll(
@@ -103,7 +103,7 @@ class _LoginPageState extends State<LoginPage> {
                       },
                       icon: const FaIcon(FontAwesomeIcons.github, color: Colors.black, size: 32),
                       style: const ButtonStyle(
-                        backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+                        //backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
                         padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
                         minimumSize:  WidgetStatePropertyAll(Size(80,20)),
                         shape:  WidgetStatePropertyAll(
@@ -121,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed: () => print("Microsoft Clicked"),
                       icon: const FaIcon(FontAwesomeIcons.microsoft, color: Colors.black, size: 32),
                       style: const ButtonStyle(
-                        backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+                        //backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
                         padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
                         minimumSize:  WidgetStatePropertyAll(Size(80,20)),
                         shape:  WidgetStatePropertyAll(
@@ -149,13 +149,13 @@ class _LoginPageState extends State<LoginPage> {
                     },
                     style: const ButtonStyle(
                       alignment: Alignment.center,
-                      backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(175, 92, 92, 0.8)),
+                      //backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(175, 92, 92, 0.8)),
                       padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 16, horizontal: 24)),
                       minimumSize: WidgetStatePropertyAll(Size(double.infinity, 24)),
                       shape: WidgetStatePropertyAll(
                         RoundedRectangleBorder(
                           side: BorderSide(
-                            color: Color.fromRGBO(109, 109, 109, 1),
+                            //color: Color.fromRGBO(109, 109, 109, 1),
                             width: 1.5,
                           ),
                           borderRadius: BorderRadius.all(Radius.circular(28)),
@@ -167,7 +167,7 @@ class _LoginPageState extends State<LoginPage> {
                       style: GoogleFonts.spectral(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Colors.black,
                       ),
                     ),
                   ),
@@ -185,7 +185,7 @@ class _LoginPageState extends State<LoginPage> {
                       TextSpan(
                         text: 'Sign Up',
                         style: const TextStyle(
-                          color: Colors.redAccent,
+                          //color: Colors.redAccent,
                           decoration: TextDecoration.underline,
                         ),
                         recognizer: TapGestureRecognizer()

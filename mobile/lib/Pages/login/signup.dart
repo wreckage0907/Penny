@@ -31,7 +31,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(255, 246, 229, 1),
+      //backgroundColor: const Color.fromRGBO(255, 246, 229, 1),
       body: Container(
         alignment: Alignment.center,
         child: SingleChildScrollView(
@@ -57,8 +57,6 @@ class _SignUpPageState extends State<SignUpPage> {
                     color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 26),
-                UsernameField(controller: _usernameController,),
                 const SizedBox(height: 14),
                 EmailField(controller: _emailController,),
                 const SizedBox(height: 14),
@@ -83,7 +81,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       },
                       icon: const FaIcon(FontAwesomeIcons.google, color: Colors.black, size: 32),
                       style: const ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+                        //backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
                         padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
                         minimumSize: WidgetStatePropertyAll(Size(80, 20)),
                         shape: WidgetStatePropertyAll(
@@ -107,7 +105,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       },
                       icon: const FaIcon(FontAwesomeIcons.github, color: Colors.black, size: 32),
                       style: const ButtonStyle(
-                        backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+                        //backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
                         padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
                         minimumSize:  WidgetStatePropertyAll(Size(80,20)),
                         shape:  WidgetStatePropertyAll(
@@ -132,12 +130,12 @@ class _SignUpPageState extends State<SignUpPage> {
                       UserCredential? user = await  _authService.signUp(username:_usernameController.text,email: _emailController.text,password:_passwordController.text);
             
                       if(user != null){
-                        Navigator.pushNamed(context, '/home');
+                        Navigator.pushNamed(context, '/onboarding');
                       }
                     },
                     style: const ButtonStyle(
                       alignment: Alignment.center,
-                      backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(175, 92, 92, 0.8)),
+                      //backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(175, 92, 92, 0.8)),
                       padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 16, horizontal: 24)),
                       minimumSize: WidgetStatePropertyAll(Size(double.infinity, 24)),
                       shape: WidgetStatePropertyAll(
@@ -155,7 +153,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       style: GoogleFonts.spectral(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Colors.black,
                       ),
                     ),
                   ),
@@ -173,7 +171,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       TextSpan(
                         text: 'Sign In',
                         style: const TextStyle(
-                          color: Colors.redAccent,
+                          //color: Colors.redAccent,
                           decoration: TextDecoration.underline,
                         ),
                         recognizer: TapGestureRecognizer()

@@ -1,30 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class PracticeList extends StatelessWidget {
   PracticeList({super.key});
 
   final List<String> finishedModules = [
-    "Introduction to Finance",
-    "Lesson 2",
-    "Lesson 3",
-    "Introduction to Finance",
-    "Lesson 2",
-    "Lesson 3"
+    "Basics of Personal Finance",
+    "Banking and Accounts",
+    "Credit and Debt Management",
+    "Saving and Investing",
   ];
   final List<String> unfinishedModules = [
-    "Lesson 4",
-    "Lesson 5",
-    "Lesson 6",
-    "Introduction to Finance",
-    "Lesson 2",
-    "Lesson 3"
+    "Insurance and Risk Management",
+    "Real Estate and Home Management",
+    "Financial Planning and Taxes",
+    "Consumer Awarness",
+    "Enterprenuership and Business Finance",
+    "Advance Personal Finance"
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(230, 242, 232, 1),
+      //backgroundColor: const Color.fromRGBO(230, 242, 232, 1),
       appBar: AppBar(
         toolbarHeight: 70,
         title: Text(
@@ -34,7 +33,7 @@ class PracticeList extends StatelessWidget {
             fontWeight: FontWeight.w800,
           ),
         ),
-        backgroundColor: const Color.fromRGBO(230, 242, 232, 1),
+        //backgroundColor: const Color.fromRGBO(230, 242, 232, 1),
       ),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
@@ -44,7 +43,7 @@ class PracticeList extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Completed Modules",
+                  "List of Modules",
                   style: GoogleFonts.dmSans(
                     fontSize: 25,
                     fontWeight: FontWeight.w800,
@@ -77,27 +76,38 @@ class PracticeList extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: Text(
-                            finishedModules[position],
-                            style: GoogleFonts.dmSans(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.black,
-                            ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  finishedModules[position],
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.black,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const FaIcon(
+                                FontAwesomeIcons.chevronRight,
+                                color: Colors.black,
+                                size: 18,
+                              )
+                            ],
                           ),
                         ),
                       ),
                     );
                   },
                 ),
-                SizedBox(height: 20),
-                Text(
-                  "Unfinished Modules",
-                  style: GoogleFonts.dmSans(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w800,
-                  ),
+                const SizedBox(height: 8),
+                const Divider(
+                  color: Colors.black12,
+                  thickness: 2,
                 ),
                 ListView.builder(
                   shrinkWrap: true,
@@ -127,15 +137,25 @@ class PracticeList extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: Text(
-                            unfinishedModules[position],
-                            style: GoogleFonts.dmSans(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.grey,                          
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                unfinishedModules[position],
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.grey,                          
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                          ),
+                            ),
+                            const Icon(
+                              Icons.lock,
+                              color: Colors.black38,
+                            )
+                          ],
                         ),
                       ),
                     );

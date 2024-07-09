@@ -38,6 +38,108 @@ class Category extends StatefulWidget {
 class _CategoryState extends State<Category> {
   double get totalAmount => widget.expenses.fold(0, (sum, item) => sum + item.amount);
 
+
+    void _showEditExpenseDialog(Expense expense) {
+    String expenseName = expense.name;
+    double amount = expense.amount;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Edit Expense',
+            style: GoogleFonts.spectral(
+              fontSize: 30,
+              fontWeight: FontWeight.w300,
+              color: Colors.black87,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                style: GoogleFonts.spectral(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.black87,
+                ),
+                controller: TextEditingController(text: expenseName),
+                onChanged: (value) {
+                  expenseName = value;
+                },
+                decoration: InputDecoration(
+                  labelText: 'Expense Name',
+                  labelStyle: GoogleFonts.spectral(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              TextField(
+                style: GoogleFonts.spectral(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.black87,
+                ),
+                controller: TextEditingController(text: amount.toString()),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  amount = double.tryParse(value) ?? amount;
+                },
+                decoration: InputDecoration(
+                  labelText: 'Amount',
+                  labelStyle: GoogleFonts.spectral(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.spectral(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.black87,
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(
+                'Save',
+                style: GoogleFonts.spectral(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.black87,
+                ),
+              ),
+              onPressed: () {
+                if (expenseName.isNotEmpty && amount > 0) {
+                  setState(() {
+                    int index = widget.expenses.indexOf(expense);
+                    widget.expenses[index] = Expense(expenseName, amount);
+                  });
+                  widget.onExpenseAdded(Expense(expenseName, amount));
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  
   void _showAddExpenseDialog() {
     String expenseName = '';
     double amount = 0.0;
@@ -136,24 +238,24 @@ class _CategoryState extends State<Category> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _showAddExpenseDialog,
+@override
+Widget build(BuildContext context) {
+  return Padding(
+    padding: const EdgeInsets.fromLTRB(18, 5, 18, 5),
+    child: Card(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 5, 18, 5),
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Icon(widget.iconData, color: Colors.black, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
+                Icon(widget.iconData, color: Colors.black, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Text(
                         widget.categoryName,
                         style: GoogleFonts.spectral(
                           fontSize: 20,
@@ -161,22 +263,33 @@ class _CategoryState extends State<Category> {
                           color: Colors.black87,
                         ),
                       ),
-                    ),
-                    Text(
-                      "\$${totalAmount.toStringAsFixed(2)}",
-                      style: GoogleFonts.spectral(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w300,
-                        color: Colors.black87,
+                      IconButton(
+                        onPressed: _showAddExpenseDialog, 
+                        icon: FaIcon(
+                          FontAwesomeIcons.plus,
+                          size: 18,
+                        )
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 10),
-                Column(
-                  children: widget.expenses.map((expense) {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Text(
+                  "\$${totalAmount.toStringAsFixed(2)}",
+                  style: GoogleFonts.spectral(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Column(
+              children: widget.expenses.map((expense) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
                       children: [
                         Text(
                           expense.name,
@@ -186,25 +299,33 @@ class _CategoryState extends State<Category> {
                             color: Colors.black87,
                           ),
                         ),
-                        Text(
-                          "\$${expense.amount.toStringAsFixed(2)}",
-                          style: GoogleFonts.spectral(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w300,
-                            color: Colors.black87,
-                          ),
+                        IconButton(
+                          onPressed: () => _showEditExpenseDialog(expense),   
+                          icon: const FaIcon(
+                            FontAwesomeIcons.pencil,
+                            size: 16,
+                          )
                         ),
                       ],
-                    );
-                  }).toList(),
-                ),
-              ],
+                    ),
+                    Text(
+                      "\$${expense.amount.toStringAsFixed(2)}",
+                      style: GoogleFonts.spectral(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
             ),
-          ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class Budget extends StatefulWidget {
@@ -216,7 +337,7 @@ class Budget extends StatefulWidget {
 
 class _BudgetState extends State<Budget> {
   final int _monthlyBudget = 800;
-  final List<Category> _categories = [];
+  List<Category> _categories = [];
 
   @override
   void initState() {
@@ -251,81 +372,81 @@ class _BudgetState extends State<Budget> {
     setState(() {});
   }
 
-  void _showAddCategoryDialog() {
-    String categoryName = '';
+ void _showAddCategoryDialog() {
+  String categoryName = '';
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Add New Category',
-            style: GoogleFonts.spectral(
-              fontSize: 30,
-              fontWeight: FontWeight.w300,
-              color: Colors.black87,
-            ),
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(
+          'Add New Category',
+          style: GoogleFonts.spectral(
+            fontSize: 30,
+            fontWeight: FontWeight.w300,
+            color: Colors.black87,
           ),
-          content: TextField(
-            style: GoogleFonts.spectral(
+        ),
+        content: TextField(
+          style: GoogleFonts.spectral(
+            fontSize: 20,
+            fontWeight: FontWeight.w300,
+            color: Colors.black87,
+          ),
+          onChanged: (value) {
+            categoryName = value;
+          },
+          decoration: InputDecoration(
+            labelText: 'Category Name',
+            labelStyle: GoogleFonts.spectral(
               fontSize: 20,
               fontWeight: FontWeight.w300,
               color: Colors.black87,
             ),
-            onChanged: (value) {
-              categoryName = value;
-            },
-            decoration: InputDecoration(
-              labelText: 'Category Name',
-              labelStyle: GoogleFonts.spectral(
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.spectral(
                 fontSize: 20,
                 fontWeight: FontWeight.w300,
                 color: Colors.black87,
               ),
             ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
           ),
-          actions: [
-            TextButton(
-              child: Text(
-                'Cancel',
-                style: GoogleFonts.spectral(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w300,
-                  color: Colors.black87,
-                ),
+          TextButton(
+            child: Text(
+              'Add',
+              style: GoogleFonts.spectral(
+                fontSize: 20,
+                fontWeight: FontWeight.w300,
+                color: Colors.black87,
               ),
-              onPressed: () {
+            ),
+            onPressed: () {
+              if (categoryName.isNotEmpty) {
+                setState(() {
+                  _categories.add(Category(
+                    categoryName: categoryName,
+                    iconData: FontAwesomeIcons.moneyBill,
+                    expenses: [], // Initialize with an empty mutable list
+                    onExpenseAdded: _handleExpenseAdded,
+                  ));
+                });
                 Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text(
-                'Add',
-                style: GoogleFonts.spectral(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w300,
-                  color: Colors.black87,
-                ),
-              ),
-              onPressed: () {
-                if (categoryName.isNotEmpty) {
-                  setState(() {
-                    _categories.add(Category(
-                      categoryName: categoryName,
-                      iconData: FontAwesomeIcons.moneyBill,
-                      expenses: const [],
-                      onExpenseAdded: _handleExpenseAdded, 
-                    ));
-                  });
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+              }
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -339,10 +460,10 @@ class _BudgetState extends State<Budget> {
       format: 'point.x : \$point.y',
       textStyle: const TextStyle(color: Colors.white),
       color: Colors.black.withOpacity(0.7),
-      duration: 3000,
+      duration: 2500,
       canShowMarker: true,
       shared: false,
-      animationDuration: 1000,
+      animationDuration: 400,
       builder: (dynamic data, dynamic point, dynamic series, int pointIndex, int seriesIndex) {
         CategoryExpense categoryExpense = data as CategoryExpense;
         return Container(
@@ -369,9 +490,9 @@ class _BudgetState extends State<Budget> {
             fontWeight: FontWeight.w800,
           ),
         ),
-        backgroundColor: const Color.fromRGBO(230, 242, 232, 1),
+        //backgroundColor: const Color.fromRGBO(230, 242, 232, 1),
       ),
-      backgroundColor: const Color.fromRGBO(230, 242, 232, 1),
+      //backgroundColor: const Color.fromRGBO(230, 242, 232, 1),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -428,8 +549,6 @@ class _BudgetState extends State<Budget> {
                   radius: '90%',
                   innerRadius: '60%',
                   enableTooltip: true,
-                  strokeWidth: 5,
-                  strokeColor: const Color.fromRGBO(230, 242, 232, 1),
                   pointRenderMode: PointRenderMode.segment,
                 ),
               ],
