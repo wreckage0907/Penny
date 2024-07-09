@@ -1,6 +1,7 @@
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ChatbotPage extends StatefulWidget {
   const ChatbotPage({super.key});
@@ -12,7 +13,11 @@ class ChatbotPage extends StatefulWidget {
 class _ChatbotPageState extends State<ChatbotPage> {
   final Gemini gemini = Gemini.instance;
 
-  List<ChatMessage> messages = [];
+  Map<String, List<ChatMessage>> chatHistory = {
+    "New Chat": [],
+  };
+
+  String currentChatId = "New Chat";
 
   ChatUser currentUser = ChatUser(id: "0", firstName: "User");
   ChatUser geminiUser = ChatUser(
@@ -23,24 +28,23 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
   void _sendMessage(ChatMessage chatMessage) {
     setState(() {
-      messages = [chatMessage, ...messages];
+      chatHistory[currentChatId] = [chatMessage, ...chatHistory[currentChatId]!];
     });
 
     try {
       String question = chatMessage.text;
       gemini.streamGenerateContent(question).listen((event) {
-        ChatMessage? lastMesssage = messages.firstOrNull;
-        if(lastMesssage != null && lastMesssage.user == geminiUser) {
-          lastMesssage = messages.removeAt(0);
+        ChatMessage? lastMesssage = chatHistory[currentChatId]?.firstOrNull;
+        if (lastMesssage != null && lastMesssage.user == geminiUser) {
+          lastMesssage = chatHistory[currentChatId]?.removeAt(0);
           String response = event.content?.parts?.fold(
             "", 
             (previous, current) => "$previous ${current.text}") ?? "";
-          lastMesssage.text += response;
+          lastMesssage?.text += response;
           setState(() {
-            messages = [lastMesssage!, ...messages];
+            chatHistory[currentChatId] = [lastMesssage!, ...chatHistory[currentChatId]!];
           });
-        }
-        else {
+        } else {
           String response = event.content?.parts?.fold(
             "", 
             (previous, current) => "$previous ${current.text}") ?? "";
@@ -50,7 +54,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
             text: response
           );
           setState(() {
-            messages = [message, ...messages];
+            chatHistory[currentChatId] = [message, ...chatHistory[currentChatId]!];
           });
         }
       });
@@ -59,26 +63,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
     }
   }
 
-  int _selectedIndex = 0;
-
-  static const List<Widget> _widgetOptions = <Widget> [
-    Text(
-      "Hello 1",
-    ),
-    Text(
-      "Hello 2",
-    ),
-    Text(
-      "Hello 3",
-    ),
-    Text(
-      "Hello 4",
-    ),
-  ];
-
-  void _onItemTapped(int index) {
+  void _startNewChat() {
     setState(() {
-      _selectedIndex = index;
+      currentChatId = "New Chat ${chatHistory.keys.length}";
+      chatHistory[currentChatId] = [];
     });
   }
 
@@ -86,8 +74,21 @@ class _ChatbotPageState extends State<ChatbotPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Gemini Chat",
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              "Gemini Chat",
+            ),
+            IconButton(
+              onPressed: _startNewChat,
+              icon: const FaIcon(
+                FontAwesomeIcons.penToSquare,
+                color: Colors.black,
+                size: 22,
+              )
+            ),
+          ],
         ),
         leading: Builder(
           builder: (context) {
@@ -106,102 +107,89 @@ class _ChatbotPageState extends State<ChatbotPage> {
             Container(
               padding: const EdgeInsets.all(12),
               height: 70,
-              child: const Text(
-                "Chat History",
-                style: TextStyle(
-                  fontSize: 24,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Chat History",
+                    style: TextStyle(
+                      fontSize: 24,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed:() {
+                      _startNewChat();
+                      Navigator.pop(context);
+                    },
+                    icon: const FaIcon(
+                      FontAwesomeIcons.penToSquare,
+                      color: Colors.black,
+                      size: 22,
+                    )
+                  ),
+                ],
               ),
             ),
-            ListTile(
-              title: const Text("Hello 1"),
-              selectedTileColor: Colors.black12,
-              selectedColor: Colors.black,
-              selected: _selectedIndex == 0,
-              onTap: () {
-                _onItemTapped(0);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text("Hello 2"),
-              selectedTileColor: Colors.black12,
-              selectedColor: Colors.black,
-              selected: _selectedIndex == 1,
-              onTap: () {
-                _onItemTapped(1);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text("Hello 3"),
-              selectedTileColor: Colors.black12,
-              selectedColor: Colors.black,              
-              selected: _selectedIndex == 2,
-              onTap: () {
-                _onItemTapped(2);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              title: const Text("Hello 4"),
-              selectedTileColor: Colors.black12,
-              selectedColor: Colors.black,              
-              selected: _selectedIndex == 3,
-              onTap: () {
-                _onItemTapped(3);
-                Navigator.pop(context);
-              },
-            ),
+            ...chatHistory.keys.map((chatId) {
+              return ListTile(
+                title: Text(chatId),
+                selectedTileColor: Colors.black12,
+                selectedColor: Colors.black,
+                selected: currentChatId == chatId,
+                onTap: () {
+                  setState(() {
+                    currentChatId = chatId;
+                  });
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
           ],
         )
       ),
       body: SafeArea(
         child: Column(
           children: [
-            _widgetOptions[_selectedIndex],
+            Text(currentChatId),
             Expanded(
               child: DashChat(
                 currentUser: currentUser,
                 onSend: _sendMessage,
-                messages: messages,
+                messages: chatHistory[currentChatId]!,
               ),
             ),
           ],
         ),
       ),
       bottomNavigationBar: Padding(
-          padding: const EdgeInsets.only(bottom: 14),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              IconButton(
-                onPressed: () => Navigator.pushNamed(context, '/home'), 
-                icon: const Icon(
-                  Icons.home_filled,
-                  size: 40,
-                  //color: Color.fromRGBO(53, 51, 58, 1),
-                )
-              ),
-              IconButton(
-                onPressed: () => Navigator.pushNamed(context, '/coursepage'), 
-                icon: const Icon(
-                  Icons.bar_chart_rounded,
-                  size: 40,
-                  //color: Color.fromRGBO(53, 51, 58, 1),
-                )
-              ),
-              const IconButton(
-                onPressed: null, 
-                icon: const Icon(
-                  Icons.chat_rounded,
-                  size: 40,
-                  //color: Color.fromRGBO(53, 51, 58, 1),
-                )
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            IconButton(
+              onPressed: () => Navigator.pushNamed(context, '/home'), 
+              icon: const Icon(
+                Icons.home_filled,
+                size: 40,
               )
-            ],
-          ),
+            ),
+            IconButton(
+              onPressed: () => Navigator.pushNamed(context, '/coursepage'), 
+              icon: const Icon(
+                Icons.bar_chart_rounded,
+                size: 40,
+              )
+            ),
+            const IconButton(
+              onPressed: null, 
+              icon: Icon(
+                Icons.chat_rounded,
+                size: 40,
+              )
+            )
+          ],
         ),
+      ),
     );
   }
 }
