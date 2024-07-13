@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Auth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -42,16 +43,14 @@ class Auth {
     }
     return null;
   }
-  
+
   Future<UserCredential?> signinWithGoogle() async {
     final googleUser = await GoogleSignIn().signIn();
 
     final googleAuth = await googleUser!.authentication;
 
     final credential = GoogleAuthProvider.credential(
-      idToken: googleAuth.idToken, 
-      accessToken: googleAuth.accessToken
-    );
+        idToken: googleAuth.idToken, accessToken: googleAuth.accessToken);
 
     return await _auth.signInWithCredential(credential);
   }
@@ -61,13 +60,19 @@ class Auth {
     return await FirebaseAuth.instance.signInWithProvider(githubProvider);
   }
 
-  Future<void> signout({
-    required BuildContext context
-  }) async {
+  Future<void> signout({required BuildContext context}) async {
     await FirebaseAuth.instance.signOut();
-    await Future.delayed(const Duration(seconds: 1));
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+    await clearUsername();
+    Navigator.of(context).pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);
+  }
+
+  Future<void> saveUsername(String username) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('username', username);
+  }
+
+  Future<void> clearUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('username');
   }
 }
-
-

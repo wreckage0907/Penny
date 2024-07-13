@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 // ignore: depend_on_referenced_packages
 import 'package:http/http.dart' as http;
@@ -46,14 +47,14 @@ class Expense {
 }
 
 class ExpenseTracker extends StatefulWidget {
-  const ExpenseTracker({required this.username, super.key});
-  final String? username;
+  const ExpenseTracker({super.key});
 
   @override
   State<ExpenseTracker> createState() => _ExpenseTrackerState();
 }
 
 class _ExpenseTrackerState extends State<ExpenseTracker> {
+  String? username;
   int selectedMonth = DateTime.now().month;
   int selectedYear = DateTime.now().year;
 
@@ -77,14 +78,24 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
   @override
   void initState() {
     super.initState();
+    _loadUsername();
     _categories = [];
   }
 
+  Future<void> _loadUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      username = prefs.getString('username');
+    });
+  }
+
   Future<Map<String, dynamic>> getData() async {
+    if(username == null) {
+      await _loadUsername();
+    }
     try {
-      String user_id = widget.username.toString();
       final response = await http.get(
-        Uri.parse("http://10.0.2.2:8000/expenses/$user_id"),
+        Uri.parse("http://10.0.2.2:8000/expenses/$username"),
       );
 
       if (response.statusCode == 200) {
@@ -106,7 +117,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
     try {
       final response = await http.put(
         Uri.parse(
-                'http://10.0.2.2:8000/expenses/${widget.username}/year/$selectedYear/month/${Uri.encodeComponent(months[selectedMonth - 1])}/category/${Uri.encodeComponent(category.categoryTitle)}/subcategory/${Uri.encodeComponent(category.expenses[index].name)}')
+                'http://10.0.2.2:8000/expenses/$username/year/$selectedYear/month/${Uri.encodeComponent(months[selectedMonth - 1])}/category/${Uri.encodeComponent(category.categoryTitle)}/subcategory/${Uri.encodeComponent(category.expenses[index].name)}')
             .replace(queryParameters: {
           'new_sub_category': newExpenseName,
           'new_amount_spent': newExpenseAmount.toString(),
@@ -139,7 +150,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
       String newExpense, int newAmount, String category) async {
     final response = await http.post(
       Uri.parse(
-              'http://10.0.2.2:8000/expenses/${widget.username}/year/$selectedYear/month/${months[selectedMonth - 1]}/category/$category')
+              'http://10.0.2.2:8000/expenses/$username/year/$selectedYear/month/${months[selectedMonth - 1]}/category/$category')
           .replace(queryParameters: {
         'subcategory': newExpense,
         'amount_spent': newAmount.toString(),
@@ -168,7 +179,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
     try {
       final response = await http.post(
         Uri.parse(
-            'http://10.0.2.2:8000/expenses/${widget.username}/year/$selectedYear/month/${months[selectedMonth - 1]}/category'),
+            'http://10.0.2.2:8000/expenses/$username/year/$selectedYear/month/${months[selectedMonth - 1]}/category'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
