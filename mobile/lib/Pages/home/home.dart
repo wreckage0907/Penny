@@ -6,9 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 // PAGES IMPORT
 import 'package:mobile/Pages/chatbot/chatbot_page.dart';
 import 'package:mobile/Pages/coursePage/course_page.dart';
-import 'package:mobile/Pages/coursePage/learning_page.dart';
-//import 'package:mobile/Pages/expenseTracker/budget.dart';
-import 'package:mobile/Pages/coursePage/lesson_page.dart';
 import 'package:mobile/Pages/expenseTracker/expense_tracker.dart';
 import 'package:mobile/Pages/home/onboarding_page.dart';
 import 'package:mobile/Pages/practice/list_of_modules.dart';
@@ -17,13 +14,13 @@ import 'package:mobile/Services/auth.dart';
 
 // EXTERNAL IMPORTS
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 
 class Home extends StatefulWidget {
-  const Home({required this.username, super.key});
-  final String? username;
+  const Home({super.key});
 
   @override
   State<Home> createState() => _HomeState();
@@ -31,6 +28,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final Auth _authService = Auth();
+  String? username;
+
   Future<void> readJson() async {
     final String response = await rootBundle.loadString('assets/finance.json');
     final data = await json.decode(response);
@@ -42,7 +41,15 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    _loadUsername();
     readJson();
+  }
+
+  Future<void> _loadUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      username = prefs.getString('username');
+    });
   }
 
   final _controller = PageController();
@@ -124,9 +131,7 @@ class _HomeState extends State<Home> {
       routes: {
         '/coursepage': (context) => CoursePage(),
         '/chatbot': (context) => const ChatbotPage(),
-        '/budget': (context) => ExpenseTracker(
-          username: widget.username,
-        ),
+        '/budget': (context) => ExpenseTracker(),
         '/practice': (context) => PracticeList(),
         '/mcq': (context) => const MCQPage(),
         '/onboarding': (context) => const OnboardingPage(),
@@ -144,7 +149,7 @@ class _HomeState extends State<Home> {
                     children: [
                       Expanded(
                         child: Text(
-                          'WELCOME,\n${widget.username}',
+                          'WELCOME,\n$username',
                           style: GoogleFonts.dmSans(
                             fontSize: 40,
                             fontWeight: FontWeight.w500,

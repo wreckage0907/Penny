@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile/Services/auth.dart';
 
 class NewUser{
   final String username;
@@ -28,6 +29,7 @@ class OnboardingPage extends StatefulWidget {
 }
 
 class _OnboardingPageState extends State<OnboardingPage> {
+  final Auth _authService = Auth();
   
   late NewUser user;
 
@@ -131,7 +133,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 Container(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => {
+                    onPressed: () async {
                       setState(() {
                         user = NewUser(
                           username: usernameController.text,
@@ -140,9 +142,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           email: emailController.text,
                           phoneNo: phoneNoController.text,
                         );
-                      }),
-                      postNewUserData(user),
-                      Navigator.pushNamed(context, '/home')
+                      });
+                      await _authService.saveUsername(usernameController.text);
+                      Navigator.of(context).pushReplacementNamed('/home');
                     },
                     child: Row(
                       mainAxisSize: MainAxisSize.min,

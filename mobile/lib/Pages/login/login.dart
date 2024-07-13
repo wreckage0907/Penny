@@ -7,7 +7,6 @@ import 'package:mobile/Pages/home/home.dart';
 import 'package:mobile/Pages/login/input_field.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 
@@ -110,9 +109,7 @@ class _LoginPageState extends State<LoginPage> {
                         if(user != null){
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => Home(
-                              username: _usernameController.text,
-                            ))
+                            MaterialPageRoute(builder: (context) => Home())
                           );
                         }
                       },
@@ -138,9 +135,7 @@ class _LoginPageState extends State<LoginPage> {
                         if(user != null){
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => Home(
-                              username: _usernameController.text,
-                            ))
+                            MaterialPageRoute(builder: (context) => Home())
                           );
                         }
                       },
@@ -185,16 +180,12 @@ class _LoginPageState extends State<LoginPage> {
                   padding: const EdgeInsets.only(left: 20,right:20,top: 20,bottom: 5),
                   child: TextButton(
                     onPressed: () async {
-                      String? email;
-                      email = await getEmail(_usernameController.text);
-                      print(email);
-                      UserCredential? user = await _authService.login(email: email.toString() ,password:_passwordController.text);
-                      SharedPreferences prefs = await SharedPreferences.getInstance();
-                      await prefs.setString('username', _usernameController.text);
-                      print((prefs.getString('username').toString()));
-                      if(user != null){
-                        Navigator.pushNamed(context, "/home");
-                      }                      
+                      String? email = await getEmail(_usernameController.text);
+                      UserCredential? user = await _authService.login(email: email.toString(), password: _passwordController.text);
+                      if (user != null) {
+                        await _authService.saveUsername(_usernameController.text);
+                        Navigator.of(context).pushReplacementNamed('/home');
+                      }
                     },
                     style: const ButtonStyle(
                       alignment: Alignment.center,
