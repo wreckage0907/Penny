@@ -3,64 +3,63 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/Pages/coursePage/lesson_page.dart';
 
-void main() {
-  return runApp(const LearningPage());
-}
-
 class LearningPage extends StatefulWidget {
-  const LearningPage({super.key});
+  final String moduleName;
+  final String subfolder;
+  const LearningPage(
+      {required this.moduleName, required this.subfolder, super.key});
 
   @override
   State<LearningPage> createState() => _LearningPageState();
 }
 
 class _LearningPageState extends State<LearningPage> {
+  void _navigateToLesson(int index) {
+    Future.microtask(() {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => LessonPage(
+                    lessonName: "Lesson ${index + 1}",
+                    fileName: "${widget.subfolder.split('_')[0]}_${index + 1}",
+                    subfolder: widget.subfolder,
+                  )));
+    });
+  }
+
   ValueNotifier<Offset> onTappedLocation = ValueNotifier(Offset.zero);
-  Uint8List? backgroundImageBytes;
-  double? backgroundImageHeight;
 
   @override
-  Widget build(BuildContext context) {    
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      routes: {
-        '/lesson1': (context) => const LessonPage(
-          lessonName: "Lesson 1",
-          fileName: "assets/1_1.md",
-        ),
-      },
-      home: Scaffold(
-        body: SingleChildScrollView(
-          reverse: true,
-          child: Container(
-            decoration: const BoxDecoration(
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.moduleName),
+      ),
+      body: SingleChildScrollView(
+        reverse: true,
+        child: Container(
+          decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/background1.png'),
-                fit: BoxFit.cover,
-              )
-            ),
-            child: Stack(
-              children: [
-                GestureDetector(
-                  onTapDown: (details) {
-                    onTappedLocation.value = details.localPosition;
-                  },
-                  child: CustomPaint(
-                    painter: CoursePath(
-                      onTappedLocation: onTappedLocation,
-                      onTap: (int index) {
-                        if (index == 0) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            Navigator.pushNamed(context, '/lesson1');
-                          });
-                        }
-                      },
-                    ),
-                    size: const Size(double.infinity, 1900),
+            image: AssetImage('assets/background1.png'),
+            fit: BoxFit.cover,
+          )),
+          child: Stack(
+            children: [
+              GestureDetector(
+                onTapDown: (details) {
+                  onTappedLocation.value = details.localPosition;
+                },
+                child: CustomPaint(
+                  painter: CoursePath(
+                    onTappedLocation: onTappedLocation,
+                    onTap: (int index) {
+                      _navigateToLesson(index);
+                    },
                   ),
+                  size: const Size(double.infinity, 1900),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -85,8 +84,7 @@ class CoursePath extends CustomPainter {
       ..strokeWidth = 12
       ..style = PaintingStyle.stroke;
 
-    Paint paint2 = Paint()
-      ..color = const Color.fromRGBO(198, 219, 210, 1);
+    Paint paint2 = Paint()..color = const Color.fromRGBO(198, 219, 210, 1);
 
     Paint paint3 = Paint()
       ..color = const Color.fromRGBO(74, 91, 99, 1)
@@ -97,20 +95,25 @@ class CoursePath extends CustomPainter {
 
     final List<Offset> points1 = <Offset>[
       Offset(halfWidth, 4 * size.height / 5),
-      Offset(160 - size.width / 4, ((4 * size.height / 5) + (3 * size.height / 5)) / 2),
+      Offset(160 - size.width / 4,
+          ((4 * size.height / 5) + (3 * size.height / 5)) / 2),
       Offset(halfWidth, 3 * size.height / 5),
-      Offset(40 + 3 * size.width / 4, ((3 * size.height / 5) + (2 * size.height / 5)) / 2),
+      Offset(40 + 3 * size.width / 4,
+          ((3 * size.height / 5) + (2 * size.height / 5)) / 2),
       Offset(halfWidth, 2 * size.height / 5),
-      Offset(160 - size.width / 4, ((2 * size.height / 5) + (size.height / 5)) / 2),
+      Offset(160 - size.width / 4,
+          ((2 * size.height / 5) + (size.height / 5)) / 2),
       Offset(halfWidth, size.height / 5),
       Offset(10 + 3 * size.width / 4, size.height / 10),
     ];
 
     final List<Offset> points2 = <Offset>[
       Offset(halfWidth, 4 * size.height / 5),
-      Offset(size.width / 4, ((4 * size.height / 5) + (3 * size.height / 5)) / 2),
+      Offset(
+          size.width / 4, ((4 * size.height / 5) + (3 * size.height / 5)) / 2),
       Offset(halfWidth, 3 * size.height / 5),
-      Offset(3 * size.width / 4, ((3 * size.height / 5) + (2 * size.height / 5)) / 2),
+      Offset(3 * size.width / 4,
+          ((3 * size.height / 5) + (2 * size.height / 5)) / 2),
       Offset(halfWidth, 2 * size.height / 5),
       Offset(size.width / 4, ((2 * size.height / 5) + (size.height / 5)) / 2),
       Offset(halfWidth, size.height / 5),
@@ -144,7 +147,8 @@ class CoursePath extends CustomPainter {
       canvas.drawCircle(points2[i], circleRadius, paint2);
       canvas.drawCircle(points2[i], circleRadius, paint3);
 
-      ui.ParagraphBuilder paragraphBuilder = ui.ParagraphBuilder(paragraphStyle);
+      ui.ParagraphBuilder paragraphBuilder =
+          ui.ParagraphBuilder(paragraphStyle);
       paragraphBuilder.pushStyle(textStyle);
       paragraphBuilder.addText("${i + 1}");
       ui.Paragraph paragraph = paragraphBuilder.build();

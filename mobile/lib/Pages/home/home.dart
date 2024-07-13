@@ -7,8 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/Pages/chatbot/chatbot_page.dart';
 import 'package:mobile/Pages/coursePage/course_page.dart';
 import 'package:mobile/Pages/coursePage/learning_page.dart';
-import 'package:mobile/Pages/expenseTracker/budget.dart';
+//import 'package:mobile/Pages/expenseTracker/budget.dart';
 import 'package:mobile/Pages/coursePage/lesson_page.dart';
+import 'package:mobile/Pages/expenseTracker/expense_tracker.dart';
 import 'package:mobile/Pages/home/onboarding_page.dart';
 import 'package:mobile/Pages/practice/list_of_modules.dart';
 import 'package:mobile/Pages/practice/mcqpage.dart';
@@ -21,7 +22,8 @@ import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  const Home({required this.username, super.key});
+  final String? username;
 
   @override
   State<Home> createState() => _HomeState();
@@ -43,71 +45,70 @@ class _HomeState extends State<Home> {
     readJson();
   }
 
-  String username = "wreckage";
   final _controller = PageController();
   
   List<dynamic> articles = [];
-List<Widget> get widgetsList {
-  return List.generate(
-    20,
-    (index) => GestureDetector(
-      onTap: () => launch(articles[index]['url']), // Launch URL on tap
-      child: Card(
-        elevation: 1.5,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              child: Image.network(
-                articles[index]['urlToImage'] ?? 'https://via.placeholder.com/300x200',
-                fit: BoxFit.cover,
-                height: 160,
-                width: double.infinity,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 150,
-                    color: Colors.grey,
-                    child: const Center(
-                      child: Icon(Icons.error),
-                    ),
-                  );
-                },
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      articles[index]['title'] ?? 'No title',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 4),
-                    Expanded(
-                      child: Text(
-                        articles[index]['description'] ?? 'No description',
-                        style: TextStyle(fontSize: 12),
-                        overflow: TextOverflow.fade,
+  List<Widget> get widgetsList {
+    return List.generate(
+      20,
+      (index) => GestureDetector(
+        onTap: () => launch(articles[index]['url']), 
+        child: Card(
+          elevation: 1.5,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                child: Image.network(
+                  articles[index]['urlToImage'] ?? 'https://via.placeholder.com/300x200',
+                  fit: BoxFit.cover,
+                  height: 160,
+                  width: double.infinity,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 150,
+                      color: Colors.grey,
+                      child: const Center(
+                        child: Icon(Icons.error),
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
-            ),
-          ],
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        articles[index]['title'] ?? 'No title',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 4),
+                      Expanded(
+                        child: Text(
+                          articles[index]['description'] ?? 'No description',
+                          style: TextStyle(fontSize: 12),
+                          overflow: TextOverflow.fade,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   List data = [
     {"title": "Course\nPage", "image": "assets/course_page.png"},
@@ -122,15 +123,12 @@ List<Widget> get widgetsList {
       debugShowCheckedModeBanner: false,
       routes: {
         '/coursepage': (context) => CoursePage(),
-        '/lesson1': (context) => const LessonPage(
-          lessonName: "Lesson 1",
-          fileName: "assets/1_1.md",
-        ),
         '/chatbot': (context) => const ChatbotPage(),
-        '/budget': (context) => const Budget(),
+        '/budget': (context) => ExpenseTracker(
+          username: widget.username,
+        ),
         '/practice': (context) => PracticeList(),
         '/mcq': (context) => const MCQPage(),
-        '/learningpage': (context) => const LearningPage(),
         '/onboarding': (context) => const OnboardingPage(),
       },  
       home: Scaffold( 
@@ -144,13 +142,16 @@ List<Widget> get widgetsList {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'WELCOME,\n$username',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 40,
-                          fontWeight: FontWeight.w500,
-                          //color: const Color.fromRGBO(53, 51, 58, 1),
-                          height: 1.2,
+                      Expanded(
+                        child: Text(
+                          'WELCOME,\n${widget.username}',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 40,
+                            fontWeight: FontWeight.w500,
+                            //color: const Color.fromRGBO(53, 51, 58, 1),
+                            height: 1.2,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       IconButton(
@@ -314,7 +315,7 @@ List<Widget> get widgetsList {
                 )
               ),
               IconButton(
-                onPressed: () => Navigator.pushNamed(context, '/learningpage'), 
+                onPressed: null, 
                 icon: const Icon(
                   Icons.bar_chart_rounded,
                   size: 40,

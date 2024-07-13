@@ -3,8 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart'; 
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile/Pages/home/home.dart';
 import 'package:mobile/Pages/login/input_field.dart';
 import 'package:mobile/Services/auth.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -23,6 +28,34 @@ class _LoginPageState extends State<LoginPage> {
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+  Future<String?> getEmail(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/user').replace(
+          queryParameters: {'user_id': userId},
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['user'] != null && data['user']['email'] != null) {
+          return data['user']['email'][0];
+        } else {
+          print('Email not found in response data');
+          return null;
+        }
+      } else if (response.statusCode == 404) {
+        print('User not found');
+        return null;
+      } else {
+        print('Error: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error retrieving user data: $e');
+      return null;
+    }
   }
 
   @override
@@ -74,8 +107,13 @@ class _LoginPageState extends State<LoginPage> {
                     IconButton(
                       onPressed: () async {
                         UserCredential? user = await _authService.signinWithGoogle();
-                        if(user != null) {
-                          Navigator.pushNamed(context, '/home');
+                        if(user != null){
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => Home(
+                              username: _usernameController.text,
+                            ))
+                          );
                         }
                       },
                       icon: const FaIcon(FontAwesomeIcons.google, color: Colors.black, size: 32),
@@ -98,7 +136,12 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed: () async {
                         UserCredential? user =await _authService.signInWithGithub();
                         if(user != null){
-                          Navigator.pushNamed(context, '/home');
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => Home(
+                              username: _usernameController.text,
+                            ))
+                          );
                         }
                       },
                       icon: const FaIcon(FontAwesomeIcons.github, color: Colors.black, size: 32),
@@ -142,10 +185,16 @@ class _LoginPageState extends State<LoginPage> {
                   padding: const EdgeInsets.only(left: 20,right:20,top: 20,bottom: 5),
                   child: TextButton(
                     onPressed: () async {
-                      UserCredential? user = await _authService.login(email: _usernameController.text,password:_passwordController.text);
+                      String? email;
+                      email = await getEmail(_usernameController.text);
+                      print(email);
+                      UserCredential? user = await _authService.login(email: email.toString() ,password:_passwordController.text);
+                      SharedPreferences prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('username', _usernameController.text);
+                      print((prefs.getString('username').toString()));
                       if(user != null){
-                        Navigator.pushNamed(context, '/home');
-                      }
+                        Navigator.pushNamed(context, "/home");
+                      }                      
                     },
                     style: const ButtonStyle(
                       alignment: Alignment.center,

@@ -21,14 +21,17 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
   ChatUser currentUser = ChatUser(id: "0", firstName: "User");
   ChatUser geminiUser = ChatUser(
-    id: "1", 
+    id: "1",
     firstName: "Gemini",
     profileImage: "assets/gemini_logo.webp",
   );
 
   void _sendMessage(ChatMessage chatMessage) {
     setState(() {
-      chatHistory[currentChatId] = [chatMessage, ...chatHistory[currentChatId]!];
+      chatHistory[currentChatId] = [
+        chatMessage,
+        ...chatHistory[currentChatId]!
+      ];
     });
 
     try {
@@ -38,23 +41,26 @@ class _ChatbotPageState extends State<ChatbotPage> {
         if (lastMesssage != null && lastMesssage.user == geminiUser) {
           lastMesssage = chatHistory[currentChatId]?.removeAt(0);
           String response = event.content?.parts?.fold(
-            "", 
-            (previous, current) => "$previous ${current.text}") ?? "";
+                  "", (previous, current) => "$previous ${current.text}") ??
+              "";
           lastMesssage?.text += response;
           setState(() {
-            chatHistory[currentChatId] = [lastMesssage!, ...chatHistory[currentChatId]!];
+            chatHistory[currentChatId] = [
+              lastMesssage!,
+              ...chatHistory[currentChatId]!
+            ];
           });
         } else {
           String response = event.content?.parts?.fold(
-            "", 
-            (previous, current) => "$previous ${current.text}") ?? "";
+                  "", (previous, current) => "$previous ${current.text}") ??
+              "";
           ChatMessage message = ChatMessage(
-            user: geminiUser, 
-            createdAt: DateTime.now(), 
-            text: response
-          );
+              user: geminiUser, createdAt: DateTime.now(), text: response);
           setState(() {
-            chatHistory[currentChatId] = [message, ...chatHistory[currentChatId]!];
+            chatHistory[currentChatId] = [
+              message,
+              ...chatHistory[currentChatId]!
+            ];
           });
         }
       });
@@ -81,20 +87,19 @@ class _ChatbotPageState extends State<ChatbotPage> {
               "Gemini Chat",
             ),
             IconButton(
-              onPressed: _startNewChat,
-              icon: const FaIcon(
-                FontAwesomeIcons.penToSquare,
-                color: Colors.black,
-                size: 22,
-              )
-            ),
+                onPressed: _startNewChat,
+                icon: const FaIcon(
+                  FontAwesomeIcons.penToSquare,
+                  color: Colors.black,
+                  size: 22,
+                )),
           ],
         ),
         leading: Builder(
           builder: (context) {
             return IconButton(
               onPressed: () {
-                Scaffold.of(context).openDrawer(); 
+                Scaffold.of(context).openDrawer();
               },
               icon: const Icon(Icons.menu),
             );
@@ -102,22 +107,22 @@ class _ChatbotPageState extends State<ChatbotPage> {
         ),
       ),
       drawer: Drawer(
-        child: ListView(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              height: 70,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Chat History",
-                    style: TextStyle(
-                      fontSize: 24,
-                    ),
+          child: ListView(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            height: 70,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Chat History",
+                  style: TextStyle(
+                    fontSize: 24,
                   ),
-                  IconButton(
-                    onPressed:() {
+                ),
+                IconButton(
+                    onPressed: () {
                       _startNewChat();
                       Navigator.pop(context);
                     },
@@ -125,28 +130,26 @@ class _ChatbotPageState extends State<ChatbotPage> {
                       FontAwesomeIcons.penToSquare,
                       color: Colors.black,
                       size: 22,
-                    )
-                  ),
-                ],
-              ),
+                    )),
+              ],
             ),
-            ...chatHistory.keys.map((chatId) {
-              return ListTile(
-                title: Text(chatId),
-                selectedTileColor: Colors.black12,
-                selectedColor: Colors.black,
-                selected: currentChatId == chatId,
-                onTap: () {
-                  setState(() {
-                    currentChatId = chatId;
-                  });
-                  Navigator.pop(context);
-                },
-              );
-            }).toList(),
-          ],
-        )
-      ),
+          ),
+          ...chatHistory.keys.map((chatId) {
+            return ListTile(
+              title: Text(chatId),
+              selectedTileColor: Colors.black12,
+              selectedColor: Colors.black,
+              selected: currentChatId == chatId,
+              onTap: () {
+                setState(() {
+                  currentChatId = chatId;
+                });
+                Navigator.pop(context);
+              },
+            );
+          }).toList(),
+        ],
+      )),
       body: SafeArea(
         child: Column(
           children: [
@@ -167,26 +170,23 @@ class _ChatbotPageState extends State<ChatbotPage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             IconButton(
-              onPressed: () => Navigator.pushNamed(context, '/home'), 
-              icon: const Icon(
-                Icons.home_filled,
-                size: 40,
-              )
-            ),
+                onPressed: () => Navigator.pushNamed(context, '/home'),
+                icon: const Icon(
+                  Icons.home_filled,
+                  size: 40,
+                )),
             IconButton(
-              onPressed: () => Navigator.pushNamed(context, '/coursepage'), 
-              icon: const Icon(
-                Icons.bar_chart_rounded,
-                size: 40,
-              )
-            ),
+                onPressed: null,
+                icon: const Icon(
+                  Icons.bar_chart_rounded,
+                  size: 40,
+                )),
             const IconButton(
-              onPressed: null, 
-              icon: Icon(
-                Icons.chat_rounded,
-                size: 40,
-              )
-            )
+                onPressed: null,
+                icon: Icon(
+                  Icons.chat_rounded,
+                  size: 40,
+                ))
           ],
         ),
       ),

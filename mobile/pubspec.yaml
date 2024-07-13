@@ -46,6 +46,7 @@ dependencies:
   syncfusion_flutter_charts: ^26.1.40
   smooth_page_indicator: ^1.1.0
   fl_chart: ^0.68.0
+  shared_preferences: ^2.0.6
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
@@ -53,14 +54,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: "^0.13.1"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -82,21 +78,20 @@ flutter:
     - assets/practice.png
     - assets/expense_tracker.png
     - assets/background1.png
-    - assets/1_1.md
     - .env
     - assets/gemini_logo.webp
     - assets/finance.json
     - assets/modules1.png
     - assets/home_logo.png
     - assets/onboarding.png
+    - assets/pain.png
   #   - images/a_dot_ham.jpeg
 
 flutter_launcher_icons:
-  android: true
+  android: "launcher_icon"
   ios: true
-  adaptive_icon_background: "#000000" 
-  adaptive_icon_foreground: "assets/logo.png"
-  image_path: "assets/logo.png"
+  image_path: "assets/pain.png"
+  min_sdk_android: 21
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

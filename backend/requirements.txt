@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 firebase-admin
+google-generativeai
 httpx
 pytest
 

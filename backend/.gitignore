@@ -5,3 +5,4 @@ __pycache__/
 finnhub_api.py
 stocks_api.py
 firebase.json
+data.json

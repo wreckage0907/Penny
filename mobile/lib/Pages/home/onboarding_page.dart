@@ -1,9 +1,73 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 
-class OnboardingPage extends StatelessWidget {
+class NewUser{
+  final String username;
+  final String firstName;
+  final String lastName;
+  final String email;
+  final String phoneNo;
+
+  NewUser({
+    required this.username,
+    required this.firstName,
+    required this.lastName,
+    required this.email,
+    required this.phoneNo,
+  });
+}
+
+
+class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
+
+  @override
+  State<OnboardingPage> createState() => _OnboardingPageState();
+}
+
+class _OnboardingPageState extends State<OnboardingPage> {
+  
+  late NewUser user;
+
+  final usernameController = TextEditingController();
+  final firstNameController = TextEditingController();
+  final lastNameController = TextEditingController();
+  final emailController = TextEditingController();
+  final phoneNoController = TextEditingController();
+
+  @override
+  void dispose() {
+    usernameController.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
+    emailController.dispose();
+    phoneNoController.dispose();
+    super.dispose();
+  }
+
+  Future<void> postNewUserData(NewUser user) async {
+    final response = await http.post(
+        Uri.parse('http://10.0.2.2:8000/onboarding/${user.username}').replace(
+            queryParameters: {
+              'first_name': user.firstName,
+              'last_name': user.lastName,
+              'email': user.email,
+              'phone': user.phoneNo,
+            },
+          ),
+          headers: <String, String>{
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        );
+        
+        if (response.statusCode == 200) {
+          print('User data posted successfully');
+        } else {
+          throw Exception('Failed to post user data');
+        }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,36 +88,41 @@ class OnboardingPage extends StatelessWidget {
                 const SizedBox(height: 20),
                 Image.asset("assets/onboarding.png"),
                 const SizedBox(height: 20),
-                const TextField(
-                  decoration: InputDecoration(
+                TextField(
+                  controller: usernameController,
+                  decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: "Username"
                   ),
                 ),
                 const SizedBox(height: 20),
-                const TextField(
-                  decoration: InputDecoration(
+                TextField(
+                  controller: firstNameController,
+                  decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: "First Name"
                   ),
                 ),
                 const SizedBox(height: 20),
-                const TextField(
-                  decoration: InputDecoration(
+                TextField(
+                  controller: lastNameController,
+                  decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: "Last Name"
                   ),
                 ),
                 const SizedBox(height: 20),
-                const TextField(
-                  decoration: InputDecoration(
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: "Email"
                   ),
                 ),
                 const SizedBox(height: 20),
-                const TextField(
-                  decoration: InputDecoration(
+                TextField(
+                  controller: phoneNoController,
+                  decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: "Phone No."
                   ),
@@ -62,7 +131,19 @@ class OnboardingPage extends StatelessWidget {
                 Container(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/home'),
+                    onPressed: () => {
+                      setState(() {
+                        user = NewUser(
+                          username: usernameController.text,
+                          firstName: firstNameController.text,
+                          lastName: lastNameController.text,
+                          email: emailController.text,
+                          phoneNo: phoneNoController.text,
+                        );
+                      }),
+                      postNewUserData(user),
+                      Navigator.pushNamed(context, '/home')
+                    },
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
