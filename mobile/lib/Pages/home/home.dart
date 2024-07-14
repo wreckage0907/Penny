@@ -11,6 +11,7 @@ import 'package:mobile/Pages/home/onboarding_page.dart';
 import 'package:mobile/Pages/practice/list_of_modules.dart';
 import 'package:mobile/Pages/practice/mcqpage.dart';
 import 'package:mobile/Services/auth.dart';
+import 'package:mobile/app_colours.dart';
 
 // EXTERNAL IMPORTS
 import 'package:percent_indicator/circular_percent_indicator.dart';
@@ -55,15 +56,16 @@ class _HomeState extends State<Home> {
   }
 
   final _controller = PageController();
-  
+
   List<dynamic> articles = [];
   List<Widget> get widgetsList {
     return List.generate(
       20,
       (index) => GestureDetector(
-        onTap: () => launch(articles[index]['url']), 
+        onTap: () => launch(articles[index]['url']),
         child: Card(
           elevation: 1.5,
+          color: AppColours.buttonColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -71,16 +73,18 @@ class _HomeState extends State<Home> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
                 child: Image.network(
-                  articles[index]['urlToImage'] ?? 'https://via.placeholder.com/300x200',
+                  articles[index]['urlToImage'] ??
+                      'https://via.placeholder.com/300x200',
                   fit: BoxFit.cover,
                   height: 160,
                   width: double.infinity,
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       height: 150,
-                      color: Colors.grey,
+                      color: AppColours.buttonColor,
                       child: const Center(
                         child: Icon(Icons.error),
                       ),
@@ -96,15 +100,22 @@ class _HomeState extends State<Home> {
                     children: [
                       Text(
                         articles[index]['title'] ?? 'No title',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColours.backgroundColor,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Expanded(
                         child: Text(
                           articles[index]['description'] ?? 'No description',
-                          style: TextStyle(fontSize: 12),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColours.backgroundColor,
+                          ),
                           overflow: TextOverflow.fade,
                         ),
                       ),
@@ -133,13 +144,13 @@ class _HomeState extends State<Home> {
       routes: {
         '/coursepage': (context) => CoursePage(),
         '/chatbot': (context) => const ChatbotPage(),
-        '/budget': (context) => ExpenseTracker(),
+        '/budget': (context) => const ExpenseTracker(),
         '/practice': (context) => PracticeList(),
         '/mcq': (context) => const MCQPage(),
         '/onboarding': (context) => const OnboardingPage(),
-      },  
-      home: Scaffold( 
-        //backgroundColor: const Color.fromRGBO(232, 245, 233, 1),
+      },
+      home: Scaffold(
+        backgroundColor: AppColours.backgroundColor,
         body: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
@@ -153,155 +164,168 @@ class _HomeState extends State<Home> {
                         child: Text(
                           'WELCOME,\n$fullName',
                           style: GoogleFonts.dmSans(
-                            fontSize: 40,
+                            fontSize: 34,
                             fontWeight: FontWeight.w500,
-                            //color: const Color.fromRGBO(53, 51, 58, 1),
+                            color: AppColours.textColor,
                             height: 1.2,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       IconButton(
-                        onPressed: () async { _authService.signout(context: context);}, 
-                        icon: const Image(
-                          image: AssetImage('assets/home_logo.png'),
-                        )
-                      )
+                          onPressed: () async {
+                            _authService.signout(context: context);
+                          },
+                          icon: const Image(
+                            image: AssetImage('assets/home_logo.png'),
+                          ))
                     ],
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    height: 260,
-                    child: PageView(
-                      controller: _controller,
-                      children: widgetsList
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SmoothPageIndicator(
-                    controller: _controller, 
-                    count: widgetsList.length,
-                    effect: const SwapEffect(
-                      activeDotColor: Colors.black87,
-                      dotColor: Colors.black38,
-                      dotHeight: 5,
-                      dotWidth: 5,
-                    ),
                   ),
                   const SizedBox(height: 15),
                   GridView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: data.length,
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                    ), 
-                    itemBuilder: (context, index) {
-                      switch (index) {
-                        case 0:
-                          return GestureDetector(
-                            onTap: () => Navigator.pushNamed(context, '/coursepage'),
-                            child: Card(
-                              //color: const Color.fromRGBO(72, 75, 106, 1),
-                              elevation: 10,
-                              //color: const Color.fromRGBO(98, 117, 127, 1),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: data.length,
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
+                      ),
+                      itemBuilder: (context, index) {
+                        switch (index) {
+                          case 0:
+                            return GestureDetector(
+                              onTap: () =>
+                                  Navigator.pushNamed(context, '/coursepage'),
+                              child: Card(
+                                color: AppColours.cardColor,
+                                elevation: 10,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8),
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      Container(
+                                        alignment: Alignment.topLeft,
+                                        child: Text(
+                                          data[index]['title'],
+                                          style: GoogleFonts.darkerGrotesque(
+                                            color: AppColours.textColor,
+                                            fontSize: 28,
+                                            fontWeight: FontWeight.w600,
+                                            height: 1.1,
+                                          ),
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          Text('74%',
+                                              style:
+                                                  GoogleFonts.darkerGrotesque(
+                                                color: AppColours.textColor,
+                                                fontSize: 28,
+                                                fontWeight: FontWeight.w600,
+                                              )),
+                                          CircularPercentIndicator(
+                                            animation: true,
+                                            animationDuration: 500,
+                                            radius: 40,
+                                            progressColor: AppColours.buttonColor,
+                                            backgroundColor: Colors.transparent,
+                                            percent: 0.7,
+                                            center: Image(
+                                              image: AssetImage(
+                                                  data[index]['image']),
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                ),
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children: [
-                                    Container(
-                                      alignment: Alignment.topLeft,
-                                      child: Text(
+                            );
+                          default:
+                            return GestureDetector(
+                              onTap: () => {
+                                if (index == 1)
+                                  {Navigator.pushNamed(context, '/budget')}
+                                else if (index == 2)
+                                  {Navigator.pushNamed(context, '/mcq')}
+                                else
+                                  {Navigator.pushNamed(context, '/practice')}
+                              },
+                              child: Card(
+                                elevation: 10,
+                                color: AppColours.cardColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
                                         data[index]['title'],
                                         style: GoogleFonts.darkerGrotesque(
-                                          //color: const Color.fromRGBO(250, 250, 250, 1),
+                                          color: AppColours.textColor,
                                           fontSize: 28,
                                           fontWeight: FontWeight.w600,
                                           height: 1.1,
                                         ),
                                       ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                      children: [
-                                        Text(
-                                          '74%',
-                                          style: GoogleFonts.darkerGrotesque(
-                                            //color: const Color.fromRGBO(250, 250, 250, 1),
-                                            fontSize: 28,
-                                            fontWeight: FontWeight.w600,
-                                          )
-                                        ),
-                                        CircularPercentIndicator(
-                                          animation: true,
-                                          animationDuration: 500,
-                                          radius: 40,
-                                          //progressColor: const Color.fromRGBO(230, 242, 232, 1),
-                                          //backgroundColor: Colors.transparent,
-                                          percent: 0.7,
-                                          center: Image(
-                                            image: AssetImage(data[index]['image']),
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  ],
+                                      Container(
+                                        alignment: Alignment.bottomRight,
+                                        child: Image(
+                                            image: AssetImage(
+                                                data[index]['image'])),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        default:
-                          return GestureDetector(
-                            onTap: () => {
-                              if (index == 1) {
-                                Navigator.pushNamed(context, '/budget')
-                              } else if (index == 2) {
-                                Navigator.pushNamed(context, '/mcq')
-                              } else {
-                                Navigator.pushNamed(context, '/practice')
-                              }
-                            },
-                            child: Card(
-                              elevation: 10,
-                              //color: Color.fromRGBO(72, 75, 106, 1),
-                              //color: const Color.fromRGBO(98, 117, 127, 1),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      data[index]['title'],
-                                      style: GoogleFonts.darkerGrotesque(
-                                        //color: const Color.fromRGBO(250, 250, 250, 1),
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.w600,
-                                        height: 1.1,
-                                      ),
-                                    ),
-                                    Container(
-                                      alignment: Alignment.bottomRight,
-                                      child: Image(
-                                        image: AssetImage(data[index]['image'])
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                      }
-                    }
+                            );
+                        }
+                      }),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      "Finance News",
+                      textAlign: TextAlign.start,
+                      style: GoogleFonts.darkerGrotesque(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        color: AppColours.textColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 260,
+                    child: PageView(
+                        controller: _controller, children: widgetsList),
+                  ),
+                  const SizedBox(height: 12),
+                  SmoothPageIndicator(
+                    controller: _controller,
+                    count: widgetsList.length,
+                    effect: const SwapEffect(
+                      activeDotColor: AppColours.buttonColor,
+                      dotColor: AppColours.cardColor,
+                      dotHeight: 5,
+                      dotWidth: 5,
+                    ),
                   ),
                 ],
               ),
@@ -314,29 +338,26 @@ class _HomeState extends State<Home> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               const IconButton(
-                onPressed: null,
-                icon: Icon(
-                  Icons.home_filled,
-                  size: 40,
-                  //color: Color.fromRGBO(53, 51, 58, 1),
-                )
-              ),
+                  onPressed: null,
+                  icon: Icon(
+                    Icons.home,
+                    size: 40,
+                    color: AppColours.textColor
+                  )),
+              const IconButton(
+                  onPressed: null,
+                  icon: Icon(
+                    Icons.bar_chart_rounded,
+                    size: 40,
+                    color: AppColours.textColor,
+                  )),
               IconButton(
-                onPressed: null, 
-                icon: const Icon(
-                  Icons.bar_chart_rounded,
-                  size: 40,
-                  //color: Color.fromRGBO(53, 51, 58, 1),
-                )
-              ),
-              IconButton(
-                onPressed: () => Navigator.pushNamed(context, '/chatbot'), 
-                icon: const Icon(
-                  Icons.chat_rounded,
-                  size: 40,
-                  //color: Color.fromRGBO(53, 51, 58, 1),
-                )
-              )
+                  onPressed: () => Navigator.pushNamed(context, '/chatbot'),
+                  icon: const Icon(
+                    Icons.chat_outlined,
+                    size: 40,
+                    color: AppColours.textColor,
+                  ))
             ],
           ),
         ),

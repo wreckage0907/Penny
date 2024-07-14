@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:mobile/Services/auth.dart';
+import 'package:mobile/app_colours.dart';
 
 class NewUser{
   final String username;
@@ -74,6 +75,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColours.backgroundColor,
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -85,6 +87,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   style: GoogleFonts.darkerGrotesque(
                     fontSize: 42,
                     fontWeight: FontWeight.w600,
+                    color: AppColours.textColor
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -94,7 +97,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   controller: usernameController,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: "Username"
+                    labelText: "Username",
+                    labelStyle: TextStyle(
+                      color: AppColours.textColor
+                    )
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -102,7 +108,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   controller: firstNameController,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: "First Name"
+                    labelText: "First Name",
+                    labelStyle: TextStyle(
+                      color: AppColours.textColor
+                    )
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -110,7 +119,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   controller: lastNameController,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: "Last Name"
+                    labelText: "Last Name",
+                    labelStyle: TextStyle(
+                      color: AppColours.textColor
+                    )
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -118,7 +130,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   controller: emailController,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: "Email"
+                    labelText: "Email",
+                    labelStyle: TextStyle(
+                      color: AppColours.textColor
+                    )
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -126,7 +141,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   controller: phoneNoController,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: "Phone No."
+                    labelText: "Phone No.",
+                    labelStyle: TextStyle(
+                      color: AppColours.textColor
+                    )
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -156,7 +174,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           style: GoogleFonts.darkerGrotesque(
                             fontSize: 36,
                             fontWeight: FontWeight.w500,
-                            color: Colors.black,
+                            color: AppColours.textColor,
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -165,7 +183,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           child: const FaIcon(
                             FontAwesomeIcons.chevronRight,
                             size: 22,
-                            color: Colors.black,
+                            color: AppColours.textColor,
                           ),
                         )
                       ],

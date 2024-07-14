@@ -8,6 +8,7 @@ import 'package:mobile/Pages/login/input_field.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:mobile/app_colours.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -64,7 +65,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //backgroundColor: const Color.fromRGBO(255, 246, 229, 1),
+      backgroundColor: AppColours.backgroundColor,
       body: Container(
         alignment: Alignment.center,
         child: SingleChildScrollView(
@@ -87,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
                   style: GoogleFonts.spectral(
                     fontSize: 45,
                     fontWeight: FontWeight.w300,
-                    color: Colors.black87,
+                    color: AppColours.textColor,
                   ),
                 ),
                 const SizedBox(height: 26),
@@ -104,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
                   style: GoogleFonts.spectral(
                     fontSize: 24,
                     fontWeight: FontWeight.w300,
-                    color: Colors.black87,
+                    color: AppColours.textColor,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -117,20 +118,20 @@ class _LoginPageState extends State<LoginPage> {
                             await _authService.signinWithGoogle();
                         if (user != null) {
                           Navigator.pushReplacement(context,
-                              MaterialPageRoute(builder: (context) => Home()));
+                              MaterialPageRoute(builder: (context) => const Home()));
                         }
                       },
                       icon: const FaIcon(FontAwesomeIcons.google,
-                          color: Colors.black, size: 32),
+                          color: AppColours.buttonColor, size: 32),
                       style: const ButtonStyle(
-                        //backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+                        backgroundColor: WidgetStatePropertyAll(AppColours.cardColor),
                         padding: WidgetStatePropertyAll(
                             EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
                         minimumSize: WidgetStatePropertyAll(Size(80, 20)),
                         shape: WidgetStatePropertyAll(
                           CircleBorder(
                             side: BorderSide(
-                              color: Colors.black38,
+                              color: AppColours.cardColor,
                               width: 2,
                             ),
                           ),
@@ -148,16 +149,16 @@ class _LoginPageState extends State<LoginPage> {
                         }
                       },
                       icon: const FaIcon(FontAwesomeIcons.github,
-                          color: Colors.black, size: 32),
+                          color: AppColours.buttonColor, size: 32),
                       style: const ButtonStyle(
-                        //backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+                        backgroundColor:  WidgetStatePropertyAll(AppColours.cardColor),
                         padding: WidgetStatePropertyAll(
                             EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
                         minimumSize: WidgetStatePropertyAll(Size(80, 20)),
                         shape: WidgetStatePropertyAll(
                           CircleBorder(
                             side: BorderSide(
-                              color: Colors.black38,
+                              color: AppColours.cardColor,
                               width: 2,
                             ),
                           ),
@@ -168,16 +169,16 @@ class _LoginPageState extends State<LoginPage> {
                     IconButton(
                       onPressed: () => print("Microsoft Clicked"),
                       icon: const FaIcon(FontAwesomeIcons.microsoft,
-                          color: Colors.black, size: 32),
+                          color: AppColours.buttonColor, size: 32),
                       style: const ButtonStyle(
-                        //backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
+                        backgroundColor:  WidgetStatePropertyAll(AppColours.cardColor),
                         padding: WidgetStatePropertyAll(
                             EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
                         minimumSize: WidgetStatePropertyAll(Size(80, 20)),
                         shape: WidgetStatePropertyAll(
                           CircleBorder(
                             side: BorderSide(
-                              color: Colors.black38,
+                              color: AppColours.cardColor,
                               width: 2,
                             ),
                           ),
@@ -190,7 +191,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 20),
                 Padding(
                   padding: const EdgeInsets.only(
-                      left: 20, right: 20, top: 20, bottom: 5),
+                      left: 40, right: 40, top: 20, bottom: 5),
                   child: TextButton(
                     onPressed: () async {
                       final userData =
@@ -214,7 +215,7 @@ class _LoginPageState extends State<LoginPage> {
                     },
                     style: const ButtonStyle(
                       alignment: Alignment.center,
-                      //backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(175, 92, 92, 0.8)),
+                      backgroundColor: WidgetStatePropertyAll(AppColours.buttonColor),
                       padding: WidgetStatePropertyAll(
                           EdgeInsets.symmetric(vertical: 16, horizontal: 24)),
                       minimumSize:
@@ -222,19 +223,19 @@ class _LoginPageState extends State<LoginPage> {
                       shape: WidgetStatePropertyAll(
                         RoundedRectangleBorder(
                           side: BorderSide(
-                            //color: Color.fromRGBO(109, 109, 109, 1),
+                            color: AppColours.buttonColor,
                             width: 1.5,
                           ),
-                          borderRadius: BorderRadius.all(Radius.circular(28)),
+                          borderRadius: BorderRadius.all(Radius.circular(34)),
                         ),
                       ),
                     ),
                     child: Text(
                       'Sign In',
                       style: GoogleFonts.spectral(
-                        fontSize: 20,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: AppColours.backgroundColor,
                       ),
                     ),
                   ),
@@ -252,7 +253,7 @@ class _LoginPageState extends State<LoginPage> {
                       TextSpan(
                         text: 'Sign Up',
                         style: const TextStyle(
-                          //color: Colors.redAccent,
+                          color: AppColours.buttonColor,
                           decoration: TextDecoration.underline,
                         ),
                         recognizer: TapGestureRecognizer()

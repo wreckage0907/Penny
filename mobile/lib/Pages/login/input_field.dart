@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile/app_colours.dart';
 
 class UsernameField extends StatelessWidget {
   final TextEditingController controller;
@@ -15,13 +16,13 @@ class UsernameField extends StatelessWidget {
           padding: EdgeInsets.only(right: 14),
           child: Icon(Icons.person_outlined, size: 36),
         ),
-        prefixIconColor: Colors.black54,
+        prefixIconColor: AppColours.textColor,
         contentPadding: EdgeInsets.only(top: 10),
       ),
       style: GoogleFonts.spectral(
         fontSize: 24,
         fontWeight: FontWeight.w400,
-        color: Colors.black54,
+        color: AppColours.textColor,
       ),
     );
   }
@@ -38,7 +39,7 @@ class EmailField extends StatelessWidget {
       style: GoogleFonts.spectral(
         fontSize: 24,
         fontWeight: FontWeight.w400,
-        color: Colors.black54,
+        color: AppColours.textColor,
       ),
       decoration: const InputDecoration(
         hintText: 'Email',
@@ -46,7 +47,7 @@ class EmailField extends StatelessWidget {
           padding: EdgeInsets.only(right: 14),
           child: Icon(Icons.email_outlined, size: 36),
         ),
-        prefixIconColor: Colors.black54,
+        prefixIconColor: AppColours.textColor,
         contentPadding: EdgeInsets.only(top: 10),
       ),
     );
@@ -72,7 +73,7 @@ class _PasswordFieldState extends State<PasswordField> {
       style: GoogleFonts.spectral(
         fontSize: 24,
         fontWeight: FontWeight.w400,
-        color: Colors.black54,
+        color: AppColours.textColor,
       ),
       decoration: InputDecoration(
         hintText: 'Password',
@@ -83,7 +84,7 @@ class _PasswordFieldState extends State<PasswordField> {
             size: 36
           ),
         ),
-        prefixIconColor: Colors.black54,
+        prefixIconColor: AppColours.textColor,
         contentPadding: const EdgeInsets.only(top: 10),
         suffixIcon: IconButton(
           icon: Icon(
@@ -96,7 +97,7 @@ class _PasswordFieldState extends State<PasswordField> {
             });
           },
         ),
-        suffixIconColor: Colors.black54,
+        suffixIconColor: AppColours.textColor,
       ),
     );
   }

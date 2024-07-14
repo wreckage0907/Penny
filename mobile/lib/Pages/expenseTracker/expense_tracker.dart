@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile/app_colours.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 // ignore: depend_on_referenced_packages
@@ -244,19 +245,20 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
+            backgroundColor: AppColours.cardColor,
             title: Text(
               'Add New Category',
               style: GoogleFonts.darkerGrotesque(
                 fontSize: 30,
-                fontWeight: FontWeight.w300,
-                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+                color: AppColours.textColor,
               ),
             ),
             content: TextField(
               style: GoogleFonts.spectral(
                 fontSize: 20,
                 fontWeight: FontWeight.w300,
-                color: Colors.black87,
+                color: AppColours.textColor,
               ),
               onChanged: (value) {
                 categoryName = value;
@@ -266,7 +268,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                 labelStyle: GoogleFonts.spectral(
                   fontSize: 20,
                   fontWeight: FontWeight.w300,
-                  color: Colors.black87,
+                  color: AppColours.textColor,
                 ),
               ),
             ),
@@ -276,7 +278,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                     addCategory(categoryName);
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Category added successfully')),
+                      const SnackBar(content: Text('Category added successfully')),
                     );
                   },
                   child: Text(
@@ -284,7 +286,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                     style: GoogleFonts.spectral(
                       fontSize: 20,
                       fontWeight: FontWeight.w300,
-                      color: Colors.black87,
+                      color: AppColours.textColor,
                     ),
                   )),
               TextButton(
@@ -294,7 +296,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                   style: GoogleFonts.spectral(
                     fontSize: 20,
                     fontWeight: FontWeight.w300,
-                    color: Colors.black87,
+                    color: AppColours.textColor,
                   ),
                 ),
               )
@@ -311,21 +313,23 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
+            backgroundColor: AppColours.cardColor,
             title: Text(
               'Edit Expense',
               style: GoogleFonts.spectral(
                 fontSize: 30,
-                fontWeight: FontWeight.w300,
-                color: Colors.black,
+                fontWeight: FontWeight.w500,
+                color: AppColours.textColor,
               ),
             ),
             content: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   style: GoogleFonts.spectral(
                     fontSize: 20,
                     fontWeight: FontWeight.w300,
-                    color: Colors.black,
+                    color: AppColours.textColor,
                   ),
                   controller: TextEditingController(text: expenseName),
                   onChanged: (value) {
@@ -336,7 +340,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                     labelStyle: GoogleFonts.spectral(
                       fontSize: 20,
                       fontWeight: FontWeight.w300,
-                      color: Colors.black87,
+                      color: AppColours.textColor,
                     ),
                   ),
                 ),
@@ -344,7 +348,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                   style: GoogleFonts.spectral(
                     fontSize: 20,
                     fontWeight: FontWeight.w300,
-                    color: Colors.black87,
+                    color: AppColours.textColor,
                   ),
                   controller: TextEditingController(text: amount.toString()),
                   keyboardType: TextInputType.number,
@@ -356,7 +360,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                     labelStyle: GoogleFonts.spectral(
                       fontSize: 20,
                       fontWeight: FontWeight.w300,
-                      color: Colors.black87,
+                      color: AppColours.textColor,
                     ),
                   ),
                 ),
@@ -369,7 +373,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                     style: GoogleFonts.spectral(
                       fontSize: 20,
                       fontWeight: FontWeight.w300,
-                      color: Colors.black,
+                      color: AppColours.textColor,
                     ),
                   ),
                   onPressed: () {
@@ -380,12 +384,18 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                   Navigator.of(context).pop();
                   await editExpense(
                       category, index, expenseName, amount.toInt());
-                  // Optionally, you can add a success message here
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Expense updated successfully')),
+                    const SnackBar(content: Text('Expense updated successfully')),
                   );
                 },
-                child: Text('Save'),
+                child: Text(
+                  'Save',
+                  style: GoogleFonts.spectral(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w300,
+                    color: AppColours.textColor,
+                  ),
+                ),
               )
             ],
           );
@@ -400,40 +410,41 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: AppColours.cardColor,
           title: Text(
             "Add New Expense",
-            style: GoogleFonts.darkerGrotesque(
-              fontSize: 30,
-              fontWeight: FontWeight.w300,
-              color: Colors.black87,
+            style: GoogleFonts.spectral(
+              fontSize: 28,
+              fontWeight: FontWeight.w500,
+              color: AppColours.textColor,
             ),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                style: GoogleFonts.darkerGrotesque(
+                style: GoogleFonts.spectral(
                   fontSize: 20,
                   fontWeight: FontWeight.w300,
-                  color: Colors.black87,
+                  color: AppColours.textColor,
                 ),
                 onChanged: (value) {
                   expenseName = value;
                 },
                 decoration: InputDecoration(
                   labelText: 'Expense Name',
-                  labelStyle: GoogleFonts.darkerGrotesque(
+                  labelStyle: GoogleFonts.spectral(
                     fontSize: 20,
                     fontWeight: FontWeight.w300,
-                    color: Colors.black87,
+                    color: AppColours.textColor,
                   ),
                 ),
               ),
               TextField(
-                style: GoogleFonts.darkerGrotesque(
+                style: GoogleFonts.spectral(
                   fontSize: 20,
                   fontWeight: FontWeight.w300,
-                  color: Colors.black87,
+                  color: AppColours.textColor,
                 ),
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
@@ -441,10 +452,10 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                 },
                 decoration: InputDecoration(
                   labelText: 'Amount',
-                  labelStyle: GoogleFonts.darkerGrotesque(
+                  labelStyle: GoogleFonts.spectral(
                     fontSize: 20,
                     fontWeight: FontWeight.w300,
-                    color: Colors.black87,
+                    color: AppColours.textColor,
                   ),
                 ),
               ),
@@ -454,10 +465,10 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
             TextButton(
               child: Text(
                 'Cancel',
-                style: GoogleFonts.darkerGrotesque(
+                style: GoogleFonts.spectral(
                   fontSize: 20,
                   fontWeight: FontWeight.w300,
-                  color: Colors.black87,
+                  color: AppColours.textColor,
                 ),
               ),
               onPressed: () {
@@ -471,10 +482,10 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
               },
               child: Text(
                 'Add',
-                style: GoogleFonts.darkerGrotesque(
+                style: GoogleFonts.spectral(
                   fontSize: 20,
                   fontWeight: FontWeight.w300,
-                  color: Colors.black87,
+                  color: AppColours.textColor,
                 ),
               ),
             )
@@ -489,6 +500,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
     int tempYear = selectedYear;
 
     showModalBottomSheet(
+      backgroundColor: AppColours.backgroundColor,
         context: context,
         builder: (BuildContext context) {
           return StatefulBuilder(
@@ -518,6 +530,8 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                                     months[index],
                                     style: GoogleFonts.darkerGrotesque(
                                       fontSize: 20,
+                                      color: AppColours.textColor,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 );
@@ -542,6 +556,8 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                                     '${index + 2000}',
                                     style: GoogleFonts.darkerGrotesque(
                                       fontSize: 20,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColours.textColor
                                     ),
                                   ),
                                 );
@@ -565,6 +581,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                               style: GoogleFonts.darkerGrotesque(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w600,
+                                color: AppColours.textColor,
                               ),
                             ),
                           ),
@@ -581,6 +598,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                               style: GoogleFonts.darkerGrotesque(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w600,
+                                color: AppColours.textColor,
                               ),
                             ),
                           ),
@@ -667,16 +685,17 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
             }
           }
 
-          print(data);
-
           return Scaffold(
+            backgroundColor: AppColours.backgroundColor,
             appBar: AppBar(
+              backgroundColor: AppColours.backgroundColor,
               toolbarHeight: 70,
               title: Text(
                 'Expense Tracker',
                 style: GoogleFonts.darkerGrotesque(
                   fontSize: 35,
                   fontWeight: FontWeight.w800,
+                  color: AppColours.textColor
                 ),
               ),
             ),
@@ -695,14 +714,14 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                             style: GoogleFonts.spectral(
                               fontSize: 20,
                               fontWeight: FontWeight.w300,
-                              color: Colors.black87,
+                              color: AppColours.textColor,
                             ),
                           ),
                           IconButton(
                             onPressed: _showMonthYearPicker,
                             icon: const FaIcon(
                               FontAwesomeIcons.caretDown,
-                              color: Colors.black,
+                              color: AppColours.textColor,
                               size: 20,
                             ),
                           ),
@@ -713,6 +732,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                         style: GoogleFonts.spectral(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
+                          color: AppColours.textColor
                         ),
                       )
                     ],
@@ -730,7 +750,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                       yValueMapper: (Expense data, _) => data.amountSpent,
                       innerRadius: "55%",
                       radius: "80%",
-                      strokeColor: Colors.white,
+                      strokeColor: AppColours.backgroundColor,
                       strokeWidth: 3,
                     )
                   ],
@@ -742,6 +762,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                           style: GoogleFonts.spectral(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
+                            color: AppColours.textColor
                           ),
                         ),
                       ),
@@ -753,6 +774,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                     itemCount: _categories.length,
                     itemBuilder: (context, index) {
                       return Card(
+                        color: AppColours.cardColor,
                         margin: const EdgeInsets.all(10),
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(18, 5, 18, 5),
@@ -767,7 +789,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                                     children: [
                                       const Icon(
                                         Icons.car_crash,
-                                        color: Colors.black,
+                                        color: AppColours.textColor,
                                         size: 20,
                                       ),
                                       const SizedBox(width: 8),
@@ -775,7 +797,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                                           style: GoogleFonts.darkerGrotesque(
                                             fontSize: 20,
                                             fontWeight: FontWeight.w500,
-                                            color: Colors.black,
+                                            color: AppColours.textColor,
                                           )),
                                       Transform.translate(
                                           offset: const Offset(-12, -12),
@@ -786,7 +808,8 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                                             },
                                             icon: const Icon(
                                               Icons.add,
-                                              color: Colors.black,
+                                              color: AppColours.textColor,
+                                              size: 20,
                                             ),
                                           )),
                                     ],
@@ -800,7 +823,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                                     style: GoogleFonts.darkerGrotesque(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w500,
-                                      color: Colors.black,
+                                      color: AppColours.textColor,
                                     ),
                                   ),
                                 ],
@@ -820,7 +843,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                                               style: GoogleFonts.dmSans(
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.w300,
-                                                color: Colors.black87,
+                                                color: AppColours.textColor,
                                               ),
                                             ),
                                             Transform.translate(
@@ -836,7 +859,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                                                     icon: const FaIcon(
                                                       FontAwesomeIcons.pencil,
                                                       size: 12,
-                                                      color: Colors.black,
+                                                      color: AppColours.textColor,
                                                     )))
                                           ],
                                         ),
@@ -856,9 +879,11 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
               ],
             ),
             floatingActionButton: FloatingActionButton(
+              backgroundColor: AppColours.buttonColor,
               onPressed: _showAddCategoryDialog,
               child: const Icon(
                 Icons.add,
+                color: AppColours.backgroundColor,
               ),
             ),
           );
