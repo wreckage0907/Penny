@@ -1,14 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart'; 
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/Pages/home/home.dart';
 import 'package:mobile/Pages/login/input_field.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -28,7 +27,8 @@ class _LoginPageState extends State<LoginPage> {
     _passwordController.dispose();
     super.dispose();
   }
-  Future<String?> getEmail(String userId) async {
+
+  Future<Map<String, String?>> getUserData(String userId) async {
     try {
       final response = await http.get(
         Uri.parse('http://10.0.2.2:8000/user').replace(
@@ -38,22 +38,26 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data['user'] != null && data['user']['email'] != null) {
-          return data['user']['email'][0];
+        if (data['user'] != null) {
+          return {
+            'email': data['user']['email'][0],
+            'fullName':
+                '${data['user']['firstName'][0]} ${data['user']['lastName'][0]}'
+          };
         } else {
-          print('Email not found in response data');
-          return null;
+          print('User data not found in response');
+          return {'email': null, 'fullName': null};
         }
       } else if (response.statusCode == 404) {
         print('User not found');
-        return null;
+        return {'email': null, 'fullName': null};
       } else {
         print('Error: ${response.statusCode}');
-        return null;
+        return {'email': null, 'fullName': null};
       }
     } catch (e) {
       print('Error retrieving user data: $e');
-      return null;
+      return {'email': null, 'fullName': null};
     }
   }
 
@@ -87,9 +91,13 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 26),
-                UsernameField(controller: _usernameController,),
+                UsernameField(
+                  controller: _usernameController,
+                ),
                 const SizedBox(height: 14),
-                PasswordField(controller: _passwordController,),
+                PasswordField(
+                  controller: _passwordController,
+                ),
                 const SizedBox(height: 25),
                 Text(
                   'or continue with',
@@ -105,22 +113,23 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     IconButton(
                       onPressed: () async {
-                        UserCredential? user = await _authService.signinWithGoogle();
-                        if(user != null){
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => Home())
-                          );
+                        UserCredential? user =
+                            await _authService.signinWithGoogle();
+                        if (user != null) {
+                          Navigator.pushReplacement(context,
+                              MaterialPageRoute(builder: (context) => Home()));
                         }
                       },
-                      icon: const FaIcon(FontAwesomeIcons.google, color: Colors.black, size: 32),
+                      icon: const FaIcon(FontAwesomeIcons.google,
+                          color: Colors.black, size: 32),
                       style: const ButtonStyle(
                         //backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
-                        padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
+                        padding: WidgetStatePropertyAll(
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
                         minimumSize: WidgetStatePropertyAll(Size(80, 20)),
                         shape: WidgetStatePropertyAll(
                           CircleBorder(
-                            side: BorderSide( 
+                            side: BorderSide(
                               color: Colors.black38,
                               width: 2,
                             ),
@@ -131,20 +140,21 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     IconButton(
                       onPressed: () async {
-                        UserCredential? user =await _authService.signInWithGithub();
-                        if(user != null){
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => Home())
-                          );
+                        UserCredential? user =
+                            await _authService.signInWithGithub();
+                        if (user != null) {
+                          Navigator.pushReplacement(context,
+                              MaterialPageRoute(builder: (context) => Home()));
                         }
                       },
-                      icon: const FaIcon(FontAwesomeIcons.github, color: Colors.black, size: 32),
+                      icon: const FaIcon(FontAwesomeIcons.github,
+                          color: Colors.black, size: 32),
                       style: const ButtonStyle(
                         //backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
-                        padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
-                        minimumSize:  WidgetStatePropertyAll(Size(80,20)),
-                        shape:  WidgetStatePropertyAll(
+                        padding: WidgetStatePropertyAll(
+                            EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
+                        minimumSize: WidgetStatePropertyAll(Size(80, 20)),
+                        shape: WidgetStatePropertyAll(
                           CircleBorder(
                             side: BorderSide(
                               color: Colors.black38,
@@ -152,17 +162,19 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                         ),
-                        elevation:  WidgetStatePropertyAll(2),
+                        elevation: WidgetStatePropertyAll(2),
                       ),
                     ),
                     IconButton(
                       onPressed: () => print("Microsoft Clicked"),
-                      icon: const FaIcon(FontAwesomeIcons.microsoft, color: Colors.black, size: 32),
+                      icon: const FaIcon(FontAwesomeIcons.microsoft,
+                          color: Colors.black, size: 32),
                       style: const ButtonStyle(
                         //backgroundColor:  WidgetStatePropertyAll(Color.fromRGBO(255, 246, 229, 1)),
-                        padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
-                        minimumSize:  WidgetStatePropertyAll(Size(80,20)),
-                        shape:  WidgetStatePropertyAll(
+                        padding: WidgetStatePropertyAll(
+                            EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
+                        minimumSize: WidgetStatePropertyAll(Size(80, 20)),
+                        shape: WidgetStatePropertyAll(
                           CircleBorder(
                             side: BorderSide(
                               color: Colors.black38,
@@ -170,28 +182,43 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                         ),
-                        elevation:  WidgetStatePropertyAll(2),
+                        elevation: WidgetStatePropertyAll(2),
                       ),
-                    ),  
+                    ),
                   ],
                 ),
                 const SizedBox(height: 20),
                 Padding(
-                  padding: const EdgeInsets.only(left: 20,right:20,top: 20,bottom: 5),
+                  padding: const EdgeInsets.only(
+                      left: 20, right: 20, top: 20, bottom: 5),
                   child: TextButton(
                     onPressed: () async {
-                      String? email = await getEmail(_usernameController.text);
-                      UserCredential? user = await _authService.login(email: email.toString(), password: _passwordController.text);
-                      if (user != null) {
-                        await _authService.saveUsername(_usernameController.text);
-                        Navigator.of(context).pushReplacementNamed('/home');
+                      final userData =
+                          await getUserData(_usernameController.text);
+                      if (userData['email'] != null) {
+                        UserCredential? user = await _authService.login(
+                            email: userData['email']!,
+                            password: _passwordController.text);
+                        if (user != null) {
+                          await _authService
+                              .saveUsername(_usernameController.text);
+                          if (userData['fullName'] != null) {
+                            await _authService
+                                .saveFullName(userData['fullName']!);
+                          }
+                          Navigator.of(context).pushReplacementNamed('/home');
+                        }
+                      } else {
+                        print('Email not found for username');
                       }
                     },
                     style: const ButtonStyle(
                       alignment: Alignment.center,
                       //backgroundColor: WidgetStatePropertyAll(Color.fromRGBO(175, 92, 92, 0.8)),
-                      padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 16, horizontal: 24)),
-                      minimumSize: WidgetStatePropertyAll(Size(double.infinity, 24)),
+                      padding: WidgetStatePropertyAll(
+                          EdgeInsets.symmetric(vertical: 16, horizontal: 24)),
+                      minimumSize:
+                          WidgetStatePropertyAll(Size(double.infinity, 24)),
                       shape: WidgetStatePropertyAll(
                         RoundedRectangleBorder(
                           side: BorderSide(

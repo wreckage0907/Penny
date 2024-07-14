@@ -143,7 +143,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           phoneNo: phoneNoController.text,
                         );
                       });
+                      postNewUserData(user);
                       await _authService.saveUsername(usernameController.text);
+                      await _authService.saveFullName('${firstNameController.text} ${lastNameController.text}');
                       Navigator.of(context).pushReplacementNamed('/home');
                     },
                     child: Row(

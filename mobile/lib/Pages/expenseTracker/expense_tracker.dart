@@ -72,45 +72,44 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
     "November",
     "December"
   ];
-  late TooltipBehavior _tooltipBehavior;
+
   late List<ExpenseCategory> _categories;
+  late final TooltipBehavior _tooltipBehavior = TooltipBehavior(
+    enable: true,
+    format: 'point.x : \$point.y',
+    textStyle: const TextStyle(color: Colors.white),
+    color: Colors.black.withOpacity(0.7),
+    duration: 1500,
+    canShowMarker: true,
+    shared: false,
+    animationDuration: 700,
+    builder: (dynamic data, dynamic point, dynamic series, int pointIndex,
+        int seriesIndex) {
+      Expense expense = data as Expense;
+      String categoryTitle = _categories
+          .firstWhere((category) => category.expenses.contains(expense))
+          .categoryTitle;
+
+      return Container(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(categoryTitle,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, color: Colors.white)),
+            Text('${expense.name}: \$${expense.amountSpent.toStringAsFixed(2)}',
+                style: const TextStyle(color: Colors.white)),
+          ],
+        ),
+      );
+    },
+  );
 
   @override
   void initState() {
     super.initState();
-    _tooltipBehavior = TooltipBehavior(
-      enable: true,
-      format: 'point.x : \$point.y',
-      textStyle: const TextStyle(color: Colors.white),
-      color: Colors.black.withOpacity(0.7),
-      duration: 1500,
-      canShowMarker: true,
-      shared: false,
-      animationDuration: 700,
-      builder: (dynamic data, dynamic point, dynamic series, int pointIndex,
-          int seriesIndex) {
-        Expense expense = data as Expense;
-        String categoryTitle = _categories
-            .firstWhere((category) => category.expenses.contains(expense))
-            .categoryTitle;
-
-        return Container(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(categoryTitle,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.white)),
-              Text(
-                  '${expense.name}: \$${expense.amountSpent.toStringAsFixed(2)}',
-                  style: const TextStyle(color: Colors.white)),
-            ],
-          ),
-        );
-      },
-    );
     _loadUsername();
     _categories = [];
   }
@@ -733,18 +732,13 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                       radius: "80%",
                       strokeColor: Colors.white,
                       strokeWidth: 3,
-                      // animationDelay: 10,
                     )
                   ],
                   annotations: <CircularChartAnnotation>[
                     CircularChartAnnotation(
                       widget: Container(
                         child: Text(
-                          "\$${_categories
-                              .expand((category) => category.expenses)
-                              .map((expense) => expense.amountSpent)
-                              .reduce((a, b) => a + b)
-                              .toString()}",
+                          "\$${_categories.expand((category) => category.expenses).map((expense) => expense.amountSpent).reduce((a, b) => a + b).toString()}",
                           style: GoogleFonts.spectral(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,

@@ -15,14 +15,12 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final Auth _authService = Auth();
 
   @override
   void dispose() {
-    _usernameController.dispose();
     _passwordController.dispose();
     _emailController.dispose();
     super.dispose();
@@ -127,7 +125,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   padding: const EdgeInsets.only(left: 20,right:20,top: 20,bottom: 5),
                   child: TextButton(
                     onPressed: () async {
-                      UserCredential? user = await  _authService.signUp(username:_usernameController.text,email: _emailController.text,password:_passwordController.text);
+                      UserCredential? user = await  _authService.signUp(email: _emailController.text,password:_passwordController.text);
             
                       if(user != null){
                         Navigator.pushNamed(context, '/onboarding');
