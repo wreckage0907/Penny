@@ -9,10 +9,9 @@ class Auth {
   Future<UserCredential?> signUp({
     required String email,
     required String password,
-    required String username,
   }) async {
     try {
-      print('signup called $email $password $username');
+      print('signup called $email $password');
       return await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -62,7 +61,7 @@ class Auth {
 
   Future<void> signout({required BuildContext context}) async {
     await FirebaseAuth.instance.signOut();
-    await clearUsername();
+    await clearUserData();
     Navigator.of(context).pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);
   }
 
@@ -71,8 +70,14 @@ class Auth {
     await prefs.setString('username', username);
   }
 
-  Future<void> clearUsername() async {
+  Future<void> clearUserData() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('username');
+    await prefs.remove('fullName');
+  }
+
+  Future<void> saveFullName(String fullName) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('fullName', fullName);
   }
 }

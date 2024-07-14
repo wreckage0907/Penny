@@ -28,6 +28,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final Auth _authService = Auth();
+  String? fullName;
   String? username;
 
   Future<void> readJson() async {
@@ -41,14 +42,15 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    _loadUsername();
+    _loadUserData();
     readJson();
   }
 
-  Future<void> _loadUsername() async {
+  Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       username = prefs.getString('username');
+      fullName = prefs.getString('fullName');
     });
   }
 
@@ -149,7 +151,7 @@ class _HomeState extends State<Home> {
                     children: [
                       Expanded(
                         child: Text(
-                          'WELCOME,\n$username',
+                          'WELCOME,\n$fullName',
                           style: GoogleFonts.dmSans(
                             fontSize: 40,
                             fontWeight: FontWeight.w500,
