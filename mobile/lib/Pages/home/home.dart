@@ -47,7 +47,7 @@ class _HomeState extends State<Home> {
             data['user']['lastName'] != null) {
           return '${data['user']['firstName'][0]} ${data['user']['lastName'][0]}';
         } else {
-          print('Email not found in response data');
+          print('Name not found in response data');
           return null;
         }
       } else if (response.statusCode == 404) {
