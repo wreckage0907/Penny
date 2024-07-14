@@ -74,6 +74,38 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
   ];
 
   late List<ExpenseCategory> _categories;
+  late final TooltipBehavior _tooltipBehavior = TooltipBehavior(
+    enable: true,
+    format: 'point.x : \$point.y',
+    textStyle: const TextStyle(color: Colors.white),
+    color: Colors.black.withOpacity(0.7),
+    duration: 1500,
+    canShowMarker: true,
+    shared: false,
+    animationDuration: 700,
+    builder: (dynamic data, dynamic point, dynamic series, int pointIndex,
+        int seriesIndex) {
+      Expense expense = data as Expense;
+      String categoryTitle = _categories
+          .firstWhere((category) => category.expenses.contains(expense))
+          .categoryTitle;
+
+      return Container(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(categoryTitle,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, color: Colors.white)),
+            Text('${expense.name}: \$${expense.amountSpent.toStringAsFixed(2)}',
+                style: const TextStyle(color: Colors.white)),
+          ],
+        ),
+      );
+    },
+  );
 
   @override
   void initState() {
@@ -90,7 +122,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
   }
 
   Future<Map<String, dynamic>> getData() async {
-    if(username == null) {
+    if (username == null) {
       await _loadUsername();
     }
     try {
@@ -600,7 +632,6 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
 
   @override
   Widget build(BuildContext context) {
-
     return FutureBuilder<Map<String, dynamic>>(
         future: getData(),
         builder: (context, snapshot) {
@@ -686,6 +717,36 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                       )
                     ],
                   ),
+                ),
+                SfCircularChart(
+                  tooltipBehavior: _tooltipBehavior,
+                  series: <CircularSeries>[
+                    DoughnutSeries<Expense, String>(
+                      enableTooltip: true,
+                      dataSource: _categories
+                          .expand((category) => category.expenses)
+                          .toList(),
+                      xValueMapper: (Expense data, _) => data.name,
+                      yValueMapper: (Expense data, _) => data.amountSpent,
+                      innerRadius: "55%",
+                      radius: "80%",
+                      strokeColor: Colors.white,
+                      strokeWidth: 3,
+                    )
+                  ],
+                  annotations: <CircularChartAnnotation>[
+                    CircularChartAnnotation(
+                      widget: Container(
+                        child: Text(
+                          "\$${_categories.expand((category) => category.expenses).map((expense) => expense.amountSpent).reduce((a, b) => a + b).toString()}",
+                          style: GoogleFonts.spectral(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
                 ),
                 Expanded(
                   child: ListView.builder(

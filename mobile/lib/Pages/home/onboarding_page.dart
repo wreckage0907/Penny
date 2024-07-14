@@ -143,6 +143,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           phoneNo: phoneNoController.text,
                         );
                       });
+                      postNewUserData(user);
                       await _authService.saveUsername(usernameController.text);
                       Navigator.of(context).pushReplacementNamed('/home');
                     },
