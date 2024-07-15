@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from routers import user, file, expenseTracker, chatbot, onboarding, questionGen
+from routers import user, file, expenseTracker, chatbot, onboarding, questionGen, stock
 from database.firebase_init import firestore_db
 import asyncio
 
@@ -34,3 +34,4 @@ app.include_router(expenseTracker.router)
 app.include_router(chatbot.router)
 app.include_router(onboarding.router)
 app.include_router(questionGen.router)
+app.include_router(stock.router)

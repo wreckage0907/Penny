@@ -12,11 +12,11 @@ def initialize_firebase():
     elif os.path.exists('/etc/secrets/firebase.json'):
         path = '/etc/secrets/firebase.json'
     else:
-        path = os.path.join(current, "../firebase.json")
+        path = os.path.join(current, "../firebase-backend.json")
         
     cred = credentials.Certificate(path)
     firebase_app = initialize_app(cred, {
-        'storageBucket': 'penny-89979.appspot.com'
+        'storageBucket': 'penny-b0b59.appspot.com'
     })
     return firestore.client(), storage.bucket()
 

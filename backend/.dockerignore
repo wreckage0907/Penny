@@ -6,4 +6,4 @@ README.md
 __pycache__
 .pytest_cache
 .env
-firebase.json
+firebase-backend.json
