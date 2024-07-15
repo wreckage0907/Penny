@@ -4,9 +4,13 @@ import json
 
 def initialize_firebase():
     current = os.path.dirname(__file__)
+    
+    # Check for environment variable first
     firebase_env = os.getenv('firebase') 
     if firebase_env:
         path = json.loads(firebase_env)
+    elif os.path.exists('/etc/secrets/firebase.json'):
+        path = '/etc/secrets/firebase.json'
     else:
         path = os.path.join(current, "../firebase.json")
         
