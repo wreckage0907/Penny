@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from routers import user, file, expenseTracker, chatbot, onboarding, questionGen
 from database.firebase_init import firestore_db
 import asyncio
@@ -13,9 +14,19 @@ app.add_middleware(
     allow_credentials=True
 )
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    return {"message": "Hello World"}
+    html_content = """
+    <html>
+        <head>
+            <title>Penny API</title>
+        </head>
+        <body style="display: flex; justify-content: center; align-items: flex-start; height: 100vh; margin: 0;">
+            <h1>Penny API</h1>
+        </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
 
 app.include_router(user.router)
 app.include_router(file.router)
