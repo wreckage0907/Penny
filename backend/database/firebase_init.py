@@ -3,14 +3,21 @@ import os
 import json
 
 def initialize_firebase():
-    cred = credentials.Certificate("/app/firebase.json")
-    try:
-        firebase_app = initialize_app(cred, {
-            'storageBucket': 'penny-b0b59.appspot.com'
-        })
-        return firestore.client(), storage.bucket()
-    except Exception as e:
-        print(f"Error initializing Firebase: {str(e)}")
-        return None, None
+    current = os.path.dirname(__file__)
+    
+    # Check for environment variable first
+    firebase_env = os.getenv('firebase') 
+    if firebase_env:
+        path = json.loads(firebase_env)
+    elif os.path.exists('/etc/secrets/firebase.json'):
+        path = '/etc/secrets/firebase.json'
+    else:
+        path = os.path.join(current, "../firebase-backend.json")
+        
+    cred = credentials.Certificate(path)
+    firebase_app = initialize_app(cred, {
+        'storageBucket': 'penny-b0b59.appspot.com'
+    })
+    return firestore.client(), storage.bucket()
 
 firestore_db, firebase_storage = initialize_firebase()

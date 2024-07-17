@@ -1,4 +1,3 @@
-import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
@@ -28,10 +27,6 @@ async def root():
     """
     return HTMLResponse(content=html_content)
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
-
 app.include_router(user.router)
 app.include_router(file.router)
 app.include_router(expenseTracker.router)
@@ -39,8 +34,3 @@ app.include_router(chatbot.router)
 app.include_router(onboarding.router)
 app.include_router(questionGen.router)
 app.include_router(stock.router)
-
-if __name__ == "__main__":
-    import uvicorn
-    port = int(os.environ.get("PORT", 8080))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
