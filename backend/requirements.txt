@@ -3,6 +3,7 @@ uvicorn
 gunicorn
 firebase-admin
 google-generativeai
+beautifulsoup4 
 httpx
 pytest
 
