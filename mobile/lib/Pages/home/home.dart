@@ -12,7 +12,6 @@ import 'package:mobile/Pages/coursePage/course_page.dart';
 import 'package:mobile/Pages/expenseTracker/expense_tracker.dart';
 import 'package:mobile/Pages/home/onboarding_page.dart';
 import 'package:mobile/Pages/practice/list_of_modules.dart';
-import 'package:mobile/Pages/practice/mcqpage.dart';
 import 'package:mobile/Pages/stocks/stock_profile.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:mobile/app_colours.dart';
@@ -84,7 +83,7 @@ class _HomeState extends State<Home> {
       if (username != null) {
         try {
           final response = await http.get(
-            Uri.parse('http://10.0.2.2:8000/prof/$username'),
+            Uri.parse('https://penny-4jam.onrender.com/prof/$username'),
           );
 
           if (response.statusCode == 200) {
@@ -194,7 +193,6 @@ class _HomeState extends State<Home> {
         '/chatbot': (context) => const ChatbotPage(),
         '/budget': (context) => const ExpenseTracker(),
         '/practice': (context) => PracticeList(),
-        '/mcq': (context) => const MCQPage(),
         '/onboarding': (context) => const OnboardingPage(),
         '/stockprofile': (context) => const StockProfile(),
       },

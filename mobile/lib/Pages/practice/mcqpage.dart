@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile/app_colours.dart';
+import 'package:mobile/loading_widgets.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -43,14 +45,25 @@ class Question {
 
 
 class MCQPage extends StatefulWidget {
-  const MCQPage({super.key});
+  const MCQPage({required this.index ,super.key});
+  
+  final int index;
 
   @override
   State<MCQPage> createState() => _MCQPageState();
 }
 
 class _MCQPageState extends State<MCQPage> {
+  
+  late Map things = { 
+    0:"introduction_to_personal_finance",
+    1:"setting_financial_goals",
+    2:"budgeting_and_expense_tracking",
+    3:"online_and_mobile_banking"
+  };
   late Future<Map<String, dynamic>> futureQuestions;
+  late String chapterName = things[widget.index];
+  late int noOfQuestions = 5;
   late Chapter chapter;
   int currentQuestionIndex = 0;
   String? selectedAnswer;
@@ -58,11 +71,12 @@ class _MCQPageState extends State<MCQPage> {
   @override
   void initState() {
     super.initState();
-    futureQuestions = fetchQuestions();
+    futureQuestions = fetchQuestions(chapterName, noOfQuestions);
   }
 
-  Future<Map<String, dynamic>> fetchQuestions() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2:5000/questions'));
+  Future<Map<String, dynamic>> fetchQuestions(String chap,int n) async {
+
+    final response = await http.get(Uri.parse('http://10.0.2.2:10000/generate_questions/$chap?num_question=$n'));
     if (response.statusCode == 200) {
       var json = jsonDecode(response.body);
       chapter = Chapter.fromJson(json);
@@ -87,7 +101,10 @@ class _MCQPageState extends State<MCQPage> {
       future: futureQuestions,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
+          return Scaffold(
+            backgroundColor: AppColours.backgroundColor,
+            body: Center(child: CustomLoadingWidgets.fourRotatingDots()),
+          );
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else if (snapshot.hasData) {

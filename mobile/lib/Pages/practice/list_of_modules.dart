@@ -1,24 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile/Pages/practice/mcqpage.dart';
 import 'package:mobile/app_colours.dart';
 
 class PracticeList extends StatelessWidget {
   PracticeList({super.key});
 
   final List<String> finishedModules = [
-    "Basics of Personal Finance",
-    "Banking and Accounts",
-    "Credit and Debt Management",
-    "Saving and Investing",
+    "Introduction to Personal Finance",
   ];
   final List<String> unfinishedModules = [
     "Insurance and Risk Management",
     "Real Estate and Home Management",
-    "Financial Planning and Taxes",
-    "Consumer Awarness",
-    "Enterprenuership and Business Finance",
-    "Advance Personal Finance"
   ];
 
   @override
@@ -58,7 +52,9 @@ class PracticeList extends StatelessWidget {
                   itemCount: finishedModules.length,
                   itemBuilder: (BuildContext context, int position) {
                     return TextButton(
-                      onPressed: () => print("Print"),
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => MCQPage(index: position)));
+                      },
                       child: Container(
                         height: 55,
                         decoration: BoxDecoration(

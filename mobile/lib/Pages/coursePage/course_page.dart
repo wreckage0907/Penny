@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:mobile/Pages/coursePage/learning_page.dart';
 import 'package:mobile/app_colours.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 extension StringExtension on String {
   String capitalize() {
@@ -21,6 +22,8 @@ class CoursePage extends StatefulWidget {
 
 class _CoursePageState extends State<CoursePage> {
   List<String> modulesList = [];
+    bool isLoading = true;
+
 
   @override
   void initState() {
@@ -28,29 +31,33 @@ class _CoursePageState extends State<CoursePage> {
     fetchFolderNames();
   }
 
-  Future<void> fetchFolderNames() async {
-    try {
-      final response =
-          await http.get(Uri.parse('http://10.0.2.2:8000/subfolder'));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          modulesList = List<String>.from(data['title'])
-              .where((name) => name.isNotEmpty)
-              .toList();
-          modulesList.sort((a, b) {
-            int aNum = int.tryParse(a.split('_')[0]) ?? 0;
-            int bNum = int.tryParse(b.split('_')[0]) ?? 0;
-            return aNum.compareTo(bNum);
-          });
+Future<void> fetchFolderNames() async {
+  try {
+    final response =
+        await http.get(Uri.parse('https://penny-4jam.onrender.com/subfolder'));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      setState(() {
+        modulesList = List<String>.from(data['title'])
+            .where((name) => name.isNotEmpty)
+            .toList();
+        modulesList.sort((a, b) {
+          int aNum = int.tryParse(a.split('_')[0]) ?? 0;
+          int bNum = int.tryParse(b.split('_')[0]) ?? 0;
+          return aNum.compareTo(bNum);
         });
-      } else {
-        throw Exception('Failed to load folder names');
-      }
-    } catch (e) {
-      print('Error: $e');
+        isLoading = false; // Add this line
+      });
+    } else {
+      throw Exception('Failed to load folder names');
     }
+  } catch (e) {
+    print('Error: $e');
+    setState(() {
+      isLoading = false;
+    });
   }
+}
 
   String getModuleNames(String name) {
     final parts = name.split('_');
@@ -91,67 +98,76 @@ class _CoursePageState extends State<CoursePage> {
               ),
               const SizedBox(height: 20),
               Expanded(
-                child: ListView.separated(
-                    padding: const EdgeInsets.all(0),
-                    itemBuilder: (context, int index) {
-                      return SizedBox(
-                        height: 70,
-                        child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColours.buttonColor,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15)),
-                            ),
-                            onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => LearningPage(
-                                      moduleName:
-                                          getModuleNames(modulesList[index]),
-                                      subfolder: modulesList[index],
-                                    ),
-                                  ));
-                            },
-                            child: Center(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  const IconButton(
-                                    onPressed: null,
-                                    icon: FaIcon(
-                                      FontAwesomeIcons.circlePlay,
-                                      size: 32,
-                                      color: AppColours.backgroundColor,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Transform.translate(
-                                      offset: const Offset(0, -3),
-                                      child: Text(
-                                        getModuleNames(modulesList[index]),
-                                        style: GoogleFonts.darkerGrotesque(
-                                          fontSize: 30,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColours.backgroundColor,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )),
-                      );
-                    },
-                    separatorBuilder: (context, int index) => const Divider(
-                          color: Colors.transparent,
-                          height: 15,
+            child: Skeletonizer(
+              effect: ShimmerEffect(
+                baseColor: AppColours.buttonColor.withOpacity(0.2),
+                highlightColor: AppColours.buttonColor.withOpacity(0.3),
+              ),
+              enabled: isLoading,
+              ignoreContainers: true,
+              child: ListView.separated(
+                padding: const EdgeInsets.all(0),
+                itemBuilder: (context, int index) {
+                  return SizedBox(
+                    height: 70,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColours.buttonColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
                         ),
-                    itemCount: modulesList.length),
-              )
+                      ),
+                      onPressed: isLoading ? null : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LearningPage(
+                              moduleName: getModuleNames(modulesList[index]),
+                              subfolder: modulesList[index],
+                            ),
+                          ),
+                        );
+                      },
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const IconButton(
+                              onPressed: null,
+                              icon: FaIcon(
+                                FontAwesomeIcons.circlePlay,
+                                size: 32,
+                                color: AppColours.backgroundColor,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Transform.translate(
+                                offset: const Offset(0, -3),
+                                child: Text(
+                                  isLoading ? 'Module Name' : getModuleNames(modulesList[index]),
+                                  style: GoogleFonts.darkerGrotesque(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColours.backgroundColor,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                separatorBuilder: (context, int index) => const Divider(
+                  color: Colors.transparent,
+                  height: 15,
+                ),
+                itemCount: isLoading ? 5 : modulesList.length,),
+              )),
             ],
           ),
         ));

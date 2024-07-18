@@ -56,7 +56,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
     });
   }
 Future<String?> uploadProfileImage(String userId, File imageFile) async {
-  final url = Uri.parse('http://10.0.2.2:8000/prof');
+  final url = Uri.parse('https://penny-4jam.onrender.com/prof');
 
   try {
     var request = http.MultipartRequest('POST', url);
@@ -117,7 +117,7 @@ Future<String?> uploadProfileImage(String userId, File imageFile) async {
       }
 
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/onboarding/${user.username}').replace(
+        Uri.parse('https://penny-4jam.onrender.com/onboarding/${user.username}').replace(
           queryParameters: queryParameters,
         ),
         headers: <String, String>{

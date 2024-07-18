@@ -32,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<Map<String, String?>> getUserData(String userId) async {
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/user').replace(
+        Uri.parse('https://penny-4jam.onrender.com/user').replace(
           queryParameters: {'user_id': userId},
         ),
       );

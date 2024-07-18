@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:mobile/app_colours.dart';
+import 'package:mobile/loading_widgets.dart';
 
 class LessonPage extends StatelessWidget {
   const LessonPage(
@@ -16,7 +18,7 @@ class LessonPage extends StatelessWidget {
   Future<String> fetchFile() async {
     try {
       final res = await http
-          .get(Uri.parse("http://10.0.2.2:8000/get-file/$subfolder/$fileName"));
+          .get(Uri.parse("https://penny-4jam.onrender.com/get-file/$subfolder/$fileName"));
       if (res.statusCode == 200) {
         final data = json.decode(res.body);
         return data['content'];
@@ -39,7 +41,10 @@ class LessonPage extends StatelessWidget {
           future: fetchFile(),
           builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return Scaffold(
+                backgroundColor: AppColours.backgroundColor,
+                body: Center(child: CustomLoadingWidgets.fourRotatingDots())
+              );
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else {

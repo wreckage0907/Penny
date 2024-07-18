@@ -8,7 +8,6 @@ import 'package:mobile/Pages/login/login.dart';
 import 'package:mobile/Pages/login/signup.dart';
 import 'package:mobile/Pages/home/home.dart';
 import 'package:mobile/Pages/practice/list_of_modules.dart';
-import 'package:mobile/Pages/practice/mcqpage.dart';
 import 'package:mobile/Pages/stocks/stock_profile.dart';
 import 'package:mobile/firebase_options.dart';
 
@@ -51,7 +50,6 @@ class MyApp extends StatelessWidget {
         '/chatbot': (context) => const ChatbotPage(),
         '/budget': (context) => const ExpenseTracker(),
         '/practice': (context) => PracticeList(),
-        '/mcq': (context) => const MCQPage(),
         '/onboarding': (context) => const OnboardingPage(),
         '/stockprofile': (context) => const StockProfile(),
       },
