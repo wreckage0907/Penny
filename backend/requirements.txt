@@ -7,9 +7,3 @@ beautifulsoup4
 httpx
 google-cloud-storage
 pytest
-<<<<<<< Updated upstream
-uvicorn
-=======
-
-
->>>>>>> Stashed changes
