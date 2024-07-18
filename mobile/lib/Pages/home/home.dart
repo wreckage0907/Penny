@@ -1,4 +1,7 @@
 //INITIAL IMPORTS
+import 'dart:async';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,6 +13,7 @@ import 'package:mobile/Pages/expenseTracker/expense_tracker.dart';
 import 'package:mobile/Pages/home/onboarding_page.dart';
 import 'package:mobile/Pages/practice/list_of_modules.dart';
 import 'package:mobile/Pages/practice/mcqpage.dart';
+import 'package:mobile/Pages/stocks/stock_profile.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:mobile/app_colours.dart';
 
@@ -18,6 +22,7 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 class Home extends StatefulWidget {
@@ -31,6 +36,8 @@ class _HomeState extends State<Home> {
   final Auth _authService = Auth();
   String? fullName;
   String? username;
+  String? profileImageUrl;
+  Timer? _timer;
 
   Future<void> readJson() async {
     final String response = await rootBundle.loadString('assets/finance.json');
@@ -43,8 +50,22 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _loadInitialData();
     readJson();
+    _timer = Timer.periodic(const Duration(minutes: 50), (_) => _loadProfileImage());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadInitialData() async {
+    await _loadUserData();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -53,7 +74,34 @@ class _HomeState extends State<Home> {
       username = prefs.getString('username');
       fullName = prefs.getString('fullName');
     });
+
+    if (username != null) {
+      await _loadProfileImage();
+    }
   }
+
+  Future<void> _loadProfileImage() async {
+      if (username != null) {
+        try {
+          final response = await http.get(
+            Uri.parse('http://10.0.2.2:8000/prof/$username'),
+          );
+
+          if (response.statusCode == 200) {
+            final data = json.decode(response.body);
+            if (mounted) {
+              setState(() {
+                profileImageUrl = data['url'];
+              });
+            }
+          } else {
+            print("Error loading profile image: ${response.statusCode}");
+          }
+        } catch (e) {
+          print("Error loading profile image: $e");
+        }
+      }
+    }
 
   final _controller = PageController();
 
@@ -142,12 +190,13 @@ class _HomeState extends State<Home> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       routes: {
-        '/coursepage': (context) => CoursePage(),
+        '/coursepage': (context) => const CoursePage(),
         '/chatbot': (context) => const ChatbotPage(),
         '/budget': (context) => const ExpenseTracker(),
         '/practice': (context) => PracticeList(),
         '/mcq': (context) => const MCQPage(),
         '/onboarding': (context) => const OnboardingPage(),
+        '/stockprofile': (context) => const StockProfile(),
       },
       home: Scaffold(
         backgroundColor: AppColours.backgroundColor,
@@ -173,12 +222,30 @@ class _HomeState extends State<Home> {
                         ),
                       ),
                       IconButton(
-                          onPressed: () async {
-                            _authService.signout(context: context);
-                          },
-                          icon: const Image(
-                            image: AssetImage('assets/home_logo.png'),
-                          ))
+                        onPressed: () async {
+                          _authService.signout(context: context);
+                        },
+                        icon: profileImageUrl != null
+                            ? CachedNetworkImage(
+                                imageUrl: profileImageUrl!,
+                                imageBuilder: (context, imageProvider) =>
+                                    CircleAvatar(
+                                  backgroundImage: imageProvider,
+                                  radius: 25,
+                                ),
+                                placeholder: (context, url) =>
+                                    const CircularProgressIndicator(),
+                                errorWidget: (context, url, error) {
+                                  print("Error loading image: $error");
+                                  return const Icon(Icons.error);
+                                },
+                              )
+                            : const Image(
+                                image: AssetImage('assets/home_logo.png'),
+                                width: 40,
+                                height: 40,
+                              ),
+                      )
                     ],
                   ),
                   const SizedBox(height: 15),
@@ -238,7 +305,8 @@ class _HomeState extends State<Home> {
                                             animation: true,
                                             animationDuration: 500,
                                             radius: 40,
-                                            progressColor: AppColours.buttonColor,
+                                            progressColor:
+                                                AppColours.buttonColor,
                                             backgroundColor: Colors.transparent,
                                             percent: 0.7,
                                             center: Image(
@@ -259,7 +327,7 @@ class _HomeState extends State<Home> {
                                 if (index == 1)
                                   {Navigator.pushNamed(context, '/budget')}
                                 else if (index == 2)
-                                  {Navigator.pushNamed(context, '/mcq')}
+                                  {Navigator.pushNamed(context, '/stockbuy')}
                                 else
                                   {Navigator.pushNamed(context, '/practice')}
                               },
@@ -339,11 +407,8 @@ class _HomeState extends State<Home> {
             children: [
               const IconButton(
                   onPressed: null,
-                  icon: Icon(
-                    Icons.home,
-                    size: 40,
-                    color: AppColours.textColor
-                  )),
+                  icon:
+                      Icon(Icons.home, size: 40, color: AppColours.textColor)),
               const IconButton(
                   onPressed: null,
                   icon: Icon(
