@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from routers import user, file, expenseTracker, chatbot, onboarding, questionGen, stock
 from database.firebase_init import firestore_db
+import uvicorn
 
 app = FastAPI()
 app.add_middleware(
@@ -34,3 +35,6 @@ app.include_router(chatbot.router)
 app.include_router(onboarding.router)
 app.include_router(questionGen.router)
 app.include_router(stock.router)
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=10000, reload=True)
