@@ -6,4 +6,4 @@ google-generativeai
 beautifulsoup4 
 httpx
 pytest
-
+uvicorn
