@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mobile/firebase_options.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Auth {
@@ -44,14 +46,19 @@ class Auth {
   }
 
   Future<UserCredential?> signinWithGoogle() async {
-    final googleUser = await GoogleSignIn().signIn();
-
-    final googleAuth = await googleUser!.authentication;
-
-    final credential = GoogleAuthProvider.credential(
-        idToken: googleAuth.idToken, accessToken: googleAuth.accessToken);
-
-    return await _auth.signInWithCredential(credential);
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      final GoogleSignInAuthentication? googleAuth =
+          await googleUser?.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth?.accessToken,
+        idToken: googleAuth?.idToken,
+      );
+      return await FirebaseAuth.instance.signInWithCredential(credential);
+    } catch (e) {
+      print('Error during Google sign in: $e');
+      return null;
+    }
   }
 
   Future<UserCredential?> signInWithGithub() async {
@@ -59,10 +66,17 @@ class Auth {
     return await FirebaseAuth.instance.signInWithProvider(githubProvider);
   }
 
+  Future<UserCredential?> signInWithFacebook() async {
+    final LoginResult result = await FacebookAuth.instance.login();
+    final OAuthCredential facebookauthcred = FacebookAuthProvider.credential(result.accessToken!.token);
+    return await FirebaseAuth.instance.signInWithCredential(facebookauthcred);
+  }
+
   Future<void> signout({required BuildContext context}) async {
     await FirebaseAuth.instance.signOut();
     await clearUserData();
-    Navigator.of(context).pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);
+    Navigator.of(context)
+        .pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);
   }
 
   Future<void> saveUsername(String username) async {

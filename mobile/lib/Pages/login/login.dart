@@ -167,8 +167,8 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => print("Microsoft Clicked"),
-                      icon: const FaIcon(FontAwesomeIcons.microsoft,
+                      onPressed: () => _authService.signInWithFacebook(),
+                      icon: const FaIcon(FontAwesomeIcons.facebookF,
                           color: AppColours.buttonColor, size: 32),
                       style: const ButtonStyle(
                         backgroundColor:  WidgetStatePropertyAll(AppColours.cardColor),
