@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/Services/auth.dart';
-import 'package:mobile/app_colours.dart';
+import 'package:mobile/consts/app_colours.dart';
 import 'package:path/path.dart' as path;
 
 class NewUser {

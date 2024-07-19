@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile/app_colours.dart';
-import 'package:mobile/loading_widgets.dart';
+import 'package:mobile/consts/app_colours.dart';
+import 'package:mobile/consts/loading_widgets.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';

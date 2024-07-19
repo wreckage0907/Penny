@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mobile/app_colours.dart';
+import 'package:mobile/consts/app_colours.dart';
 
 class SignInWithGoogleButton extends StatelessWidget {
   const SignInWithGoogleButton({super.key});

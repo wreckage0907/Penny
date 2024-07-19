@@ -1,7 +1,7 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:mobile/Pages/coursePage/lesson_page.dart';
+import 'package:mobile/consts/app_colours.dart';
 
 class LearningPage extends StatefulWidget {
   final String moduleName;
@@ -14,6 +14,12 @@ class LearningPage extends StatefulWidget {
 }
 
 class _LearningPageState extends State<LearningPage> {
+  Map<String, dynamic> backgroundImages = {
+    "Personal Finance": const AssetImage('assets/background1.png'),
+    "Banking And Accounts": const AssetImage('assets/background2.png'),
+    "Credit And Debt Management": const AssetImage('assets/background3.png'),
+  };
+
   void _navigateToLesson(int index) {
     Future.microtask(() {
       Navigator.push(
@@ -33,14 +39,15 @@ class _LearningPageState extends State<LearningPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: AppColours.backgroundColor,
         title: Text(widget.moduleName),
       ),
       body: SingleChildScrollView(
         reverse: true,
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
               image: DecorationImage(
-            image: AssetImage('assets/background1.png'),
+            image: backgroundImages[widget.moduleName],
             fit: BoxFit.cover,
           )),
           child: Stack(
@@ -80,14 +87,14 @@ class CoursePath extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint1 = Paint()
-      ..color = const Color.fromRGBO(74, 91, 99, 1)
+      ..color = const Color.fromRGBO(140, 74, 74, 1)
       ..strokeWidth = 12
       ..style = PaintingStyle.stroke;
 
-    Paint paint2 = Paint()..color = const Color.fromRGBO(198, 219, 210, 1);
+    Paint paint2 = Paint()..color = const Color.fromRGBO(231, 206, 206, 1);
 
     Paint paint3 = Paint()
-      ..color = const Color.fromRGBO(74, 91, 99, 1)
+      ..color = const Color.fromRGBO(140, 74, 74, 1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 12;
 
@@ -141,7 +148,7 @@ class CoursePath extends CustomPainter {
     canvas.drawPath(path, paint1);
 
     ui.ParagraphStyle paragraphStyle = ui.ParagraphStyle(fontSize: 30);
-    ui.TextStyle textStyle = ui.TextStyle(color: Colors.black87);
+    ui.TextStyle textStyle = ui.TextStyle(color: AppColours.textColor);
 
     for (var i = 0; i < points2.length; i++) {
       canvas.drawCircle(points2[i], circleRadius, paint2);

@@ -85,6 +85,8 @@ flutter:
     - assets/practice.png
     - assets/expense_tracker.png
     - assets/background1.png
+    - assets/background2.png
+    - assets/background3.png
     - .env
     - assets/gemini_logo.webp
     - assets/finance.json

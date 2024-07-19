@@ -8,7 +8,7 @@ import 'package:mobile/Pages/login/input_field.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:mobile/app_colours.dart';
+import 'package:mobile/consts/app_colours.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

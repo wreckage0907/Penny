@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile/app_colours.dart';
+import 'package:mobile/consts/app_colours.dart';
 
 class UsernameField extends StatelessWidget {
   final TextEditingController controller;

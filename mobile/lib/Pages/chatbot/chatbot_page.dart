@@ -2,7 +2,7 @@ import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:mobile/app_colours.dart';
+import 'package:mobile/consts/app_colours.dart';
 
 class ChatbotPage extends StatefulWidget {
   const ChatbotPage({super.key});
@@ -219,17 +219,17 @@ class _ChatbotPageState extends State<ChatbotPage> {
             const IconButton(
                 onPressed: null,
                 icon: Icon(
-                  Icons.bar_chart_rounded,
-                  size: 40,
-                  color: AppColours.textColor,
-                )),
-            const IconButton(
-                onPressed: null,
-                icon: Icon(
                   Icons.chat_rounded,
                   size: 40,
                   color: AppColours.textColor,
-                ))
+                )),
+            IconButton(
+                  onPressed: () => Navigator.pushNamed(context, '/profilesettings'),
+                  icon: const Icon(
+                    Icons.person_outline_rounded,
+                    size: 40,
+                    color: AppColours.textColor,
+                  )),
           ],
         ),
       ),

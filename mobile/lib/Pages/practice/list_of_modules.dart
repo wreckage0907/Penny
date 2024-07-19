@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/Pages/practice/mcqpage.dart';
-import 'package:mobile/app_colours.dart';
+import 'package:mobile/consts/app_colours.dart';
 
 class PracticeList extends StatelessWidget {
   PracticeList({super.key});

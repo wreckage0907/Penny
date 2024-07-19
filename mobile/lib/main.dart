@@ -4,6 +4,7 @@ import 'package:mobile/Pages/chatbot/chatbot_page.dart';
 import 'package:mobile/Pages/coursePage/course_page.dart';
 import 'package:mobile/Pages/expenseTracker/expense_tracker.dart';
 import 'package:mobile/Pages/home/onboarding_page.dart';
+import 'package:mobile/Pages/home/profile_settings.dart';
 import 'package:mobile/Pages/login/login.dart';
 import 'package:mobile/Pages/login/signup.dart';
 import 'package:mobile/Pages/home/home.dart';
@@ -52,6 +53,7 @@ class MyApp extends StatelessWidget {
         '/practice': (context) => PracticeList(),
         '/onboarding': (context) => const OnboardingPage(),
         '/stockprofile': (context) => const StockProfile(),
+        '/profilesettings': (context) => const ProfileSettings(),
       },
     );
   }

@@ -11,10 +11,11 @@ import 'package:mobile/Pages/chatbot/chatbot_page.dart';
 import 'package:mobile/Pages/coursePage/course_page.dart';
 import 'package:mobile/Pages/expenseTracker/expense_tracker.dart';
 import 'package:mobile/Pages/home/onboarding_page.dart';
+import 'package:mobile/Pages/home/profile_settings.dart';
 import 'package:mobile/Pages/practice/list_of_modules.dart';
 import 'package:mobile/Pages/stocks/stock_profile.dart';
 import 'package:mobile/Services/auth.dart';
-import 'package:mobile/app_colours.dart';
+import 'package:mobile/consts/app_colours.dart';
 
 // EXTERNAL IMPORTS
 import 'package:percent_indicator/circular_percent_indicator.dart';
@@ -51,7 +52,8 @@ class _HomeState extends State<Home> {
     super.initState();
     _loadInitialData();
     readJson();
-    _timer = Timer.periodic(const Duration(minutes: 50), (_) => _loadProfileImage());
+    _timer =
+        Timer.periodic(const Duration(minutes: 50), (_) => _loadProfileImage());
   }
 
   @override
@@ -80,27 +82,27 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> _loadProfileImage() async {
-      if (username != null) {
-        try {
-          final response = await http.get(
-            Uri.parse('https://penny-4jam.onrender.com/prof/$username'),
-          );
+    if (username != null) {
+      try {
+        final response = await http.get(
+          Uri.parse('https://penny-4jam.onrender.com/prof/$username'),
+        );
 
-          if (response.statusCode == 200) {
-            final data = json.decode(response.body);
-            if (mounted) {
-              setState(() {
-                profileImageUrl = data['url'];
-              });
-            }
-          } else {
-            print("Error loading profile image: ${response.statusCode}");
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          if (mounted) {
+            setState(() {
+              profileImageUrl = data['url'];
+            });
           }
-        } catch (e) {
-          print("Error loading profile image: $e");
+        } else {
+          print("Error loading profile image: ${response.statusCode}");
         }
+      } catch (e) {
+        print("Error loading profile image: $e");
       }
     }
+  }
 
   final _controller = PageController();
 
@@ -195,6 +197,7 @@ class _HomeState extends State<Home> {
         '/practice': (context) => PracticeList(),
         '/onboarding': (context) => const OnboardingPage(),
         '/stockprofile': (context) => const StockProfile(),
+        '/profilesettings': (context) => const ProfileSettings(),
       },
       home: Scaffold(
         backgroundColor: AppColours.backgroundColor,
@@ -325,7 +328,10 @@ class _HomeState extends State<Home> {
                                 if (index == 1)
                                   {Navigator.pushNamed(context, '/budget')}
                                 else if (index == 2)
-                                  {Navigator.pushNamed(context, '/stockbuy')}
+                                  {
+                                    Navigator.pushNamed(
+                                        context, '/stockprofile')
+                                  }
                                 else
                                   {Navigator.pushNamed(context, '/practice')}
                               },
@@ -407,20 +413,20 @@ class _HomeState extends State<Home> {
                   onPressed: null,
                   icon:
                       Icon(Icons.home, size: 40, color: AppColours.textColor)),
-              const IconButton(
-                  onPressed: null,
-                  icon: Icon(
-                    Icons.bar_chart_rounded,
-                    size: 40,
-                    color: AppColours.textColor,
-                  )),
               IconButton(
                   onPressed: () => Navigator.pushNamed(context, '/chatbot'),
                   icon: const Icon(
                     Icons.chat_outlined,
+                    size: 38,
+                    color: AppColours.textColor,
+                  )),
+              IconButton(
+                  onPressed: () => Navigator.pushNamed(context, '/profilesettings'),
+                  icon: const Icon(
+                    Icons.person_outline_rounded,
                     size: 40,
                     color: AppColours.textColor,
-                  ))
+                  )),
             ],
           ),
         ),

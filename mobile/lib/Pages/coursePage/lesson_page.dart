@@ -3,8 +3,8 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'package:mobile/app_colours.dart';
-import 'package:mobile/loading_widgets.dart';
+import 'package:mobile/consts/app_colours.dart';
+import 'package:mobile/consts/loading_widgets.dart';
 
 class LessonPage extends StatelessWidget {
   const LessonPage(
