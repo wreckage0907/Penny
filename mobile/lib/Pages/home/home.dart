@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/Pages/chatbot/chatbot_page.dart';
 import 'package:mobile/Pages/coursePage/course_page.dart';
 import 'package:mobile/Pages/expenseTracker/expense_tracker.dart';
+import 'package:mobile/Pages/home/edit_profile.dart';
 import 'package:mobile/Pages/home/onboarding_page.dart';
 import 'package:mobile/Pages/home/profile_settings.dart';
 import 'package:mobile/Pages/practice/list_of_modules.dart';
@@ -198,6 +199,7 @@ class _HomeState extends State<Home> {
         '/onboarding': (context) => const OnboardingPage(),
         '/stockprofile': (context) => const StockProfile(),
         '/profilesettings': (context) => const ProfileSettings(),
+        '/editprofile': (context) => const EditProfile(),
       },
       home: Scaffold(
         backgroundColor: AppColours.backgroundColor,

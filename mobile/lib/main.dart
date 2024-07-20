@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile/Pages/chatbot/chatbot_page.dart';
 import 'package:mobile/Pages/coursePage/course_page.dart';
 import 'package:mobile/Pages/expenseTracker/expense_tracker.dart';
+import 'package:mobile/Pages/home/edit_profile.dart';
 import 'package:mobile/Pages/home/onboarding_page.dart';
 import 'package:mobile/Pages/home/profile_settings.dart';
 import 'package:mobile/Pages/login/login.dart';
@@ -54,6 +55,7 @@ class MyApp extends StatelessWidget {
         '/onboarding': (context) => const OnboardingPage(),
         '/stockprofile': (context) => const StockProfile(),
         '/profilesettings': (context) => const ProfileSettings(),
+        '/editprofile': (context) => const EditProfile(),
       },
     );
   }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/consts/app_colours.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -136,93 +135,125 @@ class _ProfileSettingsState extends State<ProfileSettings> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.transparent,
-                backgroundImage: profileImageUrl != null
-                    ? NetworkImage(profileImageUrl!)
-                    : const AssetImage('assets/home_logo.png') as ImageProvider,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.transparent,
+                    backgroundImage: profileImageUrl != null
+                        ? NetworkImage(profileImageUrl!)
+                        : const AssetImage('assets/home_logo.png')
+                            as ImageProvider,
+                  ),
+                  const SizedBox(width: 15),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${userData?['firstName'] ?? ''} ${userData?['lastName'] ?? ''}",
+                        style: GoogleFonts.dmSans(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: AppColours.textColor,
+                        ),
+                      ),
+                      Text(
+                        username ?? '',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w600,
+                          color: AppColours.textColor.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
               ),
-              const SizedBox(height: 20),
-              Text(
-                "Username",
-                style: GoogleFonts.dmSans(
-                    fontSize: 18, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                readOnly: true,
-                controller: TextEditingController(
-                  text: username ?? ' ',
-                ),
-                decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelStyle: TextStyle(color: AppColours.textColor)),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "First Name",
-                style: GoogleFonts.dmSans(
-                    fontSize: 18, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                readOnly: true,
-                controller: TextEditingController(
-                  text: userData?['firstName'] ?? '',
-                ),
-                decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelStyle: TextStyle(color: AppColours.textColor)),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "Last Name",
-                style: GoogleFonts.dmSans(
-                    fontSize: 18, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                readOnly: true,
-                controller: TextEditingController(
-                  text: userData?['lastName'] ?? '',
-                ),
-                decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelStyle: TextStyle(color: AppColours.textColor)),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "Email ID",
-                style: GoogleFonts.dmSans(
-                    fontSize: 18, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                readOnly: true,
-                controller: TextEditingController(
-                  text: userData?['email'] ?? '',
-                ),
-                decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelStyle: TextStyle(color: AppColours.textColor)),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "Phone Number",
-                style: GoogleFonts.dmSans(
-                    fontSize: 18, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                readOnly: true,
-                controller: TextEditingController(
-                  text: userData?['phone'] ?? '',
-                ),
-                decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelStyle: TextStyle(color: AppColours.textColor)),
-              ),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                  onPressed: () => Navigator.pushNamed(context, '/editprofile'),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColours.buttonColor,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 8)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Edit Profile",
+                        style: GoogleFonts.dmSans(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w500,
+                            color: AppColours.backgroundColor),
+                      ),
+                    ],
+                  )),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                  onPressed: () => Navigator.pushNamed(context, '/editprofile'),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColours.buttonColor,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 8)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Change Password",
+                        style: GoogleFonts.dmSans(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w500,
+                            color: AppColours.backgroundColor),
+                      ),
+                    ],
+                  )),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                  onPressed: () => Navigator.pushNamed(context, '/editprofile'),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColours.buttonColor,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 8)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Sign Out",
+                        style: GoogleFonts.dmSans(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w500,
+                            color: AppColours.backgroundColor),
+                      ),
+                    ],
+                  )),
+                  const SizedBox(height: 30),
+                  ElevatedButton(
+                  onPressed: () => Navigator.pushNamed(context, '/editprofile'),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColours.buttonColor,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 8)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Delete Account",
+                        style: GoogleFonts.dmSans(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w500,
+                            color: AppColours.backgroundColor),
+                      ),
+                    ],
+                  ))
             ],
           ),
         ),
