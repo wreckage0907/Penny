@@ -1,16 +1,23 @@
 from fastapi import APIRouter, HTTPException
 from database.firebase_init import firestore_db
+from pydantic import BaseModel
 
 router = APIRouter()
 
+class User(BaseModel):
+    first_name: str
+    last_name: str
+    email: str
+    phone: str
+
 @router.post("/onboarding/{user_id}")
-def new_user(user_id: str, first_name: str, last_name: str, email: str, phone: str):
+def new_user(user_id: str, user: User):
     user_data = {
-        "user":{
-            "firstName": {first_name},
-            "lastName": {last_name},
-            "email": {email},
-            "phone": {phone},
+        "user": {
+            "firstName": user.first_name,
+            "lastName": user.last_name,
+            "email": user.email,
+            "phone": user.phone,
             "coins": 0
         }
     }
@@ -288,3 +295,42 @@ def new_user(user_id: str, first_name: str, last_name: str, email: str, phone: s
 
     return user_data
 
+@router.get("/onboarding/{user_id}")
+def get_user(user_id: str):
+    user_ref = firestore_db.collection(user_id).document("user")
+    user = user_ref.get()
+    if user.exists:
+        return user.to_dict()
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
+
+@router.put("/onboarding/{user_id}")
+def update_user(user_id: str, user: User):
+    user_ref = firestore_db.collection(user_id).document("user")
+    if not user_ref.get().exists:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    updated_user_data = {
+        "user": {
+            "firstName": user.first_name,
+            "lastName": user.last_name,
+            "email": user.email,
+            "phone": user.phone
+        }
+    }
+    user_ref.update(updated_user_data)
+    return updated_user_data
+
+@router.delete("/onboarding/{user_id}")
+def delete_user(user_id: str):
+    user_ref = firestore_db.collection(user_id).document("user")
+    expense_ref = firestore_db.collection(user_id).document("expenses")
+    chatbot_ref = firestore_db.collection(user_id).document("chatbot")
+
+    if user_ref.get().exists:
+        user_ref.delete()
+        expense_ref.delete()
+        chatbot_ref.delete()
+        return {"message": "User and associated data deleted successfully"}
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
