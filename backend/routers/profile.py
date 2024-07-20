@@ -3,10 +3,11 @@ from firebase_admin import storage
 import tempfile
 import os
 from datetime import timedelta
+from schema.profile import ProfilePictureResponse, ProfilePictureURL, ProfilePictureDeleteResponse
 
 router = APIRouter()
 
-@router.post("/prof")
+@router.post("/prof", response_model=ProfilePictureResponse)
 async def upload_profile_picture(user: str = Form(...), file: UploadFile = File(...)):
     try:
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
@@ -30,7 +31,7 @@ async def upload_profile_picture(user: str = Form(...), file: UploadFile = File(
         if 'temp_file_path' in locals():
             os.unlink(temp_file_path)
 
-@router.get("/prof/{username}")
+@router.get("/prof/{username}", response_model=ProfilePictureURL)
 async def get_profile_picture(username: str):
     try:
         bucket = storage.bucket()
@@ -46,7 +47,7 @@ async def get_profile_picture(username: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/prof/{username}")
+@router.put("/prof/{username}", response_model=ProfilePictureResponse)
 async def update_profile_picture(username: str, file: UploadFile = File(...)):
     try:
         bucket = storage.bucket()
@@ -77,7 +78,7 @@ async def update_profile_picture(username: str, file: UploadFile = File(...)):
         if 'temp_file_path' in locals():
             os.unlink(temp_file_path)
 
-@router.delete("/prof/{username}")
+@router.delete("/prof/{username}", response_model=ProfilePictureDeleteResponse)
 async def delete_profile_picture(username: str):
     try:
         bucket = storage.bucket()

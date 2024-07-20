@@ -1,14 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from database.firebase_init import firestore_db
-from pydantic import BaseModel
+from schema.onboarding import User, Expense
 
 router = APIRouter()
-
-class User(BaseModel):
-    first_name: str
-    last_name: str
-    email: str
-    phone: str
 
 @router.post("/onboarding/{user_id}")
 def new_user(user_id: str, user: User):
@@ -22,267 +16,265 @@ def new_user(user_id: str, user: User):
         }
     }
     expense_data = {
-                        "years": {
-                            "2024": [
-                                {
-                                    "month": "January",
-                                    "monthly budget": 0,
-                                    "amount spent": 0,
-                                    "categories": [
-                                        {
-                                            "category": "Travel and transport",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        },
-                                        {
-                                            "category": "Utility bills",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "month": "February",
-                                    "monthly budget": 0,
-                                    "amount spent": 0,
-                                    "categories": [
-                                        {
-                                            "category": "Travel and transport",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        },
-                                        {
-                                            "category": "Utility bills",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "month": "March",
-                                    "monthly budget": 0,
-                                    "amount spent": 0,
-                                    "categories": [
-                                        {
-                                            "category": "Travel and transport",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        },
-                                        {
-                                            "category": "Utility bills",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "month": "April",
-                                    "monthly budget": 0,
-                                    "amount spent": 0,
-                                    "categories": [
-                                        {
-                                            "category": "Travel and transport",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        },
-                                        {
-                                            "category": "Utility bills",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "month": "May",
-                                    "monthly budget": 0,
-                                    "amount spent": 0,
-                                    "categories": [
-                                        {
-                                            "category": "Travel and transport",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        },
-                                        {
-                                            "category": "Utility bills",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "month": "June",
-                                    "monthly budget": 0,
-                                    "amount spent": 0,
-                                    "categories": [
-                                        {
-                                            "category": "Travel and transport",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        },
-                                        {
-                                            "category": "Utility bills",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "month": "July",
-                                    "monthly budget": 0,
-                                    "amount spent": 0,
-                                    "categories": [
-                                        {
-                                            "category": "Travel and transport",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        },
-                                        {
-                                            "category": "Utility bills",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "month": "August",
-                                    "monthly budget": 0,
-                                    "amount spent": 0,
-                                    "categories": [
-                                        {
-                                            "category": "Travel and transport",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        },
-                                        {
-                                            "category": "Utility bills",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "month": "September",
-                                    "monthly budget": 0,
-                                    "amount spent": 0,
-                                    "categories": [
-                                        {
-                                            "category": "Travel and transport",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        },
-                                        {
-                                            "category": "Utility bills",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "month": "October",
-                                    "monthly budget": 0,
-                                    "amount spent": 0,
-                                    "categories": [
-                                        {
-                                            "category": "Travel and transport",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        },
-                                        {
-                                            "category": "Utility bills",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "month": "November",
-                                    "monthly budget": 0,
-                                    "amount spent": 0,
-                                    "categories": [
-                                        {
-                                            "category": "Travel and transport",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        },
-                                        {
-                                            "category": "Utility bills",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "month": "December",
-                                    "monthly budget": 0,
-                                    "amount spent": 0,
-                                    "categories": [
-                                        {
-                                            "category": "Travel and transport",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {}
-                                            ]
-                                        },
-                                        {
-                                            "category": "Utility bills",
-                                            "total budget": 0,
-                                            "sub categories": [
-                                                {} 
-                                            ]
-                                        }
-                                    ]
-                                }
+        "years": {
+            "2024": [
+                {
+                    "month": "January",
+                    "monthly budget": 0,
+                    "amount spent": 0,
+                    "categories": [
+                        {
+                            "category": "Travel and transport",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        },
+                        {
+                            "category": "Utility bills",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
                             ]
                         }
-                    }
+                    ]
+                },
+                {
+                    "month": "February",
+                    "monthly budget": 0,
+                    "amount spent": 0,
+                    "categories": [
+                        {
+                            "category": "Travel and transport",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        },
+                        {
+                            "category": "Utility bills",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "month": "March",
+                    "monthly budget": 0,
+                    "amount spent": 0,
+                    "categories": [
+                        {
+                            "category": "Travel and transport",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        },
+                        {
+                            "category": "Utility bills",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "month": "April",
+                    "monthly budget": 0,
+                    "amount spent": 0,
+                    "categories": [
+                        {
+                            "category": "Travel and transport",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        },
+                        {
+                            "category": "Utility bills",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "month": "May",
+                    "monthly budget": 0,
+                    "amount spent": 0,
+                    "categories": [
+                        {
+                            "category": "Travel and transport",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        },
+                        {
+                            "category": "Utility bills",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "month": "June",
+                    "monthly budget": 0,
+                    "amount spent": 0,
+                    "categories": [
+                        {
+                            "category": "Travel and transport",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        },
+                        {
+                            "category": "Utility bills",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "month": "July",
+                    "monthly budget": 0,
+                    "amount spent": 0,
+                    "categories": [
+                        {
+                            "category": "Travel and transport",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        },
+                        {
+                            "category": "Utility bills",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "month": "August",
+                    "monthly budget": 0,
+                    "amount spent": 0,
+                    "categories": [
+                        {
+                            "category": "Travel and transport",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        },
+                        {
+                            "category": "Utility bills",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "month": "September",
+                    "monthly budget": 0,
+                    "amount spent": 0,
+                    "categories": [
+                        {
+                            "category": "Travel and transport",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        },
+                        {
+                            "category": "Utility bills",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "month": "October",
+                    "monthly budget": 0,
+                    "amount spent": 0,
+                    "categories": [
+                        {
+                            "category": "Travel and transport",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        },
+                        {
+                            "category": "Utility bills",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "month": "November",
+                    "monthly budget": 0,
+                    "amount spent": 0,
+                    "categories": [
+                        {
+                            "category": "Travel and transport",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        },
+                        {
+                            "category": "Utility bills",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "month": "December",
+                    "monthly budget": 0,
+                    "amount spent": 0,
+                    "categories": [
+                        {
+                            "category": "Travel and transport",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        },
+                        {
+                            "category": "Utility bills",
+                            "total budget": 0,
+                            "sub categories": [
+                                {}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    }
     
-                
     chatbot_data = {}
-
 
     user_ref = firestore_db.collection(user_id).document("user")
     expense_ref = firestore_db.collection(user_id).document("expenses")
@@ -291,7 +283,6 @@ def new_user(user_id: str, user: User):
     expense_ref.set(expense_data)
     user_ref.set(user_data)
     chatbot_ref.set(chatbot_data)
-
 
     return user_data
 
