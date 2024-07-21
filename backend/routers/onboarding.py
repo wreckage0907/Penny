@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from database.firebase_init import firestore_db
-from schema.onboarding import User, Expense
+from schema.onboarding import User
+from firebase_admin import auth, storage
 
 router = APIRouter()
 
@@ -322,6 +323,17 @@ def delete_user(user_id: str):
         user_ref.delete()
         expense_ref.delete()
         chatbot_ref.delete()
+
+        bucket = storage.bucket()
+        blobs = bucket.list_blobs(prefix=f"profile/{user_id}/")
+        for blob in blobs:
+            blob.delete()
+
+        try:
+            auth.delete_user(user_id)
+        except auth.UserNotFoundError:
+            pass
+
         return {"message": "User and associated data deleted successfully"}
     else:
         raise HTTPException(status_code=404, detail="User not found")
