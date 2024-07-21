@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart'; 
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/Pages/login/input_field.dart';
 import 'package:mobile/Pages/login/page_buttons.dart';
@@ -57,9 +57,13 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                EmailField(controller: _emailController,),
+                EmailField(
+                  controller: _emailController,
+                ),
                 const SizedBox(height: 14),
-                PasswordField(controller: _passwordController,),
+                PasswordField(
+                  controller: _passwordController,
+                ),
                 const SizedBox(height: 25),
                 Text(
                   'or continue with',
@@ -75,17 +79,28 @@ class _SignUpPageState extends State<SignUpPage> {
                   children: [
                     IconButton(
                       onPressed: () async {
-                        await _authService.signinWithGoogle();
-                        Navigator.pushNamed(context, '/home');
+                        final result = await _authService.signinWithGoogle();
+                        if (result['user'] != null) {
+                          if (result['isNewUser']) {
+                            Navigator.pushNamed(context, '/onboarding');
+                          } else {
+                            Navigator.pushNamed(context, '/home');
+                          }
+                        } else {
+                          print('Error: ${result['error']}');
+                        }
                       },
-                      icon: const FaIcon(FontAwesomeIcons.google, color: AppColours.buttonColor, size: 32),
+                      icon: const FaIcon(FontAwesomeIcons.google,
+                          color: AppColours.buttonColor, size: 32),
                       style: const ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(AppColours.cardColor),
-                        padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
+                        backgroundColor:
+                            WidgetStatePropertyAll(AppColours.cardColor),
+                        padding: WidgetStatePropertyAll(
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
                         minimumSize: WidgetStatePropertyAll(Size(80, 20)),
                         shape: WidgetStatePropertyAll(
                           CircleBorder(
-                            side: BorderSide( 
+                            side: BorderSide(
                               color: AppColours.cardColor,
                               width: 2,
                             ),
@@ -96,18 +111,26 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                     IconButton(
                       onPressed: () async {
-                        UserCredential? user =await _authService.signInWithGithub();
-                        if(user != null){
-                          Navigator.pushNamed(context, '/home');
+                        final result = await _authService.signInWithGithub();
+                        if (result['user'] != null) {
+                          if (result['isNewUser']) {
+                            Navigator.pushNamed(context, '/onboarding');
+                          } else {
+                            Navigator.pushNamed(context, '/home');
+                          }
+                        } else {
+                          print('Error: ${result['error']}');
                         }
-                        
                       },
-                      icon: const FaIcon(FontAwesomeIcons.github, color: AppColours.buttonColor, size: 32),
+                      icon: const FaIcon(FontAwesomeIcons.github,
+                          color: AppColours.buttonColor, size: 32),
                       style: const ButtonStyle(
-                        backgroundColor:  WidgetStatePropertyAll(AppColours.cardColor),
-                        padding:  WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
-                        minimumSize:  WidgetStatePropertyAll(Size(80,20)),
-                        shape:  WidgetStatePropertyAll(
+                        backgroundColor:
+                            WidgetStatePropertyAll(AppColours.cardColor),
+                        padding: WidgetStatePropertyAll(
+                            EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
+                        minimumSize: WidgetStatePropertyAll(Size(80, 20)),
+                        shape: WidgetStatePropertyAll(
                           CircleBorder(
                             side: BorderSide(
                               color: AppColours.cardColor,
@@ -115,7 +138,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                           ),
                         ),
-                        elevation:  WidgetStatePropertyAll(2),
+                        elevation: WidgetStatePropertyAll(2),
                       ),
                     ),
                     const MicrosoftButton()
@@ -123,20 +146,26 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
                 const SizedBox(height: 20),
                 Padding(
-                  padding: const EdgeInsets.only(left: 40,right:40,top: 20,bottom: 5),
+                  padding: const EdgeInsets.only(
+                      left: 40, right: 40, top: 20, bottom: 5),
                   child: TextButton(
                     onPressed: () async {
-                      UserCredential? user = await  _authService.signUp(email: _emailController.text,password:_passwordController.text);
-            
-                      if(user != null){
+                      UserCredential? user = await _authService.signUp(
+                          email: _emailController.text,
+                          password: _passwordController.text);
+
+                      if (user != null) {
                         Navigator.pushNamed(context, '/onboarding');
                       }
                     },
                     style: const ButtonStyle(
                       alignment: Alignment.center,
-                      backgroundColor: WidgetStatePropertyAll(AppColours.buttonColor),
-                      padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 16, horizontal: 24)),
-                      minimumSize: WidgetStatePropertyAll(Size(double.infinity, 24)),
+                      backgroundColor:
+                          WidgetStatePropertyAll(AppColours.buttonColor),
+                      padding: WidgetStatePropertyAll(
+                          EdgeInsets.symmetric(vertical: 16, horizontal: 24)),
+                      minimumSize:
+                          WidgetStatePropertyAll(Size(double.infinity, 24)),
                       shape: WidgetStatePropertyAll(
                         RoundedRectangleBorder(
                           side: BorderSide(

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile/Pages/home/home.dart';
 import 'package:mobile/Pages/login/input_field.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:http/http.dart' as http;
@@ -28,12 +27,12 @@ class _LoginPageState extends State<LoginPage> {
     _passwordController.dispose();
     super.dispose();
   }
+  
 
   Future<Map<String, String?>> getUserData(String userId) async {
     try {
-      final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/onboarding/$userId')
-      );
+      final response =
+          await http.get(Uri.parse('http://10.0.2.2:8000/onboarding/$userId'));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -112,17 +111,22 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     IconButton(
                       onPressed: () async {
-                        UserCredential? user =
-                            await _authService.signinWithGoogle();
-                        if (user != null) {
-                          Navigator.pushReplacement(context,
-                              MaterialPageRoute(builder: (context) => const Home()));
+                        final result = await _authService.signinWithGoogle();
+                        if (result['user'] != null) {
+                          if (result['isNewUser']) {
+                            Navigator.pushNamed(context, '/onboarding');
+                          } else {
+                            Navigator.pushNamed(context, '/home');
+                          }
+                        } else {
+                          print('Error: ${result['error']}');
                         }
                       },
                       icon: const FaIcon(FontAwesomeIcons.google,
                           color: AppColours.buttonColor, size: 32),
                       style: const ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(AppColours.cardColor),
+                        backgroundColor:
+                            WidgetStatePropertyAll(AppColours.cardColor),
                         padding: WidgetStatePropertyAll(
                             EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
                         minimumSize: WidgetStatePropertyAll(Size(80, 20)),
@@ -139,17 +143,23 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     IconButton(
                       onPressed: () async {
-                        UserCredential? user =
-                            await _authService.signInWithGithub();
-                        if (user != null) {
-                          Navigator.pushReplacement(context,
-                              MaterialPageRoute(builder: (context) => Home()));
+                        final result = await _authService.signInWithGithub();
+                        if (result['user'] != null) {
+                          if (result['isNewUser']) {
+                            Navigator.pushNamed(context, '/onboarding');
+                          } else {
+  
+                            Navigator.pushNamed(context, '/home');
+                          }
+                        } else {
+                          print('Error: ${result['error']}');
                         }
                       },
                       icon: const FaIcon(FontAwesomeIcons.github,
                           color: AppColours.buttonColor, size: 32),
                       style: const ButtonStyle(
-                        backgroundColor:  WidgetStatePropertyAll(AppColours.cardColor),
+                        backgroundColor:
+                            WidgetStatePropertyAll(AppColours.cardColor),
                         padding: WidgetStatePropertyAll(
                             EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
                         minimumSize: WidgetStatePropertyAll(Size(80, 20)),
@@ -164,26 +174,7 @@ class _LoginPageState extends State<LoginPage> {
                         elevation: WidgetStatePropertyAll(2),
                       ),
                     ),
-                    IconButton(
-                      onPressed: () => _authService.signInWithFacebook(),
-                      icon: const FaIcon(FontAwesomeIcons.facebookF,
-                          color: AppColours.buttonColor, size: 32),
-                      style: const ButtonStyle(
-                        backgroundColor:  WidgetStatePropertyAll(AppColours.cardColor),
-                        padding: WidgetStatePropertyAll(
-                            EdgeInsets.symmetric(horizontal: 1, vertical: 8)),
-                        minimumSize: WidgetStatePropertyAll(Size(80, 20)),
-                        shape: WidgetStatePropertyAll(
-                          CircleBorder(
-                            side: BorderSide(
-                              color: AppColours.cardColor,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                        elevation: WidgetStatePropertyAll(2),
-                      ),
-                    ),
+                    MyPhoneSignInWidget(),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -213,7 +204,8 @@ class _LoginPageState extends State<LoginPage> {
                     },
                     style: const ButtonStyle(
                       alignment: Alignment.center,
-                      backgroundColor: WidgetStatePropertyAll(AppColours.buttonColor),
+                      backgroundColor:
+                          WidgetStatePropertyAll(AppColours.buttonColor),
                       padding: WidgetStatePropertyAll(
                           EdgeInsets.symmetric(vertical: 16, horizontal: 24)),
                       minimumSize:

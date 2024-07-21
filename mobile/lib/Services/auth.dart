@@ -1,12 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:mobile/firebase_options.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Auth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  late String _verificationId;
 
   Future<UserCredential?> signUp({
     required String email,
@@ -45,7 +45,7 @@ class Auth {
     return null;
   }
 
-  Future<UserCredential?> signinWithGoogle() async {
+  Future<Map<String, dynamic>> signinWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       final GoogleSignInAuthentication? googleAuth =
@@ -54,22 +54,63 @@ class Auth {
         accessToken: googleAuth?.accessToken,
         idToken: googleAuth?.idToken,
       );
-      return await FirebaseAuth.instance.signInWithCredential(credential);
+
+      final UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      // Check if the user is new or existing
+      bool isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
+
+      return {
+        'user': userCredential.user,
+        'isNewUser': isNewUser,
+      };
     } catch (e) {
       print('Error during Google sign in: $e');
-      return null;
+      return {'error': e.toString()};
     }
   }
 
-  Future<UserCredential?> signInWithGithub() async {
-    GithubAuthProvider githubProvider = GithubAuthProvider();
-    return await FirebaseAuth.instance.signInWithProvider(githubProvider);
+  Future<Map<String, dynamic>> signInWithGithub() async {
+    try {
+      GithubAuthProvider githubProvider = GithubAuthProvider();
+      final UserCredential userCredential = await _auth.signInWithProvider(githubProvider);
+      bool isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
+      User? user = userCredential.user;
+      if (user != null) {
+        return {
+          'user': user,
+          'isNewUser': isNewUser,
+        };
+      } else {
+        return {'error': 'No user returned from GitHub sign in'};
+      }
+    } catch (e) {
+      print('Error during GitHub sign in: $e');
+      return {'error': e.toString()};
+    }
   }
 
-  Future<UserCredential?> signInWithFacebook() async {
-    final LoginResult result = await FacebookAuth.instance.login();
-    final OAuthCredential facebookauthcred = FacebookAuthProvider.credential(result.accessToken!.token);
-    return await FirebaseAuth.instance.signInWithCredential(facebookauthcred);
+   Future<void> signInWithPhoneNumber(String phoneNumber) async {
+    try {
+      await _auth.verifyPhoneNumber(
+        phoneNumber: phoneNumber,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          await _auth.signInWithCredential(credential);
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          print('Phone number verification failed: ${e.message}');
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          print('Code sent to $phoneNumber');
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          print('Auto-retrieval timeout');
+        },
+      );
+    } catch (e) {
+      print('Error during phone number sign in: $e');
+    }
   }
 
   Future<void> signout({required BuildContext context}) async {
