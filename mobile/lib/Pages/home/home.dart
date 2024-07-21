@@ -15,7 +15,6 @@ import 'package:mobile/Pages/home/onboarding_page.dart';
 import 'package:mobile/Pages/home/profile_settings.dart';
 import 'package:mobile/Pages/practice/list_of_modules.dart';
 import 'package:mobile/Pages/stocks/stock_profile.dart';
-import 'package:mobile/Services/auth.dart';
 import 'package:mobile/consts/app_colours.dart';
 
 // EXTERNAL IMPORTS
@@ -34,7 +33,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final Auth _authService = Auth();
   String? fullName;
   String? username;
   String? profileImageUrl;
@@ -86,7 +84,7 @@ class _HomeState extends State<Home> {
     if (username != null) {
       try {
         final response = await http.get(
-          Uri.parse('https://penny-4jam.onrender.com/prof/$username'),
+          Uri.parse('http://10.0.2.2:8000/prof/$username'),
         );
 
         if (response.statusCode == 200) {
@@ -94,6 +92,12 @@ class _HomeState extends State<Home> {
           if (mounted) {
             setState(() {
               profileImageUrl = data['url'];
+            });
+          }
+        } else if (response.statusCode == 404) {
+          if (mounted) {
+            setState(() {
+              profileImageUrl = null;
             });
           }
         } else {
@@ -224,31 +228,29 @@ class _HomeState extends State<Home> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      IconButton(
-                        onPressed: () async {
-                          _authService.signout(context: context);
-                        },
-                        icon: profileImageUrl != null
-                            ? CachedNetworkImage(
-                                imageUrl: profileImageUrl!,
-                                imageBuilder: (context, imageProvider) =>
-                                    CircleAvatar(
-                                  backgroundImage: imageProvider,
-                                  radius: 25,
-                                ),
-                                placeholder: (context, url) =>
-                                    const CircularProgressIndicator(),
-                                errorWidget: (context, url, error) {
-                                  print("Error loading image: $error");
-                                  return const Icon(Icons.error);
-                                },
-                              )
-                            : const Image(
-                                image: AssetImage('assets/home_logo.png'),
-                                width: 40,
-                                height: 40,
+                      profileImageUrl != null
+                          ? CachedNetworkImage(
+                              imageUrl: profileImageUrl!,
+                              imageBuilder: (context, imageProvider) =>
+                                  CircleAvatar(
+                                backgroundImage: imageProvider,
+                                radius: 30,
                               ),
-                      )
+                              placeholder: (context, url) =>
+                                  const CircularProgressIndicator(),
+                              errorWidget: (context, url, error) {
+                                print("Error loading image: $error");
+                                return const Icon(Icons.error);
+                              },
+                            )
+                          : const CircleAvatar(
+                              radius: 30,
+                              backgroundColor: AppColours.buttonColor,
+                              child: Icon(
+                                Icons.person,
+                                color: AppColours.backgroundColor,
+                              ),
+                            ),
                     ],
                   ),
                   const SizedBox(height: 15),
@@ -423,7 +425,8 @@ class _HomeState extends State<Home> {
                     color: AppColours.textColor,
                   )),
               IconButton(
-                  onPressed: () => Navigator.pushNamed(context, '/profilesettings'),
+                  onPressed: () =>
+                      Navigator.pushNamed(context, '/profilesettings'),
                   icon: const Icon(
                     Icons.person_outline_rounded,
                     size: 40,

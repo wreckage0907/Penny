@@ -55,8 +55,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
       }
     });
   }
+
 Future<String?> uploadProfileImage(String userId, File imageFile) async {
-  final url = Uri.parse('https://penny-4jam.onrender.com/prof');
+  final url = Uri.parse('http://10.0.2.2:8000/prof');
 
   try {
     var request = http.MultipartRequest('POST', url);
@@ -103,37 +104,39 @@ Future<String?> uploadProfileImage(String userId, File imageFile) async {
     super.dispose();
   }
 
-  Future<void> postNewUserData(NewUser user, String? imageUrl) async {
+  Future<void> postNewUserData(NewUser user) async {
     try {
-      final queryParameters = {
+      final Map<String, String> queryParameters = {
         'first_name': user.firstName,
         'last_name': user.lastName,
         'email': user.email,
         'phone': user.phoneNo,
       };
 
-      if (imageUrl != null) {
-        queryParameters['profile_image'] = imageUrl;
-      }
+      final uri =
+          Uri.parse('http://10.0.2.2:8000/onboarding/${user.username}').replace(
+        queryParameters: queryParameters,
+      );
 
       final response = await http.post(
-        Uri.parse('https://penny-4jam.onrender.com/onboarding/${user.username}').replace(
-          queryParameters: queryParameters,
-        ),
+        uri,
         headers: <String, String>{
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/json',
         },
+        body: json.encode(queryParameters),
       );
 
       if (response.statusCode == 200) {
         print('User data posted successfully');
+        print('Response body: ${response.body}');
       } else {
         print('Failed to post user data. Status code: ${response.statusCode}');
         print('Response body: ${response.body}');
-        throw Exception('Failed to post user data');
+        throw Exception('Failed to post user data: ${response.body}');
       }
     } catch (e) {
       print('Error posting user data: $e');
+      throw e;
     }
   }
 
@@ -224,21 +227,17 @@ Future<String?> uploadProfileImage(String userId, File imageFile) async {
                               );
                             });
 
-                            String? imageUrl;
                             if (_image != null) {
-                              imageUrl = await uploadProfileImage(
+                              await uploadProfileImage(
                                   usernameController.text, _image!);
                             }
 
-                            postNewUserData(user, imageUrl);
+                            await postNewUserData(user);
                             await _authService
                                 .saveUsername(usernameController.text);
                             await _authService.saveFullName(
                                 '${firstNameController.text} ${lastNameController.text}');
-                            print(
-                                "All data saved successfully, attempting navigation");
                             Navigator.of(context).pushReplacementNamed('/home');
-                            print("Navigation completed");
                           } catch (e) {
                             print("Error during submission: $e");
                             ScaffoldMessenger.of(context).showSnackBar(

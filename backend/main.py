@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from routers import user, file, expenseTracker, chatbot, onboarding, questionGen, stock, profile
+from routers import file, expenseTracker, chatbot, onboarding, questionGen, stock, profile
 from database.firebase_init import firestore_db
 import uvicorn
 
@@ -28,7 +28,6 @@ async def root():
     """
     return HTMLResponse(content=html_content)
 
-app.include_router(user.router)
 app.include_router(file.router)
 app.include_router(expenseTracker.router)
 app.include_router(chatbot.router)

@@ -32,18 +32,16 @@ class _LoginPageState extends State<LoginPage> {
   Future<Map<String, String?>> getUserData(String userId) async {
     try {
       final response = await http.get(
-        Uri.parse('https://penny-4jam.onrender.com/user').replace(
-          queryParameters: {'user_id': userId},
-        ),
+        Uri.parse('http://10.0.2.2:8000/onboarding/$userId')
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['user'] != null) {
           return {
-            'email': data['user']['email'][0],
+            'email': data['user']['email'],
             'fullName':
-                '${data['user']['firstName'][0]} ${data['user']['lastName'][0]}'
+                '${data['user']['firstName']} ${data['user']['lastName']}'
           };
         } else {
           print('User data not found in response');

@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile/consts/app_colours.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -16,6 +18,11 @@ class _EditProfileState extends State<EditProfile> {
   String? username;
   String? profileImageUrl;
   Map<String, String?>? userData;
+
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
 
   @override
   void initState() {
@@ -38,7 +45,7 @@ class _EditProfileState extends State<EditProfile> {
     if (username != null) {
       try {
         final response = await http.get(
-          Uri.parse('https://penny-4jam.onrender.com/prof/$username'),
+          Uri.parse('http://10.0.2.2:8000/prof/$username'),
         );
 
         if (response.statusCode == 200) {
@@ -61,7 +68,12 @@ class _EditProfileState extends State<EditProfile> {
     if (username != null) {
       try {
         userData = await getUserData(username!);
-        setState(() {});
+        setState(() {
+          _firstNameController.text = userData?['firstName'] ?? '';
+          _lastNameController.text = userData?['lastName'] ?? '';
+          _emailController.text = userData?['email'] ?? '';
+          _phoneController.text = userData?['phone'] ?? '';
+        });
       } catch (e) {
         print("Error loading user data: $e");
       }
@@ -70,20 +82,17 @@ class _EditProfileState extends State<EditProfile> {
 
   Future<Map<String, String?>> getUserData(String userId) async {
     try {
-      final response = await http.get(
-        Uri.parse('https://penny-4jam.onrender.com/user').replace(
-          queryParameters: {'user_id': userId},
-        ),
-      );
+      final response =
+          await http.get(Uri.parse('http://10.0.2.2:8000/onboarding/$userId'));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['user'] != null) {
           return {
-            'firstName': data['user']['firstName'][0],
-            'lastName': data['user']['lastName'][0],
-            'email': data['user']['email'][0],
-            'phone': data['user']['phone'][0],
+            'firstName': data['user']['firstName'],
+            'lastName': data['user']['lastName'],
+            'email': data['user']['email'],
+            'phone': data['user']['phone'],
           };
         } else {
           print('User data not found in response');
@@ -122,6 +131,107 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
+  Future<void> _updateUserData() async {
+    if (username != null) {
+      try {
+        final response = await http.put(
+          Uri.parse('http://10.0.2.2:8000/onboarding/$username'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'first_name': _firstNameController.text,
+            'last_name': _lastNameController.text,
+            'email': _emailController.text,
+            'phone': _phoneController.text,
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile updated successfully')),
+          );
+          _loadUserData();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to update profile')),
+          );
+        }
+      } catch (e) {
+        print("Error updating user data: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('An error occurred while updating profile')),
+        );
+      }
+    }
+  }
+
+  Future<void> _updateProfilePicture() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null && username != null) {
+      try {
+        var request = http.MultipartRequest(
+          'PUT',
+          Uri.parse('http://10.0.2.2:8000/prof/$username'),
+        );
+        request.files
+            .add(await http.MultipartFile.fromPath('file', image.path));
+
+        var response = await request.send();
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Profile picture updated successfully')),
+          );
+          _loadProfileImage();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to update profile picture')),
+          );
+        }
+      } catch (e) {
+        print("Error updating profile picture: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content:
+                  Text('An error occurred while updating profile picture')),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteProfilePicture() async {
+    if (username != null) {
+      try {
+        final response = await http.delete(
+          Uri.parse('http://10.0.2.2:8000/prof/$username'),
+        );
+
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Profile picture deleted successfully')),
+          );
+          setState(() {
+            profileImageUrl = null;
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to delete profile picture')),
+          );
+        }
+      } catch (e) {
+        print("Error deleting profile picture: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content:
+                  Text('An error occurred while deleting profile picture')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -136,15 +246,57 @@ class _EditProfileState extends State<EditProfile> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.transparent,
-                  backgroundImage: profileImageUrl != null
-                      ? NetworkImage(profileImageUrl!)
-                      : const AssetImage('assets/home_logo.png') as ImageProvider,
+                child: Stack(children: [
+                  profileImageUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: profileImageUrl!,
+                          imageBuilder: (context, imageProvider) =>
+                              CircleAvatar(
+                            backgroundImage: imageProvider,
+                            radius: 50,
+                          ),
+                          placeholder: (context, url) =>
+                              const CircularProgressIndicator(),
+                          errorWidget: (context, url, error) {
+                            print("Error loading image: $error");
+                            return const Icon(Icons.error);
+                          },
+                        )
+                      : const CircleAvatar(
+                          radius: 50,
+                          backgroundColor: AppColours.buttonColor,
+                          child: Icon(Icons.person,
+                              color: AppColours.backgroundColor, size: 50),
+                        ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: CircleAvatar(
+                      backgroundColor: AppColours.cardColor,
+                      radius: 18,
+                      child: IconButton(
+                        icon: const Icon(Icons.edit,
+                            size: 18, color: AppColours.textColor),
+                        onPressed: _updateProfilePicture,
+                      ),
+                    ),
+                  ),
+                ]),
+              ),
+              const SizedBox(height: 10),
+              Center(
+                child: TextButton(
+                  onPressed: _deleteProfilePicture,
+                  child: Text(
+                    "Delete Profile Picture",
+                    style: GoogleFonts.dmSans(
+                      color: Colors.red,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
               Text(
                 "Username",
                 style: GoogleFonts.dmSans(
@@ -168,10 +320,7 @@ class _EditProfileState extends State<EditProfile> {
               ),
               const SizedBox(height: 10),
               TextField(
-                readOnly: true,
-                controller: TextEditingController(
-                  text: userData?['firstName'] ?? '',
-                ),
+                controller: _firstNameController,
                 decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelStyle: TextStyle(color: AppColours.textColor)),
@@ -184,10 +333,7 @@ class _EditProfileState extends State<EditProfile> {
               ),
               const SizedBox(height: 10),
               TextField(
-                readOnly: true,
-                controller: TextEditingController(
-                  text: userData?['lastName'] ?? '',
-                ),
+                controller: _lastNameController,
                 decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelStyle: TextStyle(color: AppColours.textColor)),
@@ -200,10 +346,7 @@ class _EditProfileState extends State<EditProfile> {
               ),
               const SizedBox(height: 10),
               TextField(
-                readOnly: true,
-                controller: TextEditingController(
-                  text: userData?['email'] ?? '',
-                ),
+                controller: _emailController,
                 decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelStyle: TextStyle(color: AppColours.textColor)),
@@ -216,19 +359,16 @@ class _EditProfileState extends State<EditProfile> {
               ),
               const SizedBox(height: 10),
               TextField(
-                readOnly: true,
-                controller: TextEditingController(
-                  text: userData?['phone'] ?? '',
-                ),
+                controller: _phoneController,
                 decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelStyle: TextStyle(color: AppColours.textColor)),
               ),
-               const SizedBox(height: 30),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ElevatedButton(
-                    onPressed: () => Navigator.pushNamed(context, '/editprofile'),
+              const SizedBox(height: 30),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ElevatedButton(
+                    onPressed: _updateUserData,
                     style: ElevatedButton.styleFrom(
                         backgroundColor: AppColours.buttonColor,
                         shape: RoundedRectangleBorder(
@@ -247,7 +387,7 @@ class _EditProfileState extends State<EditProfile> {
                         ),
                       ],
                     )),
-                  )
+              )
             ],
           ),
         ),

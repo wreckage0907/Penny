@@ -18,7 +18,7 @@ class LessonPage extends StatelessWidget {
   Future<String> fetchFile() async {
     try {
       final res = await http
-          .get(Uri.parse("https://penny-4jam.onrender.com/get-file/$subfolder/$fileName"));
+          .get(Uri.parse("http://10.0.2.2:8000/get-file/$subfolder/$fileName"));
       if (res.statusCode == 200) {
         final data = json.decode(res.body);
         return data['content'];

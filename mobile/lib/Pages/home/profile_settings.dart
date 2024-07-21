@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile/Services/auth.dart';
 import 'package:mobile/consts/app_colours.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -13,7 +15,9 @@ class ProfileSettings extends StatefulWidget {
 }
 
 class _ProfileSettingsState extends State<ProfileSettings> {
+  final Auth _authService = Auth();
   String? username;
+  String? fullName;
   String? profileImageUrl;
   Map<String, String?>? userData;
 
@@ -27,10 +31,10 @@ class _ProfileSettingsState extends State<ProfileSettings> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       username = prefs.getString('username');
+      fullName = prefs.getString('fullName');
     });
     if (username != null) {
       _loadProfileImage();
-      _loadUserData();
     }
   }
 
@@ -38,7 +42,7 @@ class _ProfileSettingsState extends State<ProfileSettings> {
     if (username != null) {
       try {
         final response = await http.get(
-          Uri.parse('https://penny-4jam.onrender.com/prof/$username'),
+          Uri.parse('http://10.0.2.2:8000/prof/$username'),
         );
 
         if (response.statusCode == 200) {
@@ -54,71 +58,6 @@ class _ProfileSettingsState extends State<ProfileSettings> {
       } catch (e) {
         print("Error loading profile image: $e");
       }
-    }
-  }
-
-  Future<void> _loadUserData() async {
-    if (username != null) {
-      try {
-        userData = await getUserData(username!);
-        setState(() {});
-      } catch (e) {
-        print("Error loading user data: $e");
-      }
-    }
-  }
-
-  Future<Map<String, String?>> getUserData(String userId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('https://penny-4jam.onrender.com/user').replace(
-          queryParameters: {'user_id': userId},
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['user'] != null) {
-          return {
-            'firstName': data['user']['firstName'][0],
-            'lastName': data['user']['lastName'][0],
-            'email': data['user']['email'][0],
-            'phone': data['user']['phone'][0],
-          };
-        } else {
-          print('User data not found in response');
-          return {
-            'firstName': null,
-            'lastName': null,
-            'email': null,
-            'phone': null,
-          };
-        }
-      } else if (response.statusCode == 404) {
-        print('User not found');
-        return {
-          'firstName': null,
-          'lastName': null,
-          'email': null,
-          'phone': null,
-        };
-      } else {
-        print('Error: ${response.statusCode}');
-        return {
-          'firstName': null,
-          'lastName': null,
-          'email': null,
-          'phone': null,
-        };
-      }
-    } catch (e) {
-      print('Error retrieving user data: $e');
-      return {
-        'firstName': null,
-        'lastName': null,
-        'email': null,
-        'phone': null,
-      };
     }
   }
 
@@ -138,35 +77,54 @@ class _ProfileSettingsState extends State<ProfileSettings> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.transparent,
-                    backgroundImage: profileImageUrl != null
-                        ? NetworkImage(profileImageUrl!)
-                        : const AssetImage('assets/home_logo.png')
-                            as ImageProvider,
-                  ),
+                        profileImageUrl != null
+                            ? CachedNetworkImage(
+                                imageUrl: profileImageUrl!,
+                                imageBuilder: (context, imageProvider) =>
+                                    CircleAvatar(
+                                  backgroundImage: imageProvider,
+                                  radius: 40,
+                                ),
+                                placeholder: (context, url) =>
+                                    const CircularProgressIndicator(),
+                                errorWidget: (context, url, error) {
+                                  print("Error loading image: $error");
+                                  return const Icon(Icons.error);
+                                },
+                              )
+                            : const CircleAvatar(
+                                radius: 40,
+                                backgroundColor: AppColours.buttonColor,
+                                child: Icon(
+                                  Icons.person,
+                                  color: AppColours.backgroundColor,
+                                  size: 45
+                                ),
+                              ),
                   const SizedBox(width: 15),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "${userData?['firstName'] ?? ''} ${userData?['lastName'] ?? ''}",
-                        style: GoogleFonts.dmSans(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: AppColours.textColor,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          fullName ?? '',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: AppColours.textColor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      Text(
-                        username ?? '',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w600,
-                          color: AppColours.textColor.withOpacity(0.7),
+                        Text(
+                          username ?? '',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w600,
+                            color: AppColours.textColor.withOpacity(0.7),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   )
                 ],
               ),
@@ -214,7 +172,9 @@ class _ProfileSettingsState extends State<ProfileSettings> {
                   )),
                   const SizedBox(height: 30),
                   ElevatedButton(
-                  onPressed: () => Navigator.pushNamed(context, '/editprofile'),
+                  onPressed: () async {
+                          _authService.signout(context: context);
+                        },
                   style: ElevatedButton.styleFrom(
                       backgroundColor: AppColours.buttonColor,
                       shape: RoundedRectangleBorder(
@@ -274,10 +234,9 @@ class _ProfileSettingsState extends State<ProfileSettings> {
                   size: 38,
                   color: AppColours.textColor,
                 )),
-            IconButton(
-                onPressed: () =>
-                    Navigator.pushNamed(context, '/profilesettings'),
-                icon: const Icon(
+            const IconButton(
+                onPressed: null,
+                icon: Icon(
                   Icons.person_rounded,
                   size: 40,
                   color: AppColours.textColor,
