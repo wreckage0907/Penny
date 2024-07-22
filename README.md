@@ -42,7 +42,7 @@
 </details>
 
 <h2> 💻 TECH STACK </h2>
-![Tech Stack](https:github.com/wreckage0907/Penny/Assets/techstack.png)
+![TechStack] (https://github.com/wreckage0907/Penny/blob/main/Assets/Techstack.png)
 
 
 > [!NOTE]
