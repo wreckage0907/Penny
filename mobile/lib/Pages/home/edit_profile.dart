@@ -47,7 +47,7 @@ class _EditProfileState extends State<EditProfile> {
     if (username != null) {
       try {
         final response = await http.get(
-          Uri.parse('http://10.0.2.2:8000/prof/$username'),
+          Uri.parse('https://penny-uts7.onrender.com/prof/$username'),
         );
 
         if (response.statusCode == 200) {
@@ -85,7 +85,7 @@ class _EditProfileState extends State<EditProfile> {
   Future<Map<String, String?>> getUserData(String userId) async {
     try {
       final response =
-          await http.get(Uri.parse('http://10.0.2.2:8000/onboarding/$userId'));
+          await http.get(Uri.parse('https://penny-uts7.onrender.com/onboarding/$userId'));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -137,7 +137,7 @@ class _EditProfileState extends State<EditProfile> {
     if (username != null) {
       try {
         final response = await http.put(
-          Uri.parse('http://10.0.2.2:8000/onboarding/$username'),
+          Uri.parse('https://penny-uts7.onrender.com/onboarding/$username'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode({
             'first_name': _firstNameController.text,
@@ -175,7 +175,7 @@ class _EditProfileState extends State<EditProfile> {
       try {
         var request = http.MultipartRequest(
           'PUT',
-          Uri.parse('http://10.0.2.2:8000/prof/$username'),
+          Uri.parse('https://penny-uts7.onrender.com/prof/$username'),
         );
         request.files
             .add(await http.MultipartFile.fromPath('file', image.path));
@@ -207,7 +207,7 @@ class _EditProfileState extends State<EditProfile> {
     if (username != null) {
       try {
         final response = await http.delete(
-          Uri.parse('http://10.0.2.2:8000/prof/$username'),
+          Uri.parse('https://penny-uts7.onrender.com/prof/$username'),
         );
 
         if (response.statusCode == 200) {

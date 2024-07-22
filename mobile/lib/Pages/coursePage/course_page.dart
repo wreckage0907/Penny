@@ -34,7 +34,7 @@ class _CoursePageState extends State<CoursePage> {
 Future<void> fetchFolderNames() async {
   try {
     final response =
-        await http.get(Uri.parse('http://10.0.2.2:8000/subfolder'));
+        await http.get(Uri.parse('https://penny-uts7.onrender.com/subfolder'));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       setState(() {

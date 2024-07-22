@@ -84,7 +84,7 @@ class _HomeState extends State<Home> {
     if (username != null) {
       try {
         final response = await http.get(
-          Uri.parse('http://10.0.2.2:8000/prof/$username'),
+          Uri.parse('https://penny-uts7.onrender.com/prof/$username'),
         );
 
         if (response.statusCode == 200) {

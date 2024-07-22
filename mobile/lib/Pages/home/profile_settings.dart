@@ -49,7 +49,7 @@ class _ProfileSettingsState extends State<ProfileSettings> {
     if (username != null) {
       try {
         final response = await http.get(
-          Uri.parse('http://10.0.2.2:8000/prof/$username'),
+          Uri.parse('https://penny-uts7.onrender.com/prof/$username'),
         );
 
         if (response.statusCode == 200) {
@@ -111,7 +111,7 @@ class _ProfileSettingsState extends State<ProfileSettings> {
         await user.delete();
 
         final response = await http.delete(
-          Uri.parse('http://10.0.2.2:8000/onboarding/$username'),
+          Uri.parse('https://penny-uts7.onrender.com/onboarding/$username'),
         );
 
         if (response.statusCode == 200) {

@@ -129,7 +129,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
     }
     try {
       final response = await http.get(
-        Uri.parse("http://10.0.2.2:8000/expenses/$username"),
+        Uri.parse("https://penny-uts7.onrender.com/expenses/$username"),
       );
 
       if (response.statusCode == 200) {
@@ -151,7 +151,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
     try {
       final response = await http.put(
         Uri.parse(
-                'http://10.0.2.2:8000/expenses/$username/year/$selectedYear/month/${Uri.encodeComponent(months[selectedMonth - 1])}/category/${Uri.encodeComponent(category.categoryTitle)}/subcategory/${Uri.encodeComponent(category.expenses[index].name)}')
+                'https://penny-uts7.onrender.com/expenses/$username/year/$selectedYear/month/${Uri.encodeComponent(months[selectedMonth - 1])}/category/${Uri.encodeComponent(category.categoryTitle)}/subcategory/${Uri.encodeComponent(category.expenses[index].name)}')
             .replace(queryParameters: {
           'new_sub_category': newExpenseName,
           'new_amount_spent': newExpenseAmount.toString(),
@@ -184,7 +184,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
       String newExpense, int newAmount, String category) async {
     final response = await http.post(
       Uri.parse(
-              'http://10.0.2.2:8000/expenses/$username/year/$selectedYear/month/${months[selectedMonth - 1]}/category/$category')
+              'https://penny-uts7.onrender.com/expenses/$username/year/$selectedYear/month/${months[selectedMonth - 1]}/category/$category')
           .replace(queryParameters: {
         'subcategory': newExpense,
         'amount_spent': newAmount.toString(),
@@ -213,7 +213,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
     try {
       final response = await http.post(
         Uri.parse(
-            'http://10.0.2.2:8000/expenses/$username/year/$selectedYear/month/${months[selectedMonth - 1]}/category'),
+            'https://penny-uts7.onrender.com/expenses/$username/year/$selectedYear/month/${months[selectedMonth - 1]}/category'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

@@ -32,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<Map<String, String?>> getUserData(String userId) async {
     try {
       final response =
-          await http.get(Uri.parse('http://10.0.2.2:8000/onboarding/$userId'));
+          await http.get(Uri.parse('https://penny-uts7.onrender.com/onboarding/$userId'));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
