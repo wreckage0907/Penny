@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mobile/Services/auth.dart';
 import 'package:mobile/consts/app_colours.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -18,6 +19,7 @@ class _EditProfileState extends State<EditProfile> {
   String? username;
   String? profileImageUrl;
   Map<String, String?>? userData;
+  final Auth _authService = Auth();
 
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
@@ -368,7 +370,11 @@ class _EditProfileState extends State<EditProfile> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: ElevatedButton(
-                    onPressed: _updateUserData,
+                    onPressed: () async {
+                      await _updateUserData();
+                      await _authService.saveFullName(
+                                '${_firstNameController.text} ${_lastNameController.text}');
+                    },
                     style: ElevatedButton.styleFrom(
                         backgroundColor: AppColours.buttonColor,
                         shape: RoundedRectangleBorder(
