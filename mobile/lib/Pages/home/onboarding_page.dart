@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -56,43 +57,43 @@ class _OnboardingPageState extends State<OnboardingPage> {
     });
   }
 
-Future<String?> uploadProfileImage(String userId, File imageFile) async {
-  final url = Uri.parse('https://penny-uts7.onrender.com/prof');
+  Future<String?> uploadProfileImage(String userId, File imageFile) async {
+    final url = Uri.parse('https://penny-uts7.onrender.com/prof');
 
-  try {
-    var request = http.MultipartRequest('POST', url);
+    try {
+      var request = http.MultipartRequest('POST', url);
 
-    request.fields['user'] = userId;
+      request.fields['user'] = userId;
 
-    var fileStream = http.ByteStream(imageFile.openRead());
-    var fileLength = await imageFile.length();
+      var fileStream = http.ByteStream(imageFile.openRead());
+      var fileLength = await imageFile.length();
 
-    var multipartFile = http.MultipartFile(
-      'file',
-      fileStream,
-      fileLength,
-      filename: path.basename(imageFile.path),
-    );
+      var multipartFile = http.MultipartFile(
+        'file',
+        fileStream,
+        fileLength,
+        filename: path.basename(imageFile.path),
+      );
 
-    request.files.add(multipartFile);
+      request.files.add(multipartFile);
 
-    var response = await request.send();
+      var response = await request.send();
 
-    if (response.statusCode == 200) {
-      final responseBody = await response.stream.bytesToString();
-      print('Image uploaded successfully: $responseBody');
-      final jsonResponse = json.decode(responseBody);
-      return jsonResponse['url'];
-    } else {
-      print('Image upload failed with status: ${response.statusCode}');
-      print('Response: ${await response.stream.bytesToString()}');
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        print('Image uploaded successfully: $responseBody');
+        final jsonResponse = json.decode(responseBody);
+        return jsonResponse['url'];
+      } else {
+        print('Image upload failed with status: ${response.statusCode}');
+        print('Response: ${await response.stream.bytesToString()}');
+        return null;
+      }
+    } catch (e) {
+      print('Error uploading image: $e');
       return null;
     }
-  } catch (e) {
-    print('Error uploading image: $e');
-    return null;
   }
-}
 
   @override
   void dispose() {
@@ -113,8 +114,9 @@ Future<String?> uploadProfileImage(String userId, File imageFile) async {
         'phone': user.phoneNo,
       };
 
-      final uri =
-          Uri.parse('https://penny-uts7.onrender.com/onboarding/${user.username}').replace(
+      final uri = Uri.parse(
+              'https://penny-uts7.onrender.com/onboarding/${user.username}')
+          .replace(
         queryParameters: queryParameters,
       );
 
@@ -237,6 +239,20 @@ Future<String?> uploadProfileImage(String userId, File imageFile) async {
                                 .saveUsername(usernameController.text);
                             await _authService.saveFullName(
                                 '${firstNameController.text} ${lastNameController.text}');
+
+                            User? currentUser =
+                                FirebaseAuth.instance.currentUser;
+                            if (currentUser != null) {
+                              await _authService.setCustomClaimsOnServer(
+                                  currentUser.uid,
+                                  usernameController.text,
+                                  '${firstNameController.text} ${lastNameController.text}');
+
+                              await currentUser.getIdToken(true);
+                            } else {
+                              throw Exception("No user is currently signed in");
+                            }
+
                             Navigator.of(context).pushReplacementNamed('/home');
                           } catch (e) {
                             print("Error during submission: $e");

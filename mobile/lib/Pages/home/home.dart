@@ -2,6 +2,7 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -69,14 +70,32 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> _loadUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      username = prefs.getString('username');
-      fullName = prefs.getString('fullName');
-    });
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.getIdToken(true);
+      IdTokenResult idTokenResult = await user.getIdTokenResult(false);
+      Map<String, dynamic>? claims = idTokenResult.claims;
 
-    if (username != null) {
-      await _loadProfileImage();
+      if (claims != null &&
+          claims['username'] != null &&
+          claims['fullName'] != null) {
+        setState(() {
+          username = claims['username'];
+          fullName = claims['fullName'];
+        });
+      } else {
+        final prefs = await SharedPreferences.getInstance();
+        setState(() {
+          username = prefs.getString('username');
+          fullName = prefs.getString('fullName');
+        });
+      }
+
+      if (username != null) {
+        await _loadProfileImage();
+      }
+    } else {
+      print('No user is currently signed in');
     }
   }
 

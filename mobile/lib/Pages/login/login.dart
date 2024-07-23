@@ -27,12 +27,11 @@ class _LoginPageState extends State<LoginPage> {
     _passwordController.dispose();
     super.dispose();
   }
-  
 
   Future<Map<String, String?>> getUserData(String userId) async {
     try {
-      final response =
-          await http.get(Uri.parse('https://penny-uts7.onrender.com/onboarding/$userId'));
+      final response = await http
+          .get(Uri.parse('https://penny-uts7.onrender.com/onboarding/$userId'));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -145,10 +144,10 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed: () async {
                         final result = await _authService.signInWithGithub();
                         if (result['user'] != null) {
-                          if (result['isNewUser']) {
+                          if (result['isNewUser'] ||
+                              result['username'] == null) {
                             Navigator.pushNamed(context, '/onboarding');
                           } else {
-  
                             Navigator.pushNamed(context, '/home');
                           }
                         } else {

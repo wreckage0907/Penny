@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from database.firebase_init import firestore_db
-from schema.onboarding import User
+from schema.onboarding import User, CustomClaimsRequest
 from firebase_admin import auth, storage
 
 router = APIRouter()
@@ -337,3 +337,15 @@ def delete_user(user_id: str):
         return {"message": "User and associated data deleted successfully"}
     else:
         raise HTTPException(status_code=404, detail="User not found")
+    
+@router.post("/set-custom-claims")
+async def set_custom_claims(claims_request: CustomClaimsRequest):
+    try:
+        auth.set_custom_user_claims(claims_request.uid, {
+            'username': claims_request.username, 
+            'fullName': claims_request.fullName
+        })
+        return {"success": True}
+    except Exception as e:
+        print(f"Error setting custom claims: {e}")
+        raise HTTPException(status_code=500, detail="Failed to set custom claims")

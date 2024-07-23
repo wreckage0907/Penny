@@ -27,3 +27,8 @@ class User(BaseModel):
     last_name: str
     email: str
     phone: str
+
+class CustomClaimsRequest(BaseModel):
+    uid: str
+    username: str
+    fullName: str

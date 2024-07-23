@@ -31,17 +31,36 @@ class _ProfileSettingsState extends State<ProfileSettings> {
   @override
   void initState() {
     super.initState();
-    _loadUsername();
+    _loadUserData();
   }
 
-  Future<void> _loadUsername() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      username = prefs.getString('username');
-      fullName = prefs.getString('fullName');
-    });
-    if (username != null) {
-      _loadProfileImage();
+  Future<void> _loadUserData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.getIdToken(true);
+      IdTokenResult idTokenResult = await user.getIdTokenResult(false);
+      Map<String, dynamic>? claims = idTokenResult.claims;
+
+      if (claims != null &&
+          claims['username'] != null &&
+          claims['fullName'] != null) {
+        setState(() {
+          username = claims['username'];
+          fullName = claims['fullName'];
+        });
+      } else {
+        final prefs = await SharedPreferences.getInstance();
+        setState(() {
+          username = prefs.getString('username');
+          fullName = prefs.getString('fullName');
+        });
+      }
+
+      if (username != null) {
+        await _loadProfileImage();
+      }
+    } else {
+      print('No user is currently signed in');
     }
   }
 
