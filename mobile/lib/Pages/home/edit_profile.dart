@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:mobile/consts/app_colours.dart';
+import 'package:mobile/consts/toast_messages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -33,10 +35,24 @@ class _EditProfileState extends State<EditProfile> {
   }
 
   Future<void> _loadUsername() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      username = prefs.getString('username');
-    });
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.getIdToken(true);
+      IdTokenResult idTokenResult = await user.getIdTokenResult(false);
+      Map<String, dynamic>? claims = idTokenResult.claims;
+
+      if (claims != null && claims['username'] != null) {
+        setState(() {
+          username = claims['username'];
+        });
+      } else {
+        final prefs = await SharedPreferences.getInstance();
+        setState(() {
+          username = prefs.getString('username');
+        });
+      }
+    }
+
     if (username != null) {
       _loadProfileImage();
       _loadUserData();
@@ -84,8 +100,8 @@ class _EditProfileState extends State<EditProfile> {
 
   Future<Map<String, String?>> getUserData(String userId) async {
     try {
-      final response =
-          await http.get(Uri.parse('https://penny-uts7.onrender.com/onboarding/$userId'));
+      final response = await http
+          .get(Uri.parse('https://penny-uts7.onrender.com/onboarding/$userId'));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -148,9 +164,8 @@ class _EditProfileState extends State<EditProfile> {
         );
 
         if (response.statusCode == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile updated successfully')),
-          );
+          ToastMessages.successToast(context, "Profile Updated Successfully");
+          ToastMessages.errorToast(context, "An Error Occurred");
           _loadUserData();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -373,7 +388,7 @@ class _EditProfileState extends State<EditProfile> {
                     onPressed: () async {
                       await _updateUserData();
                       await _authService.saveFullName(
-                                '${_firstNameController.text} ${_lastNameController.text}');
+                          '${_firstNameController.text} ${_lastNameController.text}');
                     },
                     style: ElevatedButton.styleFrom(
                         backgroundColor: AppColours.buttonColor,
