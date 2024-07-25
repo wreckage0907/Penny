@@ -76,7 +76,7 @@ class _MCQPageState extends State<MCQPage> {
 
   Future<Map<String, dynamic>> fetchQuestions(String chap,int n) async {
 
-    final response = await http.get(Uri.parse('http://10.0.2.2:10000/generate_questions/$chap?num_question=$n'));
+    final response = await http.get(Uri.parse('http://10.0.2.2:8000/generate_questions/$chap?num_question=$n'));
     if (response.statusCode == 200) {
       var json = jsonDecode(response.body);
       chapter = Chapter.fromJson(json);

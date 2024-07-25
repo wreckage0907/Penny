@@ -235,10 +235,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
                             }
 
                             await postNewUserData(user);
-                            await _authService
-                                .saveUsername(usernameController.text);
-                            await _authService.saveFullName(
-                                '${firstNameController.text} ${lastNameController.text}');
 
                             User? currentUser =
                                 FirebaseAuth.instance.currentUser;

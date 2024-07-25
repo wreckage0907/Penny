@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/Services/auth.dart';
@@ -122,38 +123,51 @@ class _ProfileSettingsState extends State<ProfileSettings> {
     }
   }
 
-  Future<void> _deleteAccount() async {
-    try {
-      User? user = FirebaseAuth.instance.currentUser;
+Future<void> _deleteAccount() async {
+  try {
+    User? user = FirebaseAuth.instance.currentUser;
 
-      if (user != null && username != null) {
-        await user.delete();
-
-        final response = await http.delete(
-          Uri.parse('https://penny-uts7.onrender.com/onboarding/$username'),
-        );
-
-        if (response.statusCode == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Account deleted successfully')),
-          );
-          await _authService.signout(context: context);
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.clear();
-          Navigator.of(context).pushReplacementNamed('/login');
-        } else {
-          throw Exception('Failed to delete account on server');
-        }
-      } else {
-        throw Exception('No user currently signed in');
-      }
-    } catch (e) {
-      print("Error deleting account: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred while deleting account: $e')),
+    if (user != null && username != null) {
+      // Delete user data from your backend
+      final response = await http.delete(
+        Uri.parse('https://penny-uts7.onrender.com/onboarding/$username'),
       );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to delete account on server');
+      }
+
+      // Delete profile picture from Firebase Storage
+      if (profileImageUrl != null) {
+        final storageRef = FirebaseStorage.instance.refFromURL(profileImageUrl!);
+        await storageRef.delete();
+      }
+
+      // Delete custom claims
+      await http.delete(
+        Uri.parse('http://10.0.2.2:8000/delete-custom-claims/${user.uid}'),
+      );
+
+      // Delete the user from Firebase Authentication
+      await user.delete();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Account deleted successfully')),
+      );
+      await _authService.signout(context: context);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      Navigator.of(context).pushReplacementNamed('/login');
+    } else {
+      throw Exception('No user currently signed in');
     }
+  } catch (e) {
+    print("Error deleting account: $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('An error occurred while deleting account: $e')),
+    );
   }
+}
 
   void _showChangePasswordDialog() {
     showDialog(

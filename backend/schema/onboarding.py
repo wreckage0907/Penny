@@ -32,3 +32,7 @@ class CustomClaimsRequest(BaseModel):
     uid: str
     username: str
     fullName: str
+
+class UpdateCustomClaims(BaseModel):
+    username: str
+    fullName: str

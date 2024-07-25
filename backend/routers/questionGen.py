@@ -5,6 +5,7 @@ from schema.question import Question, CHAPTERS
 import os
 from dotenv import load_dotenv
 import hashlib
+import time
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -69,9 +70,10 @@ def generate_question(chapter, existing_questions):
                 hint=hint
             ), question_hash
 
-        except ValueError as err:
+        except Exception as err:
             if attempt == max_attempts - 1:
-                raise ValueError(f"Failed to generate unique question after {max_attempts} attempts: {str(err)}")
+                raise ValueError(f"Failed to generate question after {max_attempts} attempts: {str(err)}")
+            time.sleep(2 ** attempt)
     
     raise ValueError("Unexpected error in question generation")
 
@@ -96,6 +98,7 @@ async def generate_questions(chapter: str, num_questions: int = 5):
             existing_questions.add(question_hash)
         except Exception as err:
             failures += 1
+            time.sleep(1)  # Add a small delay between retries
 
     if not questions:
         raise HTTPException(status_code=500, detail="Failed to generate any questions")

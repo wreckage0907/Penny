@@ -149,38 +149,55 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
-  Future<void> _updateUserData() async {
-    if (username != null) {
-      try {
-        final response = await http.put(
-          Uri.parse('https://penny-uts7.onrender.com/onboarding/$username'),
-          headers: {'Content-Type': 'application/json'},
-          body: json.encode({
-            'first_name': _firstNameController.text,
-            'last_name': _lastNameController.text,
-            'email': _emailController.text,
-            'phone': _phoneController.text,
-          }),
-        );
+Future<void> _updateUserData() async {
+  if (username != null) {
+    try {
+      // Update user data
+      final response = await http.put(
+        Uri.parse('https://penny-uts7.onrender.com/onboarding/$username'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'first_name': _firstNameController.text,
+          'last_name': _lastNameController.text,
+          'email': _emailController.text,
+          'phone': _phoneController.text,
+        }),
+      );
 
-        if (response.statusCode == 200) {
-          ToastMessages.successToast(context, "Profile Updated Successfully");
-          ToastMessages.errorToast(context, "An Error Occurred");
-          _loadUserData();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to update profile')),
+      if (response.statusCode == 200) {
+        // Update custom claims
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          final claimsResponse = await http.put(
+            Uri.parse('http://10.0.2.2:8000/update-custom-claims/${user.uid}'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'username': username,
+              'fullName': '${_firstNameController.text} ${_lastNameController.text}',
+            }),
           );
+
+          if (claimsResponse.statusCode == 200) {
+            ToastMessages.successToast(context, "Profile Updated Successfully");
+            ToastMessages.errorToast(context, "Profile Updated Successfully");
+            ToastMessages.infoToast(context, "Profile Updated Successfully");
+            ToastMessages.warningToast(context, "Profile Updated Successfully");
+            _loadUserData();
+          } else {
+            throw Exception('Failed to update custom claims: ${claimsResponse.body}');
+          }
         }
-      } catch (e) {
-        print("Error updating user data: $e");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('An error occurred while updating profile')),
-        );
+      } else {
+        throw Exception('Failed to update profile');
       }
+    } catch (e) {
+      print("Error updating user data: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred while updating profile: $e')),
+      );
     }
   }
+}
 
   Future<void> _updateProfilePicture() async {
     final ImagePicker picker = ImagePicker();

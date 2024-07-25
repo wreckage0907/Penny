@@ -168,13 +168,9 @@ class Auth {
   Future<void> setCustomClaimsOnServer(
       String uid, String username, String fullName) async {
     final url = Uri.parse('http://10.0.2.2:8000/set-custom-claims');
-    final idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
     final response = await http.post(
       url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $idToken',
-      },
+      headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'uid': uid,
         'username': username,
@@ -183,7 +179,7 @@ class Auth {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Failed to set custom claims: ${response.body}');
+      throw Exception('Failed to set custom claims');
     }
   }
 }

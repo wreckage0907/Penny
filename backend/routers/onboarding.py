@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from database.firebase_init import firestore_db
-from schema.onboarding import User, CustomClaimsRequest
+from schema.onboarding import User, CustomClaimsRequest, UpdateCustomClaims
 from firebase_admin import auth, storage
 
 router = APIRouter()
@@ -349,3 +349,32 @@ async def set_custom_claims(claims_request: CustomClaimsRequest):
     except Exception as e:
         print(f"Error setting custom claims: {e}")
         raise HTTPException(status_code=500, detail="Failed to set custom claims")
+
+@router.put("/update-custom-claims/{user_id}")
+async def update_custom_claims(user_id: str, claims_request: UpdateCustomClaims):
+    try:
+        # Get the current custom claims
+        user = auth.get_user(user_id)
+        current_claims = user.custom_claims or {}
+
+        # Update the claims
+        current_claims.update({
+            'username': claims_request.username,
+            'fullName': claims_request.fullName
+        })
+
+        # Set the updated custom claims
+        auth.set_custom_user_claims(user_id, current_claims)
+        return {"success": True, "message": "Custom claims updated successfully"}
+    except Exception as e:
+        print(f"Error updating custom claims: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update custom claims")
+
+@router.delete("/delete-custom-claims/{user_id}")
+async def delete_custom_claims(user_id: str):
+    try:
+        auth.set_custom_user_claims(user_id, None)
+        return {"success": True, "message": "Custom claims deleted successfully"}
+    except Exception as e:
+        print(f"Error deleting custom claims: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete custom claims")

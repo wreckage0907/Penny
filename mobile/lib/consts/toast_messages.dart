@@ -21,6 +21,28 @@ class ToastMessages {
       title: Text(title),
       alignment: Alignment.bottomCenter,
       autoCloseDuration: const Duration(seconds: 4),
+      showProgressBar: false,
+    );
+  }
+  static void warningToast(BuildContext context, String title) {
+    toastification.show(
+      context: context,
+      type: ToastificationType.warning,
+      style: ToastificationStyle.flatColored,
+      title: Text(title),
+      alignment: Alignment.bottomCenter,
+      autoCloseDuration: const Duration(seconds: 4),
+      showProgressBar: false
+    );
+  }
+  static void infoToast(BuildContext context, String title) {
+    toastification.show(
+      context: context,
+      type: ToastificationType.info,
+      style: ToastificationStyle.flatColored,
+      title: Text(title),
+      alignment: Alignment.bottomCenter,
+      autoCloseDuration: const Duration(seconds: 4),
       showProgressBar: false
     );
   }
