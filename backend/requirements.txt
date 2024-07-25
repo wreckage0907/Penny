@@ -2,6 +2,7 @@ fastapi
 uvicorn
 gunicorn
 firebase-admin
+yfinance
 google-generativeai
 beautifulsoup4 
 httpx
