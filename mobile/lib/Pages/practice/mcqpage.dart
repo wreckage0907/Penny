@@ -14,8 +14,8 @@ class Chapter {
   Chapter({required this.questions});
 
   factory Chapter.fromJson(Map<String, dynamic> json) {
-    var questionsMap = json['chapter 1'] as Map<String, dynamic>;
-    var questions = questionsMap.map((key, value) => MapEntry(key, Question.fromJson(value)));
+    var chapterData = json.values.first as Map<String, dynamic>;
+    var questions = chapterData.map((key, value) => MapEntry(key, Question.fromJson(value)));
     return Chapter(questions: questions);
   }
 }
@@ -74,15 +74,23 @@ class _MCQPageState extends State<MCQPage> {
     futureQuestions = fetchQuestions(chapterName, noOfQuestions);
   }
 
-  Future<Map<String, dynamic>> fetchQuestions(String chap,int n) async {
-
-    final response = await http.get(Uri.parse('http://10.0.2.2:8000/generate_questions/$chap?num_question=$n'));
-    if (response.statusCode == 200) {
-      var json = jsonDecode(response.body);
-      chapter = Chapter.fromJson(json);
-      return json;
-    } else {
-      throw Exception('Failed to load questions');
+  Future<Map<String, dynamic>> fetchQuestions(String chap, int n) async {
+    try {
+      final response = await http.get(Uri.parse('http://10.0.2.2:8000/generate_questions/$chap?num_question=$n'));
+      if (response.statusCode == 200) {
+        var json = jsonDecode(response.body);
+        if (json is Map<String, dynamic>) {
+          chapter = Chapter.fromJson(json);
+          return json;
+        } else {
+          throw Exception('Invalid response format');
+        }
+      } else {
+        throw Exception('Failed to load questions: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching questions: $e');
+      throw Exception('Failed to load questions: $e');
     }
   }
 
@@ -106,11 +114,22 @@ class _MCQPageState extends State<MCQPage> {
             body: Center(child: CustomLoadingWidgets.fourRotatingDots()),
           );
         } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else if (snapshot.hasData) {
+          print('Error in FutureBuilder: ${snapshot.error}');
+          return Scaffold(
+            body: Center(
+              child: Text('Error: ${snapshot.error}'),
+            ),
+          );
+        } else if (snapshot.hasData && snapshot.data != null) {
+          print('Data received: ${snapshot.data}');
           return buildQuestionPage();
         } else {
-          return const Text('No data');
+          print('No data available');
+          return const Scaffold(
+            body: Center(
+              child: Text('No data available'),
+            ),
+          );
         }
       },
     );
