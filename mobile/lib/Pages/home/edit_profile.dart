@@ -169,7 +169,7 @@ Future<void> _updateUserData() async {
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
           final claimsResponse = await http.put(
-            Uri.parse('http://10.0.2.2:8000/update-custom-claims/${user.uid}'),
+            Uri.parse('https://penny-uts7.onrender.com/update-custom-claims/${user.uid}'),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
               'username': username,

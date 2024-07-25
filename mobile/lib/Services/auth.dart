@@ -167,7 +167,7 @@ class Auth {
 
   Future<void> setCustomClaimsOnServer(
       String uid, String username, String fullName) async {
-    final url = Uri.parse('http://10.0.2.2:8000/set-custom-claims');
+    final url = Uri.parse('https://penny-uts7.onrender.com/set-custom-claims');
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},

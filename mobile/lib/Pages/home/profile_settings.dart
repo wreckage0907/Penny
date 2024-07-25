@@ -145,7 +145,7 @@ Future<void> _deleteAccount() async {
 
       // Delete custom claims
       await http.delete(
-        Uri.parse('http://10.0.2.2:8000/delete-custom-claims/${user.uid}'),
+        Uri.parse('https://penny-uts7.onrender.com/delete-custom-claims/${user.uid}'),
       );
 
       // Delete the user from Firebase Authentication
