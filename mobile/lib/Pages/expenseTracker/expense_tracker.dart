@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -117,10 +118,23 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
   }
 
   Future<void> _loadUsername() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      username = prefs.getString('username');
-    });
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.getIdToken(true);
+      IdTokenResult idTokenResult = await user.getIdTokenResult(false);
+      Map<String, dynamic>? claims = idTokenResult.claims;
+
+      if (claims != null && claims['username'] != null) {
+        setState(() {
+          username = claims['username'];
+        });
+      } else {
+        final prefs = await SharedPreferences.getInstance();
+        setState(() {
+          username = prefs.getString('username');
+        });
+      }
+    }
   }
 
   Future<Map<String, dynamic>> getData() async {
@@ -278,7 +292,8 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                     addCategory(categoryName);
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Category added successfully')),
+                      const SnackBar(
+                          content: Text('Category added successfully')),
                     );
                   },
                   child: Text(
@@ -385,7 +400,8 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                   await editExpense(
                       category, index, expenseName, amount.toInt());
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Expense updated successfully')),
+                    const SnackBar(
+                        content: Text('Expense updated successfully')),
                   );
                 },
                 child: Text(
@@ -500,7 +516,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
     int tempYear = selectedYear;
 
     showModalBottomSheet(
-      backgroundColor: AppColours.backgroundColor,
+        backgroundColor: AppColours.backgroundColor,
         context: context,
         builder: (BuildContext context) {
           return StatefulBuilder(
@@ -555,10 +571,9 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                                   child: Text(
                                     '${index + 2000}',
                                     style: GoogleFonts.darkerGrotesque(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w500,
-                                      color: AppColours.textColor
-                                    ),
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColours.textColor),
                                   ),
                                 );
                               }),
@@ -655,9 +670,8 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Scaffold(
-              backgroundColor: AppColours.backgroundColor,
-              body: Center(child: CustomLoadingWidgets.spinningCircle())
-              );
+                backgroundColor: AppColours.backgroundColor,
+                body: Center(child: CustomLoadingWidgets.spinningCircle()));
           }
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -696,10 +710,9 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
               title: Text(
                 'Expense Tracker',
                 style: GoogleFonts.darkerGrotesque(
-                  fontSize: 35,
-                  fontWeight: FontWeight.w800,
-                  color: AppColours.textColor
-                ),
+                    fontSize: 35,
+                    fontWeight: FontWeight.w800,
+                    color: AppColours.textColor),
               ),
             ),
             body: Column(
@@ -733,10 +746,9 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                       Text(
                         "Monthly Budget: ",
                         style: GoogleFonts.spectral(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: AppColours.textColor
-                        ),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: AppColours.textColor),
                       )
                     ],
                   ),
@@ -763,10 +775,9 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                         child: Text(
                           "\$${_categories.expand((category) => category.expenses).map((expense) => expense.amountSpent).reduce((a, b) => a + b).toString()}",
                           style: GoogleFonts.spectral(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: AppColours.textColor
-                          ),
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: AppColours.textColor),
                         ),
                       ),
                     )
@@ -862,7 +873,8 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                                                     icon: const FaIcon(
                                                       FontAwesomeIcons.pencil,
                                                       size: 12,
-                                                      color: AppColours.textColor,
+                                                      color:
+                                                          AppColours.textColor,
                                                     )))
                                           ],
                                         ),

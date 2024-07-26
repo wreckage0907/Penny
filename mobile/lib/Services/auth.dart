@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 class Auth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -47,6 +49,90 @@ class Auth {
     return null;
   }
 
+  Future<String?> getUsername() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.getIdToken(true);
+      IdTokenResult idTokenResult = await user.getIdTokenResult(false);
+      Map<String, dynamic>? claims = idTokenResult.claims;
+
+      if (claims != null && claims['username'] != null) {
+        return claims['username'];
+      } else {
+        final prefs = await SharedPreferences.getInstance();
+        return prefs.getString('username');
+      }
+    }
+    return null;
+  }
+
+  Future<String?> uploadProfileImage(String userId, File imageFile) async {
+    final url = Uri.parse('https://penny-uts7.onrender.com/prof');
+
+    try {
+      String? username = await getUsername();
+      if (username == null) {
+        print('Error: Username not found');
+        return null;
+      }
+
+      var request = http.MultipartRequest('POST', url);
+
+      request.fields['user'] = userId;
+      request.fields['username'] = username;  // Add username to the request
+
+      var fileStream = http.ByteStream(imageFile.openRead());
+      var fileLength = await imageFile.length();
+
+      var multipartFile = http.MultipartFile(
+        'file',
+        fileStream,
+        fileLength,
+        filename: 'profile_image.jpg',  // Include username in the filename
+      );
+
+      request.files.add(multipartFile);
+
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        print('Image uploaded successfully: $responseBody');
+        final jsonResponse = json.decode(responseBody);
+        return jsonResponse['url'];
+      } else {
+        print('Image upload failed with status: ${response.statusCode}');
+        print('Response: ${await response.stream.bytesToString()}');
+        return null;
+      }
+    } catch (e) {
+      print('Error uploading image: $e');
+      return null;
+    }
+  }
+  
+  Future<String?> downloadAndUploadProfileImage( String imageUrl) async {
+    try {
+      // Download the image
+      final response = await http.get(Uri.parse(imageUrl));
+      if (response.statusCode != 200) {
+        print('Failed to download image: ${response.statusCode}');
+        return null;
+      }
+      String? userId = await getUsername();
+      // Get temporary directory to store the downloaded image
+      final tempDir = await getTemporaryDirectory();
+      File file = File('${tempDir.path}/temp_profile_image.jpg');
+      await file.writeAsBytes(response.bodyBytes);
+
+      // Upload the image
+      return await uploadProfileImage(userId.toString(), file);
+    } catch (e) {
+      print('Error downloading and uploading image: $e');
+      return null;
+    }
+  }
+
   Future<Map<String, dynamic>> signinWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
@@ -63,11 +149,19 @@ class Auth {
 
       if (user != null) {
         bool isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
+        String? photoUrl = user.photoURL;
+
+        if (isNewUser && photoUrl != null) {
+          // Download and upload the Google profile image
+          String? uploadedImageUrl = await downloadAndUploadProfileImage(photoUrl);
+          photoUrl = uploadedImageUrl ?? photoUrl;
+        }
 
         if (isNewUser) {
           return {
             'user': user,
             'isNewUser': true,
+            'photoUrl': photoUrl,
           };
         } else {
           await user.getIdToken(true);
@@ -82,6 +176,7 @@ class Auth {
             'isNewUser': false,
             'username': username,
             'fullName': fullName,
+            'photoUrl': photoUrl,
           };
         }
       } else {

@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:mobile/consts/app_colours.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 
 class NewUser {
   final String username;
@@ -27,7 +28,9 @@ class NewUser {
 }
 
 class OnboardingPage extends StatefulWidget {
-  const OnboardingPage({super.key});
+  final Map<String, dynamic>? googleSignInData;
+
+  const OnboardingPage({Key? key, this.googleSignInData}) : super(key: key);
 
   @override
   State<OnboardingPage> createState() => _OnboardingPageState();
@@ -46,6 +49,14 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   File? _image;
   final picker = ImagePicker();
+  
+  @override
+  void initState() {
+    super.initState();
+    if (widget.googleSignInData != null) {
+      _prefillGoogleData();
+    }
+  }
 
   Future getImage() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -56,6 +67,42 @@ class _OnboardingPageState extends State<OnboardingPage> {
       }
     });
   }
+
+  void _prefillGoogleData() async {
+    User? googleUser = widget.googleSignInData?['user'];
+    if (googleUser != null) {
+      String? fullName = googleUser.displayName;
+      List<String> nameParts = fullName?.split(' ') ?? ['', ''];
+      
+      setState(() {
+        emailController.text = googleUser.email ?? '';
+        firstNameController.text = nameParts.first;
+        lastNameController.text = nameParts.length > 1 ? nameParts.last : '';
+      });
+
+      if (googleUser.photoURL != null) {
+        await _downloadAndSetImage(googleUser.photoURL!);
+      }
+    }
+  }
+
+  Future<void> _downloadAndSetImage(String imageUrl) async {
+    try {
+      final response = await http.get(Uri.parse(imageUrl));
+      if (response.statusCode == 200) {
+        final bytes = response.bodyBytes;
+        final tempDir = await getTemporaryDirectory();
+        final tempImageFile = File('${tempDir.path}/temp_profile_image.jpg');
+        await tempImageFile.writeAsBytes(bytes);
+        setState(() {
+          _image = tempImageFile;
+        });
+      }
+    } catch (e) {
+      print('Error downloading Google profile image: $e');
+    }
+  }
+
 
   Future<String?> uploadProfileImage(String userId, File imageFile) async {
     final url = Uri.parse('https://penny-uts7.onrender.com/prof');
