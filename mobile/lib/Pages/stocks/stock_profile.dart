@@ -77,31 +77,138 @@ class _StockProfileState extends State<StockProfile> {
       'low': 323,
     },
   };
-  List<String> stockName = ['AAPL', 'DIS', 'SBUX', 'NKE', '^NSEI', 'TSLA', 'INTC', 'AMZN', 'GOOGL', 'PFE'];
+  List<String> stockName = [
+    'AAPL',
+    'DIS',
+    'SBUX',
+    'NKE',
+    '^NSEI',
+    'TSLA',
+    'INTC',
+    'AMZN',
+    'GOOGL',
+    'PFE'
+  ];
   String selectedStock = 'AAPL';
   List<FlSpot> stockDataPoints = [];
+  List<String> stockDates = ['1D', '1W', '1M', '3M', '6M', '1Y', '2Y', '3Y'];
+  String selectedTimeRange = '1D';
+  Timer? liveDataTimer;
 
   @override
   void initState() {
     super.initState();
-    getStockData();
-    Timer.periodic(const Duration(seconds: 20), (Timer t) => getStockData());
+    getLiveStockData();
+    startLiveDataTimer();
   }
 
-  Future<void> getStockData() async {
+  @override
+  void dispose() {
+    liveDataTimer?.cancel();
+    super.dispose();
+  }
+
+  void startLiveDataTimer() {
+    liveDataTimer?.cancel();
+    if (selectedTimeRange == '1D') {
+      liveDataTimer = Timer.periodic(
+          const Duration(minutes: 1), (Timer t) => getLiveStockData());
+    }
+  }
+
+  Future<void> getLiveStockData() async {
     try {
       final response = await http.get(
         Uri.parse("http://10.0.2.2:8000/stocks/live?ticker=$selectedStock"),
       );
 
-      if(response.statusCode == 200) {
+      if (response.statusCode == 200) {
         Map<String, dynamic> jsonData = jsonDecode(response.body);
         List<FlSpot> flPoints = [];
-        
+
         jsonData.forEach((key, value) {
           final DateTime dateTime = DateTime.parse(key);
           final double price = value["Close"];
-          flPoints.add(FlSpot(dateTime.millisecondsSinceEpoch.toDouble(), price));
+          flPoints
+              .add(FlSpot(dateTime.millisecondsSinceEpoch.toDouble(), price));
+        });
+
+        setState(() {
+          stockDataPoints = flPoints;
+        });
+      }
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
+
+  Future<void> getHistoricalStockData(String timeRange) async {
+    String endDate = DateTime.now().toIso8601String().split('T')[0];
+    String startDate;
+
+    switch (timeRange) {
+      case '1W':
+        startDate = DateTime.now()
+            .subtract(const Duration(days: 7))
+            .toIso8601String()
+            .split('T')[0];
+        break;
+      case '1M':
+        startDate = DateTime.now()
+            .subtract(const Duration(days: 30))
+            .toIso8601String()
+            .split('T')[0];
+        break;
+      case '3M':
+        startDate = DateTime.now()
+            .subtract(const Duration(days: 90))
+            .toIso8601String()
+            .split('T')[0];
+        break;
+      case '6M':
+        startDate = DateTime.now()
+            .subtract(const Duration(days: 180))
+            .toIso8601String()
+            .split('T')[0];
+        break;
+      case '1Y':
+        startDate = DateTime.now()
+            .subtract(const Duration(days: 365))
+            .toIso8601String()
+            .split('T')[0];
+        break;
+      case '2Y':
+        startDate = DateTime.now()
+            .subtract(const Duration(days: 730))
+            .toIso8601String()
+            .split('T')[0];
+        break;
+      case '3Y':
+        startDate = DateTime.now()
+            .subtract(const Duration(days: 1095))
+            .toIso8601String()
+            .split('T')[0];
+        break;
+      default:
+        startDate = DateTime.now()
+            .subtract(const Duration(days: 1))
+            .toIso8601String()
+            .split('T')[0];
+    }
+
+    try {
+      final response = await http.get(Uri.parse(
+          "http://10.0.2.2:8000/stocks/historical?ticker=$selectedStock&start_date=$startDate&end_date=$endDate"));
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> jsonData = jsonDecode(response.body);
+        List<FlSpot> flPoints = [];
+
+        jsonData.forEach((key, value) {
+          final DateTime dateTime = DateTime.parse(key);
+          final double price = value["Close"];
+          flPoints
+              .add(FlSpot(dateTime.millisecondsSinceEpoch.toDouble(), price));
         });
 
         setState(() {
@@ -124,7 +231,7 @@ class _StockProfileState extends State<StockProfile> {
       body: Column(
         children: [
           Container(
-            height: 100,
+            height: 80,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               physics: const ClampingScrollPhysics(),
@@ -136,15 +243,15 @@ class _StockProfileState extends State<StockProfile> {
                     onTap: () {
                       setState(() {
                         selectedStock = stockName[index];
-                        getStockData();
+                        getLiveStockData();
                       });
                     },
                     child: CircleAvatar(
-                      backgroundColor: AppColours.cardColor,
+                      backgroundColor: selectedStock == stockName[index] ? AppColours.buttonColor : AppColours.cardColor,
                       radius: 30,
                       child: Text(
                         stockName[index],
-                        style: const TextStyle(color: AppColours.textColor),
+                        style: TextStyle(color: selectedStock == stockName[index] ? AppColours.backgroundColor : AppColours.textColor),
                       ),
                     ),
                   ),
@@ -152,7 +259,7 @@ class _StockProfileState extends State<StockProfile> {
               },
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 45.0),
             child: Row(
@@ -178,7 +285,7 @@ class _StockProfileState extends State<StockProfile> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -208,34 +315,82 @@ class _StockProfileState extends State<StockProfile> {
               ),
             ],
           ),
-          const SizedBox(height: 25),
+          const SizedBox(height: 15),
+          Container(
+            alignment: Alignment.center,
+            height: 50,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              physics: const ClampingScrollPhysics(),
+              itemCount: stockDates.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedTimeRange = stockDates[index];
+                        if (selectedTimeRange == '1D') {
+                          getLiveStockData();
+                          startLiveDataTimer();
+                        } else {
+                          liveDataTimer?.cancel();
+                          getHistoricalStockData(selectedTimeRange);
+                        }
+                      });
+                    },
+                    child: Text(
+                      stockDates[index],
+                      style: TextStyle(
+                          color: selectedTimeRange == stockDates[index]
+                              ? AppColours.buttonColor
+                              : AppColours.textColor,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w400),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
           AspectRatio(
             aspectRatio: 1,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: LineChart(
-                LineChartData(
-                  titlesData: const FlTitlesData(
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  gridData: const FlGridData(
-                    show: false,
-                  ),
-                  lineBarsData: [
-                    LineChartBarData(
-                      color: Colors.green,
-                      dotData: const FlDotData(
-                        show: false,
-                      ),
-                      spots: stockDataPoints
-                    )
-                  ]
-                )
+            child: LineChart(LineChartData(
+              titlesData: const FlTitlesData(
+                rightTitles:
+                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                leftTitles:
+                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles:
+                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                bottomTitles:
+                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
               ),
-            ),
+              borderData: FlBorderData(show: false),
+              gridData: const FlGridData(
+                show: false,
+              ),
+              lineBarsData: [
+                LineChartBarData(
+                    color: Colors.green,
+                    dotData: const FlDotData(
+                      show: false,
+                    ),
+                    spots: stockDataPoints)
+              ],
+              minX: stockDataPoints.isNotEmpty ? stockDataPoints.first.x : 0,
+              maxX: stockDataPoints.isNotEmpty ? stockDataPoints.last.x : 0,
+              minY: stockDataPoints.isNotEmpty
+                  ? stockDataPoints
+                      .map((e) => e.y)
+                      .reduce((a, b) => a < b ? a : b)
+                  : 0,
+              maxY: stockDataPoints.isNotEmpty
+                  ? stockDataPoints
+                      .map((e) => e.y)
+                      .reduce((a, b) => a > b ? a : b)
+                  : 0,
+            )),
           ),
           const SizedBox(height: 25),
           Row(
@@ -245,7 +400,8 @@ class _StockProfileState extends State<StockProfile> {
                   onPressed: () => print("Buy"),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: AppColours.buttonColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 35, vertical: 10),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30))),
                   child: Text(
