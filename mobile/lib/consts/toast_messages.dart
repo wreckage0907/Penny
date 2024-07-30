@@ -41,8 +41,8 @@ class ToastMessages {
       type: ToastificationType.info,
       style: ToastificationStyle.flatColored,
       title: Text(title),
-      alignment: Alignment.bottomCenter,
-      autoCloseDuration: const Duration(seconds: 4),
+      alignment: const Alignment(1.0, 0.8),
+      autoCloseDuration: const Duration(seconds: 8),
       showProgressBar: false
     );
   }

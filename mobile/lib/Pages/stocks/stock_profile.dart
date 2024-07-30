@@ -228,207 +228,313 @@ class _StockProfileState extends State<StockProfile> {
         title: const Text("Market"),
       ),
       backgroundColor: AppColours.backgroundColor,
-      body: Column(
-        children: [
-          Container(
-            height: 80,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              physics: const ClampingScrollPhysics(),
-              itemCount: stockName.length,
-              itemBuilder: (BuildContext context, int index) {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedStock = stockName[index];
-                        getLiveStockData();
-                      });
-                    },
-                    child: CircleAvatar(
-                      backgroundColor: selectedStock == stockName[index] ? AppColours.buttonColor : AppColours.cardColor,
-                      radius: 30,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: GestureDetector(
+                onTap: () async {
+                  final selected = await showSearch(
+                    context: context,
+                    delegate: StockSearch(stockName, stockDetails),
+                  );
+                  if (selected != null && selected.isNotEmpty) {
+                    setState(() {
+                      selectedStock = selected;
+                      getLiveStockData();
+                    });
+                  }
+                },
+                child: Container(
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: Colors.black38,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 20),
+                      const Icon(Icons.search, color: Colors.white, size: 28),
+                      const SizedBox(width: 10),
+                      Text(
+                        "Search stocks",
+                        style: GoogleFonts.dmSans(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Card(
+                color: AppColours.backgroundColor,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "$selectedStock - ${stockDetails[selectedStock]['name']}",
+                        style: GoogleFonts.dmSans(
+                          color: AppColours.textColor,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        "\$387",
+                        style: GoogleFonts.dmSans(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: AppColours.buttonColor,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildInfoItem("Open", "\$133"),
+                          _buildInfoItem("High", "\$129"),
+                          _buildInfoItem("Low", "\$333"),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 15),
+            Container(
+              alignment: Alignment.center,
+              height: 50,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                physics: const ClampingScrollPhysics(),
+                itemCount: stockDates.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14.0),
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedTimeRange = stockDates[index];
+                          if (selectedTimeRange == '1D') {
+                            getLiveStockData();
+                            startLiveDataTimer();
+                          } else {
+                            liveDataTimer?.cancel();
+                            getHistoricalStockData(selectedTimeRange);
+                          }
+                        });
+                      },
                       child: Text(
-                        stockName[index],
-                        style: TextStyle(color: selectedStock == stockName[index] ? AppColours.backgroundColor : AppColours.textColor),
+                        stockDates[index],
+                        style: GoogleFonts.dmSans(
+                            color: selectedTimeRange == stockDates[index]
+                                ? AppColours.buttonColor
+                                : AppColours.textColor,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w400),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 45.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Container(
+              alignment: Alignment.center,
+              height: 400,
+              child: LineChart(LineChartData(
+                titlesData: const FlTitlesData(
+                  rightTitles:
+                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  leftTitles:
+                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles:
+                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles:
+                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                borderData: FlBorderData(show: false),
+                gridData: const FlGridData(
+                  show: false,
+                ),
+                lineBarsData: [
+                  LineChartBarData(
+                      color: Colors.green,
+                      dotData: const FlDotData(
+                        show: false,
+                      ),
+                      spots: stockDataPoints)
+                ],
+                minX: stockDataPoints.isNotEmpty ? stockDataPoints.first.x : 0,
+                maxX: stockDataPoints.isNotEmpty ? stockDataPoints.last.x : 0,
+                minY: stockDataPoints.isNotEmpty
+                    ? stockDataPoints
+                        .map((e) => e.y)
+                        .reduce((a, b) => a < b ? a : b)
+                    : 0,
+                maxY: stockDataPoints.isNotEmpty
+                    ? stockDataPoints
+                        .map((e) => e.y)
+                        .reduce((a, b) => a > b ? a : b)
+                    : 0,
+              )),
+            ),
+            const SizedBox(height: 15),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Expanded(
-                  child: Text(
-                    "$selectedStock\n${stockDetails[selectedStock]['name']}",
-                    style: GoogleFonts.dmSans(
-                        color: AppColours.textColor,
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Text(
-                  "\$387",
-                  style: GoogleFonts.dmSans(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: AppColours.textColor),
-                )
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Text(
-                "Open: \$133",
-                style: GoogleFonts.dmSans(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                  color: AppColours.textColor,
-                ),
-              ),
-              Text(
-                "High: \$129",
-                style: GoogleFonts.dmSans(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                  color: AppColours.textColor,
-                ),
-              ),
-              Text(
-                "Low: \$333",
-                style: GoogleFonts.dmSans(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                  color: AppColours.textColor,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Container(
-            alignment: Alignment.center,
-            height: 50,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              physics: const ClampingScrollPhysics(),
-              itemCount: stockDates.length,
-              itemBuilder: (BuildContext context, int index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedTimeRange = stockDates[index];
-                        if (selectedTimeRange == '1D') {
-                          getLiveStockData();
-                          startLiveDataTimer();
-                        } else {
-                          liveDataTimer?.cancel();
-                          getHistoricalStockData(selectedTimeRange);
-                        }
-                      });
-                    },
+                ElevatedButton(
+                    onPressed: () => print("Buy"),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.withOpacity(0.9),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 35, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10))),
                     child: Text(
-                      stockDates[index],
-                      style: TextStyle(
-                          color: selectedTimeRange == stockDates[index]
-                              ? AppColours.buttonColor
-                              : AppColours.textColor,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w400),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          AspectRatio(
-            aspectRatio: 1,
-            child: LineChart(LineChartData(
-              titlesData: const FlTitlesData(
-                rightTitles:
-                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                leftTitles:
-                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles:
-                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                bottomTitles:
-                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              ),
-              borderData: FlBorderData(show: false),
-              gridData: const FlGridData(
-                show: false,
-              ),
-              lineBarsData: [
-                LineChartBarData(
-                    color: Colors.green,
-                    dotData: const FlDotData(
-                      show: false,
-                    ),
-                    spots: stockDataPoints)
+                      "BUY",
+                      style: GoogleFonts.dmSans(
+                          color: AppColours.backgroundColor,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w500),
+                    )),
+                ElevatedButton(
+                    onPressed: () => print("Sell"),
+                    style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 30, vertical: 10),
+                        backgroundColor: Colors.red.withOpacity(0.9),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10))),
+                    child: Text(
+                      "SELL",
+                      style: GoogleFonts.dmSans(
+                          color: AppColours.backgroundColor,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w500),
+                    ))
               ],
-              minX: stockDataPoints.isNotEmpty ? stockDataPoints.first.x : 0,
-              maxX: stockDataPoints.isNotEmpty ? stockDataPoints.last.x : 0,
-              minY: stockDataPoints.isNotEmpty
-                  ? stockDataPoints
-                      .map((e) => e.y)
-                      .reduce((a, b) => a < b ? a : b)
-                  : 0,
-              maxY: stockDataPoints.isNotEmpty
-                  ? stockDataPoints
-                      .map((e) => e.y)
-                      .reduce((a, b) => a > b ? a : b)
-                  : 0,
-            )),
-          ),
-          const SizedBox(height: 25),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                  onPressed: () => print("Buy"),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColours.buttonColor,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 35, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30))),
-                  child: Text(
-                    "BUY",
-                    style: GoogleFonts.dmSans(
-                        color: AppColours.backgroundColor,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w500),
-                  )),
-              ElevatedButton(
-                  onPressed: () => print("Sell"),
-                  style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 30, vertical: 10),
-                      backgroundColor: AppColours.buttonColor,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30))),
-                  child: Text(
-                    "SELL",
-                    style: GoogleFonts.dmSans(
-                        color: AppColours.backgroundColor,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w500),
-                  ))
-            ],
-          )
-        ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Widget _buildInfoItem(String label, String value) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: GoogleFonts.dmSans(
+          color: AppColours.textColor.withOpacity(0.7),
+          fontSize: 18,
+        ),
+      ),
+      Text(
+        value,
+        style: GoogleFonts.dmSans(
+          color: AppColours.textColor,
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ],
+  );
+}
+
+class StockSearch extends SearchDelegate<String> {
+  final List<String> stockList;
+  final Map<String, dynamic> stockDetails;
+
+  StockSearch(this.stockList, this.stockDetails);
+
+  @override
+  ThemeData appBarTheme(BuildContext context) {
+    return ThemeData(
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColours.backgroundColor,
+        iconTheme: IconThemeData(color: AppColours.textColor),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        hintStyle: TextStyle(color: AppColours.textColor.withOpacity(0.5)),
+      ),
+    );
+  }
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: const Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+          showResults(context);
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () => close(context, ''),
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    return _buildSearchList(context);
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    return _buildSearchList(context);
+  }
+
+  Widget _buildSearchList(BuildContext context) {
+    final List<String> resultList = query.isEmpty
+        ? stockList
+        : stockList
+            .where((stock) =>
+                stock.toLowerCase().contains(query.toLowerCase()) ||
+                stockDetails[stock]['name']
+                    .toLowerCase()
+                    .contains(query.toLowerCase()))
+            .toList();
+
+    return Scaffold(
+      backgroundColor: AppColours.backgroundColor,
+      body: ListView.builder(
+        itemCount: resultList.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(
+              resultList[index],
+              style: const TextStyle(color: AppColours.textColor),
+            ),
+            subtitle: Text(
+              stockDetails[resultList[index]]['name'],
+              style: TextStyle(color: AppColours.textColor.withOpacity(0.7)),
+            ),
+            onTap: () {
+              close(context, resultList[index]);
+            },
+          );
+        },
       ),
     );
   }

@@ -709,8 +709,8 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
               toolbarHeight: 70,
               title: Text(
                 'Expense Tracker',
-                style: GoogleFonts.darkerGrotesque(
-                    fontSize: 35,
+                style: GoogleFonts.dmSans(
+                    fontSize: 30,
                     fontWeight: FontWeight.w800,
                     color: AppColours.textColor),
               ),
@@ -718,7 +718,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
             body: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20, top: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -729,7 +729,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                             '${months[selectedMonth - 1]} $selectedYear',
                             style: GoogleFonts.spectral(
                               fontSize: 20,
-                              fontWeight: FontWeight.w300,
+                              fontWeight: FontWeight.w600,
                               color: AppColours.textColor,
                             ),
                           ),
@@ -763,8 +763,8 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                           .toList(),
                       xValueMapper: (Expense data, _) => data.name,
                       yValueMapper: (Expense data, _) => data.amountSpent,
-                      innerRadius: "55%",
-                      radius: "80%",
+                      innerRadius: "45%",
+                      radius: "70%",
                       strokeColor: AppColours.backgroundColor,
                       strokeWidth: 3,
                     )
@@ -804,12 +804,12 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                                       const Icon(
                                         Icons.car_crash,
                                         color: AppColours.textColor,
-                                        size: 20,
+                                        size: 30,
                                       ),
                                       const SizedBox(width: 8),
                                       Text(_categories[index].categoryTitle,
-                                          style: GoogleFonts.darkerGrotesque(
-                                            fontSize: 20,
+                                          style: GoogleFonts.spectral(
+                                            fontSize: 25,
                                             fontWeight: FontWeight.w500,
                                             color: AppColours.textColor,
                                           )),
@@ -835,7 +835,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                                         .reduce((a, b) => a + b)
                                         .toString(),
                                     style: GoogleFonts.darkerGrotesque(
-                                      fontSize: 20,
+                                      fontSize: 25,
                                       fontWeight: FontWeight.w500,
                                       color: AppColours.textColor,
                                     ),
@@ -855,7 +855,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                                             Text(
                                               expense.name,
                                               style: GoogleFonts.dmSans(
-                                                fontSize: 18,
+                                                fontSize: 20,
                                                 fontWeight: FontWeight.w300,
                                                 color: AppColours.textColor,
                                               ),
@@ -891,15 +891,35 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                     },
                   ),
                 ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.all(10),
+                          backgroundColor: AppColours.buttonColor,
+                        ),
+                        onPressed: _showAddCategoryDialog,
+                        child: Text(
+                          'Expense',
+                          style: TextStyle(
+                            color: AppColours.backgroundColor,
+                          ),
+                        )),
+                    ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColours.buttonColor,
+                        ),
+                        onPressed: _showAddCategoryDialog,
+                        child: Text(
+                          'Expense',
+                          style: TextStyle(
+                            color: AppColours.backgroundColor,
+                          ),
+                        )),
+                  ],
+                )
               ],
-            ),
-            floatingActionButton: FloatingActionButton(
-              backgroundColor: AppColours.buttonColor,
-              onPressed: _showAddCategoryDialog,
-              child: const Icon(
-                Icons.add,
-                color: AppColours.backgroundColor,
-              ),
             ),
           );
         });

@@ -3,10 +3,10 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/consts/app_colours.dart';
 import 'package:mobile/consts/loading_widgets.dart';
+import 'package:mobile/consts/toast_messages.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 
 class Chapter {
   final Map<String, Question> questions;
@@ -15,7 +15,8 @@ class Chapter {
 
   factory Chapter.fromJson(Map<String, dynamic> json) {
     var chapterData = json.values.first as Map<String, dynamic>;
-    var questions = chapterData.map((key, value) => MapEntry(key, Question.fromJson(value)));
+    var questions = chapterData
+        .map((key, value) => MapEntry(key, Question.fromJson(value)));
     return Chapter(questions: questions);
   }
 }
@@ -43,10 +44,9 @@ class Question {
   }
 }
 
-
 class MCQPage extends StatefulWidget {
-  const MCQPage({required this.index ,super.key});
-  
+  const MCQPage({required this.index, super.key});
+
   final int index;
 
   @override
@@ -54,12 +54,11 @@ class MCQPage extends StatefulWidget {
 }
 
 class _MCQPageState extends State<MCQPage> {
-  
-  late Map things = { 
-    0:"introduction_to_personal_finance",
-    1:"setting_financial_goals",
-    2:"budgeting_and_expense_tracking",
-    3:"online_and_mobile_banking"
+  late Map things = {
+    0: "introduction_to_personal_finance",
+    1: "setting_financial_goals",
+    2: "budgeting_and_expense_tracking",
+    3: "online_and_mobile_banking"
   };
   late Future<Map<String, dynamic>> futureQuestions;
   late String chapterName = things[widget.index];
@@ -67,6 +66,7 @@ class _MCQPageState extends State<MCQPage> {
   late Chapter chapter;
   int currentQuestionIndex = 0;
   String? selectedAnswer;
+  bool isAnswerChecked = false;
 
   @override
   void initState() {
@@ -76,7 +76,8 @@ class _MCQPageState extends State<MCQPage> {
 
   Future<Map<String, dynamic>> fetchQuestions(String chap, int n) async {
     try {
-      final response = await http.get(Uri.parse('https://penny-uts7.onrender.com/generate_questions/$chap?num_question=$n'));
+      final response = await http.get(Uri.parse(
+          'https://penny-uts7.onrender.com/generate_questions/$chap?num_question=$n'));
       if (response.statusCode == 200) {
         var json = jsonDecode(response.body);
         if (json is Map<String, dynamic>) {
@@ -94,11 +95,19 @@ class _MCQPageState extends State<MCQPage> {
     }
   }
 
+  void selectAnswer(String answer) {
+    setState(() {
+      selectedAnswer = answer;
+      isAnswerChecked = true;
+    });
+  }
+
   void nextQuestion() {
     if (currentQuestionIndex < chapter.questions.length - 1) {
       setState(() {
         currentQuestionIndex++;
         selectedAnswer = null;
+        isAnswerChecked = false;
       });
     }
   }
@@ -136,125 +145,143 @@ class _MCQPageState extends State<MCQPage> {
   }
 
   Widget buildQuestionPage() {
-    Question currentQuestion = chapter.questions.values.elementAt(currentQuestionIndex);
+    Question currentQuestion =
+        chapter.questions.values.elementAt(currentQuestionIndex);
     return Scaffold(
+      backgroundColor: AppColours.backgroundColor,
       appBar: AppBar(
-        title: Text(
-          "Chapter 1", // You might want to make this dynamic based on the actual chapter name
-          style: GoogleFonts.dmSans(
-            fontSize: 25,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        backgroundColor: AppColours.backgroundColor,
+        title: Text("Chapter 1",
+            style:
+                GoogleFonts.dmSans(fontSize: 24, fontWeight: FontWeight.bold)),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Question ${currentQuestionIndex + 1}/${chapter.questions.length}",
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 32,
-              ),
-            ),
-            const SizedBox(height: 5),
-            LinearPercentIndicator(
-              lineHeight: 10,
-              progressColor: Colors.black87,
-              backgroundColor: Colors.black12,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: LinearPercentIndicator(
+              lineHeight: 15,
+              progressColor: AppColours.buttonColor.withOpacity(0.7),
+              backgroundColor: AppColours.cardColor.withOpacity(0.6),
               percent: (currentQuestionIndex + 1) / chapter.questions.length,
-              barRadius: const Radius.circular(5),
+              barRadius: const Radius.circular(20),
+              leading: Text(
+                  "${currentQuestionIndex + 1}/${chapter.questions.length}",
+                  style: GoogleFonts.dmSans(
+                      fontWeight: FontWeight.bold, fontSize: 18,
+                      color: Colors.black)),
             ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Stack(
-                      children:[
-                        Card(
-                          color: Colors.black12,
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(40, 100, 40, 100),
-                            child: Text(
-                              currentQuestion.question,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.dmSans(fontSize: 24),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Card(
+                  color: AppColours.backgroundColor,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                                "Question ${currentQuestionIndex + 1}/${chapter.questions.length}",
+                                style: GoogleFonts.dmSans(
+                                    fontWeight: FontWeight.w300, fontSize: 16)),
+                            GestureDetector(
+                              onTap: () => ToastMessages.infoToast(
+                                  context, currentQuestion.hint),
+                              child: Row(
+                                children: [
+                                  const FaIcon(FontAwesomeIcons.circleQuestion,
+                                      size: 16),
+                                  const SizedBox(width: 5),
+                                  Text("Hint",
+                                      style: GoogleFonts.dmSans(
+                                          fontWeight: FontWeight.w300,
+                                          fontSize: 16)),
+                                ],
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                        Positioned(
-                          top: 15,
-                          right: 15,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            child: IconButton(
-                              onPressed: () {
-                                // Show hint
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(currentQuestion.hint)),
-                                );
-                              },
-                              icon: const FaIcon(FontAwesomeIcons.lightbulb, color: Colors.white, size: 30,)
-                            ),
-                          ),
-                        ),
+                        const SizedBox(height: 16),
+                        Text(currentQuestion.question,
+                            style: GoogleFonts.dmSans(
+                                fontWeight: FontWeight.w700, fontSize: 20)),
+                        const SizedBox(height: 16),
+                        ...currentQuestion.options.asMap().entries.map(
+                            (entry) => buildOptionButton(
+                                entry.value,
+                                String.fromCharCode(65 + entry.key),
+                                currentQuestion)),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    ListView.separated(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      separatorBuilder: (BuildContext context, int index) => const Divider(
-                        color: Colors.transparent,
-                        height: 5,
-                      ),
-                      itemCount: currentQuestion.options.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return TextButton(
-                          style: TextButton.styleFrom(
-                            backgroundColor: selectedAnswer == currentQuestion.options[index] 
-                                ? Colors.black26 
-                                : Colors.black12,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              selectedAnswer = currentQuestion.options[index];
-                            });
-                          },
-                          child: Text(
-                            currentQuestion.options[index],
-                            style: GoogleFonts.dmSans(color: Colors.black),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(100, 0, 100, 0),
-              child: ElevatedButton(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(
-                    selectedAnswer != null ? Colors.black : Colors.black26
                   ),
                 ),
-                onPressed: selectedAnswer != null ? nextQuestion : null,
-                child: Container(
-                  alignment: Alignment.center,
-                  child: const Text("NEXT")
-                ),
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ElevatedButton(
+          onPressed: nextQuestion,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isAnswerChecked ? AppColours.buttonColor : AppColours.backgroundColor,
+            minimumSize: const Size(double.infinity, 50),
+          ),
+          child: Text("Next Question", style: GoogleFonts.dmSans(fontSize: 18,
+          color: isAnswerChecked ? AppColours.backgroundColor : AppColours.textColor)),
+        ),
+      ),
+    );
+  }
+
+  Widget buildOptionButton(
+      String option, String optionLetter, Question currentQuestion) {
+    bool isSelected = selectedAnswer == optionLetter;
+    bool isCorrectAnswer = optionLetter == currentQuestion.answer;
+    Color backgroundColor = AppColours.backgroundColor;
+    Color borderColor = Colors.grey.shade300;
+    IconData? trailingIcon;
+
+    if (isAnswerChecked) {
+      if (isCorrectAnswer) {
+        backgroundColor = Colors.green.shade100;
+        borderColor = Colors.green;
+        trailingIcon = Icons.check_circle;
+      } else if (isSelected && !isCorrectAnswer) {
+        backgroundColor = Colors.red.shade100;
+        borderColor = Colors.red;
+        trailingIcon = Icons.cancel;
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: InkWell(
+        onTap: isAnswerChecked ? null : () => selectAnswer(optionLetter),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: borderColor),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(option, style: GoogleFonts.dmSans(fontSize: 16)),
+              ),
+              if (trailingIcon != null)
+                Icon(trailingIcon,
+                    color: isCorrectAnswer ? Colors.green : Colors.red),
+            ],
+          ),
         ),
       ),
     );
