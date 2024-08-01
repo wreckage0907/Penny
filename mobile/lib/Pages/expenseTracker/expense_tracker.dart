@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -60,6 +61,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
   String? username;
   int selectedMonth = DateTime.now().month;
   int selectedYear = DateTime.now().year;
+  int touchedIndex = -1;
 
   final List<String> months = [
     "January",
@@ -663,6 +665,43 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
     return years;
   }
 
+  List<PieChartSectionData> showingSections() {
+  double totalAmount = _categories
+      .expand((category) => category.expenses)
+      .map((expense) => expense.amountSpent)
+      .reduce((a, b) => a + b)
+      .toDouble();
+
+  return _categories.expand((category) => category.expenses).map((expense) {
+    final isTouched = _categories
+            .expand((category) => category.expenses)
+            .toList()
+            .indexOf(expense) ==
+        touchedIndex;
+    final fontSize = isTouched ? 20.0 : 16.0;
+    final radius = isTouched ? 110.0 : 100.0;
+    final widgetSize = isTouched ? 55.0 : 40.0;
+
+    return PieChartSectionData(
+      //color: getRandomColor(), // You need to implement this function to generate colors
+      value: expense.amountSpent.toDouble(),
+      title: '${(expense.amountSpent / totalAmount * 100).toStringAsFixed(1)}%',
+      radius: radius,
+      titleStyle: TextStyle(
+        fontSize: fontSize,
+        fontWeight: FontWeight.bold,
+        color: const Color(0xffffffff),
+      ),
+      badgeWidget: _Badge(
+        expense.name,
+        size: widgetSize,
+        borderColor: AppColours.backgroundColor,
+      ),
+      badgePositionPercentageOffset: .98,
+    );
+  }).toList();
+}
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
@@ -753,36 +792,57 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                     ],
                   ),
                 ),
-                SfCircularChart(
-                  tooltipBehavior: _tooltipBehavior,
-                  series: <CircularSeries>[
-                    DoughnutSeries<Expense, String>(
-                      enableTooltip: true,
-                      dataSource: _categories
-                          .expand((category) => category.expenses)
-                          .toList(),
-                      xValueMapper: (Expense data, _) => data.name,
-                      yValueMapper: (Expense data, _) => data.amountSpent,
-                      innerRadius: "45%",
-                      radius: "70%",
-                      strokeColor: AppColours.backgroundColor,
-                      strokeWidth: 3,
-                    )
-                  ],
-                  annotations: <CircularChartAnnotation>[
-                    CircularChartAnnotation(
-                      widget: Container(
-                        child: Text(
-                          "\$${_categories.expand((category) => category.expenses).map((expense) => expense.amountSpent).reduce((a, b) => a + b).toString()}",
-                          style: GoogleFonts.spectral(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: AppColours.textColor),
-                        ),
-                      ),
-                    )
-                  ],
+                PieChart(
+                  PieChartData(
+                    pieTouchData: PieTouchData(
+                      touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                        setState(() {
+                          if(!event.isInterestedForInteractions || pieTouchResponse == null || pieTouchResponse.touchedSection == null) {
+                            touchedIndex = -1;
+                            return;
+                          }
+                          touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                        });
+                      }
+                    ),
+                    borderData: FlBorderData(
+                      show: false,
+                    ),
+                    sectionsSpace: 2,
+                    centerSpaceRadius: 50,
+                    sections: showingSections(),
+                  )
                 ),
+                // SfCircularChart(
+                //   tooltipBehavior: _tooltipBehavior,
+                //   series: <CircularSeries>[
+                //     DoughnutSeries<Expense, String>(
+                //       enableTooltip: true,
+                //       dataSource: _categories
+                //           .expand((category) => category.expenses)
+                //           .toList(),
+                //       xValueMapper: (Expense data, _) => data.name,
+                //       yValueMapper: (Expense data, _) => data.amountSpent,
+                //       innerRadius: "45%",
+                //       radius: "70%",
+                //       strokeColor: AppColours.backgroundColor,
+                //       strokeWidth: 3,
+                //     )
+                //   ],
+                //   annotations: <CircularChartAnnotation>[
+                //     CircularChartAnnotation(
+                //       widget: Container(
+                //         child: Text(
+                //           "\$${_categories.expand((category) => category.expenses).map((expense) => expense.amountSpent).reduce((a, b) => a + b).toString()}",
+                //           style: GoogleFonts.spectral(
+                //               fontSize: 20,
+                //               fontWeight: FontWeight.w600,
+                //               color: AppColours.textColor),
+                //         ),
+                //       ),
+                //     )
+                //   ],
+                // ),
                 Expanded(
                   child: ListView.builder(
                     itemCount: _categories.length,
@@ -900,7 +960,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                           backgroundColor: AppColours.buttonColor,
                         ),
                         onPressed: _showAddCategoryDialog,
-                        child: Text(
+                        child: const Text(
                           'Expense',
                           style: TextStyle(
                             color: AppColours.backgroundColor,
@@ -911,7 +971,7 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
                           backgroundColor: AppColours.buttonColor,
                         ),
                         onPressed: _showAddCategoryDialog,
-                        child: Text(
+                        child: const Text(
                           'Expense',
                           style: TextStyle(
                             color: AppColours.backgroundColor,
@@ -923,5 +983,52 @@ class _ExpenseTrackerState extends State<ExpenseTracker> {
             ),
           );
         });
+  }
+}
+
+class _Badge extends StatelessWidget {
+  final String name;
+  final double size;
+  final Color borderColor;
+
+  const _Badge(
+    this.name, {
+    required this.size,
+    required this.borderColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: PieChart.defaultDuration,
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: borderColor,
+          width: 2,
+        ),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withOpacity(.5),
+            offset: const Offset(3, 3),
+            blurRadius: 3,
+          ),
+        ],
+      ),
+      padding: EdgeInsets.all(size * .15),
+      child: Center(
+        child: Text(
+          name,
+          style: TextStyle(
+            fontSize: size * .3,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+      ),
+    );
   }
 }
