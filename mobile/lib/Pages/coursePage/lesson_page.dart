@@ -10,12 +10,11 @@ import 'package:mobile/consts/loading_widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class LessonPage extends StatefulWidget {
-  const LessonPage({
-    required this.lessonName,
-    required this.fileName,
-    required this.subfolder,
-    super.key
-  });
+  const LessonPage(
+      {required this.lessonName,
+      required this.fileName,
+      required this.subfolder,
+      super.key});
 
   final String lessonName, fileName, subfolder;
 
@@ -26,10 +25,18 @@ class LessonPage extends StatefulWidget {
 class _LessonPageState extends State<LessonPage> {
   late String content;
   final FlutterTts flutterTts = FlutterTts();
+  bool isSpeaking = false;
+
+  @override
+  void dispose() {
+    flutterTts.stop();
+    super.dispose();
+  }
 
   Future<String> fetchFile() async {
     try {
-      final res = await http.get(Uri.parse("https://penny-uts7.onrender.com/get-file/${widget.subfolder}/${widget.fileName}"));
+      final res = await http.get(Uri.parse(
+          "https://penny-uts7.onrender.com/get-file/${widget.subfolder}/${widget.fileName}"));
       if (res.statusCode == 200) {
         final data = json.decode(res.body);
         return data['content'];
@@ -42,24 +49,67 @@ class _LessonPageState extends State<LessonPage> {
     }
   }
 
-  
-  Future<void> speak(String text) async {
-    await flutterTts.setLanguage("en-US");
-    await flutterTts.setPitch(0.5);
-    print(text);
-    await flutterTts.speak(text);
+  String cleanMarkdownText(String markdownText) {
+    markdownText = markdownText.replaceAll(RegExp(r'#+\s'), '');
+
+    markdownText = markdownText.replaceAll(RegExp(r'\*{1,2}'), '');
+
+    markdownText =
+        markdownText.replaceAll(RegExp(r'^\s*[-*]\s', multiLine: true), '');
+
+    markdownText = markdownText.replaceAll(RegExp(r'`{1,3}'), '');
+
+    markdownText = markdownText.replaceAll(RegExp(r'\[|\]|\(.*?\)'), '');
+
+    return markdownText.trim();
+  }
+
+  Future<void> toggleSpeak(String text) async {
+    if (isSpeaking) {
+      await flutterTts.stop();
+      setState(() {
+        isSpeaking = false;
+      });
+    } else {
+      await flutterTts.setLanguage("en-US");
+      await flutterTts.setPitch(0.8);
+      String cleanedText = cleanMarkdownText(text);
+      await flutterTts.speak(cleanedText);
+      setState(() {
+        isSpeaking = true;
+      });
+
+      flutterTts.setCompletionHandler(() {
+        setState(() {
+          isSpeaking = false;
+        });
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.lessonName,
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.bold,
-            color: AppColours.textColor,
-          ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              widget.lessonName,
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold,
+                color: AppColours.textColor,
+              ),
+            ),
+            IconButton(
+                onPressed: () => toggleSpeak(content),
+                icon: FaIcon(
+                  isSpeaking
+                      ? FontAwesomeIcons.volumeXmark
+                      : FontAwesomeIcons.volumeHigh,
+                  color: AppColours.textColor,
+                ))
+          ],
         ),
         backgroundColor: AppColours.backgroundColor,
         elevation: 0,
@@ -69,9 +119,8 @@ class _LessonPageState extends State<LessonPage> {
         builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Scaffold(
-              backgroundColor: AppColours.backgroundColor,
-              body: Center(child: CustomLoadingWidgets.fourRotatingDots())
-            );
+                backgroundColor: AppColours.backgroundColor,
+                body: Center(child: CustomLoadingWidgets.fourRotatingDots()));
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else {
@@ -134,20 +183,6 @@ class _LessonPageState extends State<LessonPage> {
           }
         },
       ),
-      floatingActionButton: ElevatedButton(
-        onPressed: () {
-          speak(content);
-        },
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.all(20),
-          shape: const CircleBorder(),
-          backgroundColor: AppColours.cardColor,
-        ),
-        child: const FaIcon(
-          FontAwesomeIcons.volumeHigh,
-          color: AppColours.textColor,
-        ),
-      )
     );
   }
 }
