@@ -28,7 +28,7 @@ def get_current_price(ticker):
     return price
 
 def get_user_portfolio(user_id):
-    doc_ref = db.collection(user_id).document('user')
+    doc_ref = db.collection(user_id).document('finances')
     doc = doc_ref.get()
     if doc.exists:
         return doc.to_dict()['user']
@@ -36,7 +36,7 @@ def get_user_portfolio(user_id):
         return None
 
 def update_user_portfolio(user_id, portfolio):
-    doc_ref = db.collection(user_id).document('user')
+    doc_ref = db.collection(user_id).document('finances')
     doc_ref.update(portfolio)
 
 @router.post("/buy")
