@@ -162,7 +162,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       };
 
       final uri = Uri.parse(
-              'https://penny-uts7.onrender.com/onboarding/${user.username}')
+              'http://10.0.2.2:8000/onboarding/${user.username}')
           .replace(
         queryParameters: queryParameters,
       );
