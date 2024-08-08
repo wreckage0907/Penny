@@ -1,7 +1,9 @@
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/consts/app_colours.dart';
 
 class ChatbotPage extends StatefulWidget {
@@ -56,7 +58,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
                   "", (previous, current) => "$previous ${current.text}") ??
               "";
           ChatMessage message = ChatMessage(
-              user: geminiUser, createdAt: DateTime.now(), text: response);
+              user: geminiUser,
+              createdAt: DateTime.now(),
+              text: response,
+              isMarkdown: true);
           setState(() {
             chatHistory[currentChatId] = [
               message,
@@ -167,13 +172,107 @@ class _ChatbotPageState extends State<ChatbotPage> {
               currentUser: currentUser,
               onSend: _sendMessage,
               messages: chatHistory[currentChatId]!,
-              messageOptions: const MessageOptions(
+              messageOptions: MessageOptions(
                 currentUserContainerColor: AppColours.buttonColor,
                 containerColor: AppColours.cardColor,
                 currentUserTextColor: AppColours.backgroundColor,
                 textColor: AppColours.textColor,
-                messagePadding: EdgeInsets.all(10),
+                messagePadding: const EdgeInsets.all(10),
                 borderRadius: 12,
+                markdownStyleSheet: MarkdownStyleSheet(
+                  h1: GoogleFonts.poppins(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: AppColours.textColor,
+                  ),
+                  h2: GoogleFonts.poppins(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColours.textColor,
+                  ),
+                  h3: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColours.textColor,
+                  ),
+                  p: GoogleFonts.dmSans(
+                    fontSize: 16,
+                    color: AppColours.textColor,
+                    height: 1.5,
+                  ),
+                  strong: GoogleFonts.dmSans(
+                    fontWeight: FontWeight.bold,
+                    color: AppColours.textColor,
+                  ),
+                  em: GoogleFonts.dmSans(
+                    fontStyle: FontStyle.italic,
+                    color: AppColours.textColor,
+                  ),
+                  blockquote: GoogleFonts.dmSans(
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic,
+                    color: AppColours.textColor.withOpacity(0.7),
+                  ),
+                  code: GoogleFonts.firaCode(
+                    fontSize: 14,
+                    backgroundColor: Colors.grey[200],
+                    color: Colors.black87,
+                  ),
+                  codeblockDecoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  listBullet: GoogleFonts.dmSans(
+                    fontSize: 16,
+                    color: AppColours.textColor,
+                  ),
+                ),
+                messageTextBuilder: (ChatMessage message,
+                    ChatMessage? previousMessage, ChatMessage? nextMessage) {
+                  if (message.user.id == currentUser.id) {
+                    return Text(
+                      message.text,
+                      style: GoogleFonts.poppins(
+                        color: AppColours.backgroundColor,
+                      ),
+                    );
+                  }
+                  return MarkdownBody(
+                    data: message.text,
+                    styleSheet: MarkdownStyleSheet(
+                      p: GoogleFonts.dmSans(
+                        fontSize: 16,
+                        color: AppColours.textColor,
+                      ),
+                      strong: GoogleFonts.dmSans(
+                        fontWeight: FontWeight.bold,
+                        color: AppColours.textColor,
+                      ),
+                      em: GoogleFonts.dmSans(
+                        fontStyle: FontStyle.italic,
+                        color: AppColours.textColor,
+                      ),
+                      blockquote: GoogleFonts.dmSans(
+                        fontSize: 16,
+                        fontStyle: FontStyle.italic,
+                        color: AppColours.textColor.withOpacity(0.7),
+                      ),
+                      code: GoogleFonts.firaCode(
+                        fontSize: 14,
+                        backgroundColor: Colors.grey[200],
+                        color: Colors.black87,
+                      ),
+                      codeblockDecoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      listBullet: GoogleFonts.dmSans(
+                        fontSize: 16,
+                        color: AppColours.textColor,
+                      ),
+                    ),
+                  );
+                },
               ),
               inputOptions: InputOptions(
                 inputDecoration: InputDecoration(
@@ -184,8 +283,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     borderSide: BorderSide.none,
                   ),
                   hintText: "Type a message...",
-                  hintStyle:
-                      TextStyle(color: AppColours.textColor.withOpacity(0.6)),
+                  hintStyle: GoogleFonts.poppins(
+                      color: AppColours.textColor.withOpacity(0.6)),
                 ),
                 sendButtonBuilder: (onSend) {
                   return IconButton(
@@ -196,7 +295,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     onPressed: onSend,
                   );
                 },
-                inputTextStyle: const TextStyle(
+                inputTextStyle: GoogleFonts.poppins(
                   color: AppColours.textColor,
                 ),
               ),
@@ -224,12 +323,13 @@ class _ChatbotPageState extends State<ChatbotPage> {
                   color: AppColours.textColor,
                 )),
             IconButton(
-                  onPressed: () => Navigator.pushNamed(context, '/profilesettings'),
-                  icon: const Icon(
-                    Icons.person_outline_rounded,
-                    size: 40,
-                    color: AppColours.textColor,
-                  )),
+                onPressed: () =>
+                    Navigator.pushNamed(context, '/profilesettings'),
+                icon: const Icon(
+                  Icons.person_outline_rounded,
+                  size: 40,
+                  color: AppColours.textColor,
+                )),
           ],
         ),
       ),
