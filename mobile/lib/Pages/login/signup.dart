@@ -3,7 +3,6 @@ import 'package:flutter/gestures.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/Pages/login/input_field.dart';
-import 'package:mobile/Pages/login/page_buttons.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mobile/consts/app_colours.dart';
@@ -91,7 +90,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         }
                       },
                       icon: const FaIcon(FontAwesomeIcons.google,
-                          color: AppColours.buttonColor, size: 32),
+                          color: AppColours.textColor, size: 32),
                       style: const ButtonStyle(
                         backgroundColor:
                             WidgetStatePropertyAll(AppColours.cardColor),
@@ -123,7 +122,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         }
                       },
                       icon: const FaIcon(FontAwesomeIcons.github,
-                          color: AppColours.buttonColor, size: 32),
+                          color: AppColours.textColor, size: 32),
                       style: const ButtonStyle(
                         backgroundColor:
                             WidgetStatePropertyAll(AppColours.cardColor),
@@ -141,7 +140,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         elevation: WidgetStatePropertyAll(2),
                       ),
                     ),
-                    const MicrosoftButton()
+                    MyPhoneSignInWidget(),
                   ],
                 ),
                 const SizedBox(height: 20),

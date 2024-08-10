@@ -122,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                         }
                       },
                       icon: const FaIcon(FontAwesomeIcons.google,
-                          color: AppColours.buttonColor, size: 32),
+                          color: AppColours.textColor, size: 32),
                       style: const ButtonStyle(
                         backgroundColor:
                             WidgetStatePropertyAll(AppColours.cardColor),
@@ -155,7 +155,7 @@ class _LoginPageState extends State<LoginPage> {
                         }
                       },
                       icon: const FaIcon(FontAwesomeIcons.github,
-                          color: AppColours.buttonColor, size: 32),
+                          color: AppColours.textColor, size: 32),
                       style: const ButtonStyle(
                         backgroundColor:
                             WidgetStatePropertyAll(AppColours.cardColor),

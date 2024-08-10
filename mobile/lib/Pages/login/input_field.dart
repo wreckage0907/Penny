@@ -245,7 +245,7 @@ class _MyPhoneSignInWidgetState extends State<MyPhoneSignInWidget> {
       onPressed: _showPhoneNumberDialog,
       icon: const FaIcon(
         FontAwesomeIcons.phone,
-        color: AppColours.buttonColor,
+        color: AppColours.textColor,
         size: 30,
       ),
       style: const ButtonStyle(

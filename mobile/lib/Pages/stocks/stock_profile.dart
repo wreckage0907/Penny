@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/consts/app_colours.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile/consts/toast_messages.dart';
 
 class StockProfile extends StatefulWidget {
   const StockProfile({super.key});
@@ -149,14 +150,34 @@ class _StockProfileState extends State<StockProfile> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Buy $selectedStock'),
+          backgroundColor: AppColours.backgroundColor,
+          title: Text(
+            'Buy $selectedStock',
+            style: GoogleFonts.dmSans(
+                color: AppColours.textColor,
+                fontSize: 28,
+                fontWeight: FontWeight.w600),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Current Price: \$387'), // Replace with actual current price
+              Text(
+                'Current Price: \$387',
+                style: GoogleFonts.dmSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: AppColours.textColor,
+                ),
+              ),
               TextField(
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Quantity'),
+                decoration: InputDecoration(
+                    labelText: 'Quantity',
+                    labelStyle: GoogleFonts.dmSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: AppColours.textColor,
+                    )),
                 onChanged: (value) {
                   quantity = double.tryParse(value) ?? 0;
                 },
@@ -165,11 +186,23 @@ class _StockProfileState extends State<StockProfile> {
           ),
           actions: [
             TextButton(
-              child: Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.dmSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: AppColours.textColor),
+              ),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
-              child: Text('Buy'),
+              child: Text(
+                'Buy',
+                style: GoogleFonts.dmSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: AppColours.textColor),
+              ),
               onPressed: () {
                 _buyStock(quantity);
                 Navigator.of(context).pop();
@@ -186,8 +219,8 @@ class _StockProfileState extends State<StockProfile> {
       userHoldings[selectedStock] =
           (userHoldings[selectedStock] ?? 0) + quantity;
     });
-    // You might want to add some feedback to the user here
     print('Bought $quantity shares of $selectedStock');
+    ToastMessages.successToast(context, 'Bought $quantity shares of $selectedStock');
   }
 
   void _showSellDialog() {
@@ -198,15 +231,36 @@ class _StockProfileState extends State<StockProfile> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: AppColours.backgroundColor,
           title: Text('Sell $selectedStock'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Current Price: \$387'), // Replace with actual current price
-              Text('Available: $availableQuantity'),
+              Text(
+                'Current Price: \$387',
+                style: GoogleFonts.dmSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: AppColours.textColor,
+                ),
+              ),
+              Text(
+                'Available: $availableQuantity',
+                style: GoogleFonts.dmSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                  color: AppColours.textColor,
+                ),
+              ),
               TextField(
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Quantity'),
+                decoration: InputDecoration(
+                    labelText: 'Quantity',
+                    labelStyle: GoogleFonts.dmSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: AppColours.textColor,
+                    )),
                 onChanged: (value) {
                   quantity = double.tryParse(value) ?? 0;
                 },
@@ -215,20 +269,30 @@ class _StockProfileState extends State<StockProfile> {
           ),
           actions: [
             TextButton(
-              child: Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.dmSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: AppColours.textColor),
+              ),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
-              child: Text('Sell'),
+              child: Text(
+                'Sell',
+                style: GoogleFonts.dmSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: AppColours.textColor),
+              ),
               onPressed: () {
                 if (quantity <= availableQuantity) {
                   _sellStock(quantity);
                   Navigator.of(context).pop();
                 } else {
-                  // Show an error message
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Not enough shares to sell')),
-                  );
+                  Navigator.of(context).pop();
+                  ToastMessages.errorToast(context, 'Not enough shares to sell');
                 }
               },
             ),
@@ -246,8 +310,8 @@ class _StockProfileState extends State<StockProfile> {
         userHoldings.remove(selectedStock);
       }
     });
-    // You might want to add some feedback to the user here
     print('Sold $quantity shares of $selectedStock');
+    ToastMessages.successToast(context, 'Sold $quantity shares of $selectedStock');
   }
 
   Future<void> getHistoricalStockData(String timeRange) async {
@@ -507,7 +571,6 @@ class _StockProfileState extends State<StockProfile> {
               )),
             ),
             const SizedBox(height: 15),
-            
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
