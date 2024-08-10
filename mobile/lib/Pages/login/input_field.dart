@@ -164,9 +164,7 @@ class _MyPhoneSignInWidgetState extends State<MyPhoneSignInWidget> {
 
       if (isFirstTime) {
         Navigator.of(context).pushReplacementNamed('/onboarding');
-      } else {
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
+      } 
     }
   }
 

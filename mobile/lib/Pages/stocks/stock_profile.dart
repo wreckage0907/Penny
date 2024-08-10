@@ -15,6 +15,7 @@ class StockProfile extends StatefulWidget {
 }
 
 class _StockProfileState extends State<StockProfile> {
+  Map<String, double> userHoldings = {};
   Map<String, dynamic> stockDetails = {
     'AAPL': {
       'name': 'Apple INC.',
@@ -140,6 +141,113 @@ class _StockProfileState extends State<StockProfile> {
     } catch (e) {
       print("Error: $e");
     }
+  }
+
+  void _showBuyDialog() {
+    double quantity = 0;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Buy $selectedStock'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Current Price: \$387'), // Replace with actual current price
+              TextField(
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'Quantity'),
+                onChanged: (value) {
+                  quantity = double.tryParse(value) ?? 0;
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: Text('Buy'),
+              onPressed: () {
+                _buyStock(quantity);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _buyStock(double quantity) {
+    setState(() {
+      userHoldings[selectedStock] =
+          (userHoldings[selectedStock] ?? 0) + quantity;
+    });
+    // You might want to add some feedback to the user here
+    print('Bought $quantity shares of $selectedStock');
+  }
+
+  void _showSellDialog() {
+    double quantity = 0;
+    double availableQuantity = userHoldings[selectedStock] ?? 0;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Sell $selectedStock'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Current Price: \$387'), // Replace with actual current price
+              Text('Available: $availableQuantity'),
+              TextField(
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'Quantity'),
+                onChanged: (value) {
+                  quantity = double.tryParse(value) ?? 0;
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: Text('Sell'),
+              onPressed: () {
+                if (quantity <= availableQuantity) {
+                  _sellStock(quantity);
+                  Navigator.of(context).pop();
+                } else {
+                  // Show an error message
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Not enough shares to sell')),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _sellStock(double quantity) {
+    setState(() {
+      userHoldings[selectedStock] =
+          (userHoldings[selectedStock] ?? 0) - quantity;
+      if (userHoldings[selectedStock] == 0) {
+        userHoldings.remove(selectedStock);
+      }
+    });
+    // You might want to add some feedback to the user here
+    print('Sold $quantity shares of $selectedStock');
   }
 
   Future<void> getHistoricalStockData(String timeRange) async {
@@ -312,9 +420,18 @@ class _StockProfileState extends State<StockProfile> {
               ),
             ),
             const SizedBox(height: 15),
+            Text(
+              'Your Holdings: ${userHoldings[selectedStock] ?? 0} shares',
+              style: GoogleFonts.dmSans(
+                color: AppColours.textColor,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(height: 15),
             Container(
               alignment: Alignment.center,
-              height: 50,
+              height: 35,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 physics: const ClampingScrollPhysics(),
@@ -351,7 +468,7 @@ class _StockProfileState extends State<StockProfile> {
             ),
             Container(
               alignment: Alignment.center,
-              height: 400,
+              height: 350,
               child: LineChart(LineChartData(
                 titlesData: const FlTitlesData(
                   rightTitles:
@@ -390,11 +507,12 @@ class _StockProfileState extends State<StockProfile> {
               )),
             ),
             const SizedBox(height: 15),
+            
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                    onPressed: () => print("Buy"),
+                    onPressed: () => _showBuyDialog(),
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green.withOpacity(0.9),
                         padding: const EdgeInsets.symmetric(
@@ -409,7 +527,7 @@ class _StockProfileState extends State<StockProfile> {
                           fontWeight: FontWeight.w500),
                     )),
                 ElevatedButton(
-                    onPressed: () => print("Sell"),
+                    onPressed: () => _showSellDialog(),
                     style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 30, vertical: 10),
