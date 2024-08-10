@@ -107,7 +107,7 @@
       <li><b>Ensure you get the serviceAccountKeys from firebase for /backend & /mobile</b></li>
       <li><b>Run this in one terminal at the backend directory</b>
       <pre><code>python3 main.py</code></pre></li>
-      <li><b>Run this in another terminal at the movile directory</b></li>
+      <li><b>Run this in another terminal at the mobile directory</b></li>
       <pre><code>flutter run</code></pre>
    </ol>
 </details>
