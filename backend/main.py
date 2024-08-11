@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from routers import file, expenseTracker, chatbot, onboarding, questionGen, stock, profile, livestock
+from routers import file, expenseTracker, onboarding, questionGen, stock, profile, livestock
 from database.firebase_init import firestore_db
 import uvicorn
 
