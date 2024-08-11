@@ -11,4 +11,4 @@ sentence-transformers
 faiss-cpu 
 PyMuPDF
 python-dotenv
-
+python-multipart
