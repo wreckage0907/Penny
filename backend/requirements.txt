@@ -8,6 +8,7 @@ httpx
 google-cloud-storage
 pytest
 sentence-transformers 
+faiss-cpu
 PyMuPDF
 python-dotenv
 python-multipart
