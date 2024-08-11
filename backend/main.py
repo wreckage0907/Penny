@@ -30,7 +30,6 @@ async def root():
 
 app.include_router(file.router)
 app.include_router(expenseTracker.router)
-app.include_router(chatbot.router)
 app.include_router(onboarding.router)
 app.include_router(questionGen.router)
 app.include_router(stock.router)
