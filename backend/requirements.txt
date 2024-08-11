@@ -10,3 +10,5 @@ pytest
 sentence-transformers 
 faiss-cpu 
 PyMuPDF
+python-dotenv
+tf-keras
