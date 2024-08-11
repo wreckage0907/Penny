@@ -6,9 +6,7 @@ google-generativeai
 beautifulsoup4 
 httpx
 google-cloud-storage
-pytest
-sentence-transformers 
-faiss-cpu 
+pytest 
 PyMuPDF
 python-dotenv
 python-multipart
