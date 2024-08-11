@@ -8,6 +8,7 @@ import 'package:mobile/Services/auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:mobile/consts/app_colours.dart';
+import 'package:mobile/consts/backend_url.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -31,7 +32,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<Map<String, String?>> getUserData(String userId) async {
     try {
       final response = await http
-          .get(Uri.parse('https://penny-uts7.onrender.com/onboarding/$userId'));
+          .get(Uri.parse('${backendUrl()}/onboarding/$userId'));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

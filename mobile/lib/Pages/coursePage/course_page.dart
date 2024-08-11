@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:mobile/Pages/coursePage/learning_page.dart';
 import 'package:mobile/consts/app_colours.dart';
+import 'package:mobile/consts/backend_url.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
 extension StringExtension on String {
@@ -34,7 +35,7 @@ class _CoursePageState extends State<CoursePage> {
 Future<void> fetchFolderNames() async {
   try {
     final response =
-        await http.get(Uri.parse('https://penny-uts7.onrender.com/subfolder'));
+        await http.get(Uri.parse('${backendUrl()}/subfolder'));
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       setState(() {

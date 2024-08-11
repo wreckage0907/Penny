@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/consts/app_colours.dart';
+import 'package:mobile/consts/backend_url.dart';
 import 'package:mobile/consts/loading_widgets.dart';
 import 'package:mobile/consts/toast_messages.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -77,7 +78,7 @@ class _MCQPageState extends State<MCQPage> {
   Future<Map<String, dynamic>> fetchQuestions(String chap, int n) async {
     try {
       final response = await http.get(Uri.parse(
-          'https://penny-uts7.onrender.com/generate_questions/$chap?num_question=$n'));
+          '${backendUrl()}/generate_questions/$chap?num_question=$n'));
       if (response.statusCode == 200) {
         var json = jsonDecode(response.body);
         if (json is Map<String, dynamic>) {

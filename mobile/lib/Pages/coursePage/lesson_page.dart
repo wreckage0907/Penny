@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:mobile/consts/app_colours.dart';
+import 'package:mobile/consts/backend_url.dart';
 import 'package:mobile/consts/loading_widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -36,7 +37,7 @@ class _LessonPageState extends State<LessonPage> {
   Future<String> fetchFile() async {
     try {
       final res = await http.get(Uri.parse(
-          "https://penny-uts7.onrender.com/get-file/${widget.subfolder}/${widget.fileName}"));
+          "${backendUrl()}/get-file/${widget.subfolder}/${widget.fileName}"));
       if (res.statusCode == 200) {
         final data = json.decode(res.body);
         return data['content'];

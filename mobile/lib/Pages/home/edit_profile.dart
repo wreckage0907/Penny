@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:mobile/consts/app_colours.dart';
+import 'package:mobile/consts/backend_url.dart';
 import 'package:mobile/consts/toast_messages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -63,7 +64,7 @@ class _EditProfileState extends State<EditProfile> {
     if (username != null) {
       try {
         final response = await http.get(
-          Uri.parse('https://penny-uts7.onrender.com/prof/$username'),
+          Uri.parse('${backendUrl()}/prof/$username'),
         );
 
         if (response.statusCode == 200) {
@@ -101,7 +102,7 @@ class _EditProfileState extends State<EditProfile> {
   Future<Map<String, String?>> getUserData(String userId) async {
     try {
       final response = await http
-          .get(Uri.parse('https://penny-uts7.onrender.com/onboarding/$userId'));
+          .get(Uri.parse('${backendUrl()}/onboarding/$userId'));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -154,7 +155,7 @@ Future<void> _updateUserData() async {
     try {
       // Update user data
       final response = await http.put(
-        Uri.parse('https://penny-uts7.onrender.com/onboarding/$username'),
+        Uri.parse('${backendUrl()}/onboarding/$username'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'first_name': _firstNameController.text,
@@ -169,7 +170,7 @@ Future<void> _updateUserData() async {
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
           final claimsResponse = await http.put(
-            Uri.parse('https://penny-uts7.onrender.com/update-custom-claims/${user.uid}'),
+            Uri.parse('${backendUrl()}/update-custom-claims/${user.uid}'),
             headers: {'Content-Type': 'application/json'},
             body: json.encode({
               'username': username,
@@ -207,7 +208,7 @@ Future<void> _updateUserData() async {
       try {
         var request = http.MultipartRequest(
           'PUT',
-          Uri.parse('https://penny-uts7.onrender.com/prof/$username'),
+          Uri.parse('${backendUrl()}/prof/$username'),
         );
         request.files
             .add(await http.MultipartFile.fromPath('file', image.path));
@@ -239,7 +240,7 @@ Future<void> _updateUserData() async {
     if (username != null) {
       try {
         final response = await http.delete(
-          Uri.parse('https://penny-uts7.onrender.com/prof/$username'),
+          Uri.parse('${backendUrl()}/prof/$username'),
         );
 
         if (response.statusCode == 200) {

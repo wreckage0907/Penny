@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:mobile/consts/backend_url.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -67,7 +68,7 @@ class Auth {
   }
 
   Future<String?> uploadProfileImage(String userId, File imageFile) async {
-    final url = Uri.parse('https://penny-uts7.onrender.com/prof');
+    final url = Uri.parse('${backendUrl()}/prof');
 
     try {
       String? username = await getUsername();
@@ -262,7 +263,7 @@ class Auth {
 
   Future<void> setCustomClaimsOnServer(
       String uid, String username, String fullName) async {
-    final url = Uri.parse('https://penny-uts7.onrender.com/set-custom-claims');
+    final url = Uri.parse('${backendUrl()}/set-custom-claims');
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},

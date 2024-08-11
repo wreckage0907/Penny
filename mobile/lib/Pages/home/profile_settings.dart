@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:mobile/consts/app_colours.dart';
+import 'package:mobile/consts/backend_url.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -69,7 +70,7 @@ class _ProfileSettingsState extends State<ProfileSettings> {
     if (username != null) {
       try {
         final response = await http.get(
-          Uri.parse('https://penny-uts7.onrender.com/prof/$username'),
+          Uri.parse('${backendUrl()}/prof/$username'),
         );
 
         if (response.statusCode == 200) {
@@ -130,7 +131,7 @@ Future<void> _deleteAccount() async {
     if (user != null && username != null) {
       // Delete user data from your backend
       final response = await http.delete(
-        Uri.parse('https://penny-uts7.onrender.com/onboarding/$username'),
+        Uri.parse('${backendUrl()}/onboarding/$username'),
       );
 
       if (response.statusCode != 200) {
@@ -145,7 +146,7 @@ Future<void> _deleteAccount() async {
 
       // Delete custom claims
       await http.delete(
-        Uri.parse('https://penny-uts7.onrender.com/delete-custom-claims/${user.uid}'),
+        Uri.parse('${backendUrl()}/delete-custom-claims/${user.uid}'),
       );
 
       // Delete the user from Firebase Authentication

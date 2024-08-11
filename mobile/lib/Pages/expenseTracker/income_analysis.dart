@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/consts/app_colours.dart';
 import 'package:mobile/Pages/expenseTracker/expense_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mobile/consts/backend_url.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -78,7 +79,7 @@ class _IncomeAnalysisState extends State<IncomeAnalysis> {
   void _initializeExpenseService() {
     if (username != null) {
       _expenseService =
-          ExpenseService(baseUrl: "http://10.0.2.2:8000", userId: username);
+          ExpenseService(baseUrl: backendUrl(), userId: username);
     }
   }
 

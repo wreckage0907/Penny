@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile/Services/auth.dart';
 import 'package:mobile/consts/app_colours.dart';
+import 'package:mobile/consts/backend_url.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
@@ -105,7 +106,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
 
   Future<String?> uploadProfileImage(String userId, File imageFile) async {
-    final url = Uri.parse('https://penny-uts7.onrender.com/prof');
+    final url = Uri.parse('${backendUrl()}/prof');
 
     try {
       var request = http.MultipartRequest('POST', url);
@@ -162,7 +163,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       };
 
       final uri = Uri.parse(
-              'http://10.0.2.2:8000/onboarding/${user.username}')
+              '${backendUrl()}/onboarding/${user.username}')
           .replace(
         queryParameters: queryParameters,
       );

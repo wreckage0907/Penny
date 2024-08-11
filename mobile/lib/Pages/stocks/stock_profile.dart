@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/consts/app_colours.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile/consts/backend_url.dart';
 import 'package:mobile/consts/toast_messages.dart';
 
 class StockProfile extends StatefulWidget {
@@ -121,7 +122,7 @@ class _StockProfileState extends State<StockProfile> {
   Future<void> getLiveStockData() async {
     try {
       final response = await http.get(
-        Uri.parse("http://10.0.2.2:8000/stocks/live?ticker=$selectedStock"),
+        Uri.parse("${backendUrl()}/stocks/live?ticker=$selectedStock"),
       );
 
       if (response.statusCode == 200) {
@@ -370,7 +371,7 @@ class _StockProfileState extends State<StockProfile> {
 
     try {
       final response = await http.get(Uri.parse(
-          "http://10.0.2.2:8000/stocks/historical?ticker=$selectedStock&start_date=$startDate&end_date=$endDate"));
+          "${backendUrl()}/stocks/historical?ticker=$selectedStock&start_date=$startDate&end_date=$endDate"));
 
       if (response.statusCode == 200) {
         Map<String, dynamic> jsonData = jsonDecode(response.body);

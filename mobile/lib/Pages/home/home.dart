@@ -17,6 +17,7 @@ import 'package:mobile/Pages/home/profile_settings.dart';
 import 'package:mobile/Pages/practice/list_of_modules.dart';
 import 'package:mobile/Pages/stocks/stock_profile.dart';
 import 'package:mobile/consts/app_colours.dart';
+import 'package:mobile/consts/backend_url.dart';
 
 // EXTERNAL IMPORTS
 import 'package:percent_indicator/circular_percent_indicator.dart';
@@ -103,7 +104,7 @@ class _HomeState extends State<Home> {
     if (username != null) {
       try {
         final response = await http.get(
-          Uri.parse('https://penny-uts7.onrender.com/prof/$username'),
+          Uri.parse('${backendUrl()}/prof/$username'),
         );
 
         if (response.statusCode == 200) {

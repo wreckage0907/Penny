@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/consts/app_colours.dart';
 import 'package:mobile/Pages/expenseTracker/expense_service.dart';
+import 'package:mobile/consts/backend_url.dart';
 import 'package:mobile/consts/toast_messages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -110,8 +111,7 @@ class _ExpenseTrackerState extends State<ExpenseDashboard> {
 
   void _initializeExpenseService() {
     if (username != null) {
-      _expenseService =
-          ExpenseService(baseUrl: "http://10.0.2.2:8000", userId: username);
+      _expenseService = ExpenseService(baseUrl: backendUrl(), userId: username);
     }
   }
 
@@ -653,6 +653,95 @@ class _ExpenseTrackerState extends State<ExpenseDashboard> {
     );
   }
 
+  void _showAddIncomeDialog() {
+    String incomeAmountStr = '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setModalState) {
+          return AlertDialog(
+            backgroundColor: AppColours.backgroundColor,
+            title: Text(
+              "Add Income",
+              style: GoogleFonts.dmSans(
+                fontSize: 24,
+                fontWeight: FontWeight.w500,
+                color: AppColours.textColor,
+              ),
+            ),
+            content: TextField(
+              style: GoogleFonts.dmSans(
+                fontSize: 20,
+                fontWeight: FontWeight.w300,
+                color: AppColours.textColor,
+              ),
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Amount',
+                labelStyle: GoogleFonts.dmSans(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w300,
+                  color: AppColours.textColor,
+                ),
+              ),
+              onChanged: (value) {
+                incomeAmountStr = value;
+              },
+            ),
+            actions: [
+              TextButton(
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: AppColours.textColor,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text(
+                  'Add',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: AppColours.textColor,
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  double? parsedAmount = double.tryParse(incomeAmountStr);
+                  if (parsedAmount != null) {
+                    _expenseService!.addIncome(
+                      amount: parsedAmount,
+                      year: selectedYear,
+                      month: selectedMonth,
+                    );
+                    setState(() {
+                      incomeAmount = parsedAmount;
+                    });
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Invalid amount entered'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          );
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentYear = DateTime.now().year;
@@ -916,14 +1005,16 @@ class _ExpenseTrackerState extends State<ExpenseDashboard> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                "Income",
-                                style: GoogleFonts.dmSans(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w300,
-                                  color: AppColours.textColor,
-                                ),
-                              ),
+                              TextButton(
+                                  onPressed: _showAddIncomeDialog,
+                                  child: Text(
+                                    "Income",
+                                    style: GoogleFonts.dmSans(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w300,
+                                      color: AppColours.textColor,
+                                    ),
+                                  )),
                               Text(
                                 "\$${incomeAmount.toStringAsFixed(2)}",
                                 style: GoogleFonts.dmSans(
@@ -945,14 +1036,16 @@ class _ExpenseTrackerState extends State<ExpenseDashboard> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                "Expenses",
-                                style: GoogleFonts.dmSans(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w300,
-                                  color: AppColours.textColor,
-                                ),
-                              ),
+                              TextButton(
+                                  onPressed: null,
+                                  child: Text(
+                                    "Expenses",
+                                    style: GoogleFonts.dmSans(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w300,
+                                      color: AppColours.textColor,
+                                    ),
+                                  )),
                               Text(
                                 "\$${totalAmount.toStringAsFixed(2)}",
                                 style: GoogleFonts.dmSans(
