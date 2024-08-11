@@ -1,6 +1,8 @@
 
 ![alt text](Assets/image-2.png)
 <p>Penny is a cutting-edge personal finance app designed to empower users with financial knowledge and tools, all for free. Built using Flutter for a smooth cross-platform experience, Penny harnesses the power of Gemini AI to deliver personalized insights and assistance.</p>
+<h3><a>Feature demo of Penny just got released! you can view it on <img src="https://raw.githubusercontent.com/github/explore/d744245de144b89f3e3462949e08bfc91eda7fcf/topics/youtube/youtube.png" width=15> <a href="https://www.youtube.com/watch?v=-BfRU48kWQ0"> YouTube</a></a></h3>
+
 <h2>FEATURES</h2>
 
 ![image](https://github.com/user-attachments/assets/b967cb1b-2d2a-4716-845d-f97b859a2de8)
