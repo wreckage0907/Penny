@@ -36,6 +36,11 @@ local.properties
 .shots/
 .kotlin/
 *.apk
+.idea/
+*.iml
+captures/
+*.jks
+*.keystore
 
 # Session-handoff plans (local working memory, not repo history)
 plan_*

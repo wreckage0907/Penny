@@ -7,7 +7,7 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 
 | Feature | Flutter source (`mobile/lib/`) | Native status | Chunk / PR | Notes |
 |---|---|---|---|---|
-| Budget split + investment projection math | `Pages/expenseTracker/income_analysis.dart:120-155` | ported (tests green) | 001 | Quirks preserved: 7 rates / 4 used; iterative compounding; unguarded inputs |
+| Budget split + investment projection math | `Pages/expenseTracker/income_analysis.dart:120-155` | verified (e2e + visual) | 001 | Quirks preserved: 7 rates / 4 used (incl. duplicate 0.10 dead tail); iterative compounding (raw-bits locked); unguarded inputs (neg/NaN/Inf/±0.0/underflow tested); 21 JVM tests + 1 e2e |
 | Analysis screen (real data, charts) | `Pages/expenseTracker/income_analysis.dart` | not started | — | Needs expense/income API slice first; charts via Compose |
 | Expense/income API client + DTOs | `Pages/expenseTracker/expense_service.dart` (pure Dart, 164 lines) | not started | — | Best next slice; mirror backend quirks exactly |
 | Expense dashboard (CRUD, pie, month/year) | `Pages/expenseTracker/expense_dashboard.dart` | not started | — | Aggregation logic at :163-189 is pure; extract first |
@@ -28,6 +28,18 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 - No auth on any endpoint; `user_id` trusted from URL. `POST /set-custom-claims` is unauthenticated.
 - `google-generativeai` + gemini-1.5 models are retired; backend needs a model migration before chatbot/MCQ slices can work end-to-end.
 - Root `render.yaml` is misconfigured; `backend/render.yaml` is the real one.
+- **Int-income TypeError (slice 002 decision, preserve by default):** Dart assigns
+  JSON income (dynamic) to a `double` field; an integer payload (backend returns
+  int `0` for months with no income entry, `expenseTracker.py:229,236`) throws
+  TypeError, caught at `income_analysis.dart:110-117` → income 0.0 **and expenses
+  wiped** → "No data available" even when expenses exist. A Kotlin DTO coercing
+  `0 → 0.0` would visibly diverge (pies rendered). Decide explicitly in 002.
+- **Dart mutable state:** `savings`/`years`/`annualReturns` are instance fields;
+  a projection taken before income load is 6 × 0.0. Relevant to initial-frame UI.
+- **Money formatting divergence (deferred):** `Money.format` (Java `%.2f`,
+  Locale.US) matches Dart `toStringAsFixed(2)` for all realistic amounts and
+  exact binary ties, but diverges at |x| ≥ 1e21 (Dart → exponential). Unreachable
+  for incomes; revisit only if a slice renders such values.
 
 ## Chunk log
 
@@ -47,5 +59,23 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
   renders such values.
 - Parity source: `income_analysis.dart:120-155`, read verbatim; goldens
   hand-derived; float op order preserved (exact-equality test).
+- Adversarial review (subagent) + independent golden recomputation: port faithful;
+  suite strengthened to 21 JVM tests — raw-bits op-order lock at MF year 2
+  (11236.0 vs pow's 11236.000000000002; reviewer's suggested Stocks-year-2 point
+  was verified NON-discriminating and rejected), exact literals (16105.1 /
+  17623.416832 / 6666.666 do not round-trip), verbatim rate/type lists,
+  negative/NaN/Inf/±0.0/underflow, headless split→projection chain, `Money.format`
+  extracted to core with tests. testTags added to header texts.
+- Verified: `./gradlew test assembleDebug` green; e2e 1/1 on emulator penny
+  (API 36); install+launch+screenshot (`migration/shots/slice001.png`).
+- Infra audit (subagent) pre-first-CI: blocker = missing `pull-requests: read`
+  for dorny/paths-filter on PR events; warnings = invalid `build-root-directory`
+  input on setup-gradle@v5, paths-filter v3 (node20) → v4, unbounded emulator
+  boot waits in e2e.sh, arm64-only JAVA_HOME in env.sh, backend-check on 3.12
+  vs Dockerfile 3.10, wrong e2e artifact paths, no unit-job timeout. Wrapper jar
+  was stock 9.7.0 → regenerated to official 8.13 (sha 81a82aae…). `.gitignore`
+  gained `.idea/ *.iml captures/ *.jks *.keystore`. Loop fixes pending maintainer
+  OK (ask-first area).
 - Open decisions: none blocking. Chatbot key handling and backend model
-  migration flagged above for later slices.
+  migration flagged above for later slices. Slice 002 must decide the
+  int-income quirk (above) and needs INTERNET permission (ask-first).

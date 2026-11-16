@@ -77,6 +77,11 @@ behaviour + its tests, reviewable in minutes — not a whole feature area.
   with a standalone Dart SDK (`brew install dart-sdk`) — never by guessing.
 - Bug-fix tests must fail without the fix. Parity tests must encode the Dart
   behaviour even when it looks wrong; record suspected bugs in the ledger.
+- Goldens suggested by anyone (including reviewer subagents) are independently
+  recomputed before encoding — a reviewer's "discriminating point" for the
+  op-order lock turned out to have identical iterative/pow bits; the verified
+  one (MF 6% year 2) went in instead. Tolerances looser than the drift being
+  guarded (e.g. 1e-6 vs ~1e-12 pow difference) are not characterisation tests.
 
 ### 3. Port
 - Pure logic → `com.penny.app.core`, no Android imports.
