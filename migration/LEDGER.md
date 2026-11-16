@@ -90,6 +90,7 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
   failed on infra only: setup-gradle `dependency-graph: false` is not a valid
   enum (must be `disabled`) — ci-ok correctly blocked. Fixed in follow-up
   commit, which also bumps action majors (checkout v7, setup-java v6,
-  setup-python v7). PR #10 stays DRAFT until CI is green on the hardened
-  state; then mark ready for maintainer review. Slice 002 must decide the
-  int-income quirk (above) and needs INTERNET permission (ask-first).
+  setup-python v7). Run 43918765909 on the hardened conventional-history tip
+  a123fda: all five jobs green (cold API-36 e2e included); PR #10 marked ready
+  for maintainer review — merging is the maintainer's gate. Slice 002 must
+  decide the int-income quirk (above) and needs INTERNET permission (ask-first).
