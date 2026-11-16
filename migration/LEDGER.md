@@ -34,10 +34,17 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 ### 001 — Migration scaffolding + first parity slice (budget math)
 - Branch: `migration/kotlin` → PR to `main`.
 - Added: `android/` Gradle project (Compose, JDK 17, AGP 8.13.0), pure core
-  `BudgetSplit` + `InvestmentProjection`, 11 JVM characterisation tests,
-  1 instrumented e2e test, minimal Analysis screen, scripts (`run.sh`,
+  `BudgetSplit` + `InvestmentProjection` + `Money`, 14 JVM characterisation
+  tests, 1 instrumented e2e test, minimal Analysis screen, scripts (`run.sh`,
   `e2e.sh`), pre-commit hook, CI (`changes` → unit/e2e/backend → `ci-ok`),
   this playbook + ledger.
+- `Money.format` (contributed in parallel during session 1): pure formatting
+  core (`toStringAsFixed(2)` stand-in, Locale.US) replacing the screen-local
+  helper; 3 tests — slice goldens, exact-binary-tie rounding, negative zero.
+  **Deliberate divergence, recorded here:** Dart `toStringAsFixed(2)` switches
+  to exponential notation at |value| >= 1e21; Java `%f` prints full digits.
+  Unreachable for income/expense amounts — revisit only if a slice ever
+  renders such values.
 - Parity source: `income_analysis.dart:120-155`, read verbatim; goldens
   hand-derived; float op order preserved (exact-equality test).
 - Open decisions: none blocking. Chatbot key handling and backend model
