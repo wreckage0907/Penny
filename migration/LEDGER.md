@@ -78,6 +78,11 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
   OK (ask-first area).
 - Open decisions: none blocking. Chatbot key handling and backend model
   migration flagged above for later slices.
+- Coordination incident (2026-11-16): a second agent session wrote commits
+  4afe490/49e1833/c13bcb2 concurrently with the orchestrating session;
+  maintainer paused it. Its final commit converged with the maintainer's
+  decisions (action bumps kept, shots stay in git, ledger reconciled).
+  Lesson recorded in playbook: one writer per worktree.
 - Verification: local unit + e2e green at 14 tests; CI run 43916459458 all
   green on the first run (android-unit 2m47s, android-e2e 4m34s on a cold
   API-36 emulator, backend-check, ci-ok). Suite then strengthened to 21 JVM

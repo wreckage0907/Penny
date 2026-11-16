@@ -149,6 +149,12 @@ so a fresh session can start the next turn of the loop immediately.
 - Never silently "fix" Flutter behaviour during a port — parity first, fixes
   as explicit ledger entries.
 - Never commit build artifacts (`build/`, `*.apk`, `local.properties`).
+- Never run two writer sessions in the same worktree: parallel agents produce
+  conflicting commits and ledger claims contradicted by observation
+  (incident 2026-11-16). Pause the other session or use separate worktrees.
+- Verify CI action inputs against the action's schema or error output, not
+  reviewer prose: `dependency-graph: false` is invalid on setup-gradle@v5
+  (`disabled` is the off value) — it cost one red CI run.
 
 ## Ask the maintainer first
 
