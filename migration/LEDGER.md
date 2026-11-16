@@ -77,5 +77,14 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
   gained `.idea/ *.iml captures/ *.jks *.keystore`. Loop fixes pending maintainer
   OK (ask-first area).
 - Open decisions: none blocking. Chatbot key handling and backend model
-  migration flagged above for later slices. Slice 002 must decide the
+  migration flagged above for later slices.
+- Verification: local unit + e2e green at 14 tests; CI run 43916459458 all
+  green on the first run (android-unit 2m47s, android-e2e 4m34s on a cold
+  API-36 emulator, backend-check, ci-ok). Suite then strengthened to 21 JVM
+  tests by adversarial review. Run 43917491925 (hardening commit 6a222c4)
+  failed on infra only: setup-gradle `dependency-graph: false` is not a valid
+  enum (must be `disabled`) — ci-ok correctly blocked. Fixed in follow-up
+  commit, which also bumps action majors (checkout v7, setup-java v6,
+  setup-python v7). PR #10 stays DRAFT until CI is green on the hardened
+  state; then mark ready for maintainer review. Slice 002 must decide the
   int-income quirk (above) and needs INTERNET permission (ask-first).
