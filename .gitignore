@@ -28,3 +28,14 @@ doc/api/
 .DS_Store
 
 stocks.json
+
+# Native Android migration
+.gradle/
+local.properties
+.avd/
+.shots/
+.kotlin/
+*.apk
+
+# Session-handoff plans (local working memory, not repo history)
+plan_*
