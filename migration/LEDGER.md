@@ -11,9 +11,9 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 | Analysis screen (real data, charts) | `Pages/expenseTracker/income_analysis.dart` | not started | — | Needs expense/income API slice first; charts via Compose |
 | Expense/income API client + DTOs | `Pages/expenseTracker/expense_service.dart` (pure Dart, 164 lines) | merged | 002 / PR #11 (3d30b01) | Backend quirks mirrored exactly; 45 new JVM tests (URL/JSON/MockWebServer contract); decisions in quirks section |
 | Expense dashboard (CRUD, pie, month/year) | `Pages/expenseTracker/expense_dashboard.dart` | not started | — | Aggregation logic at :163-189 is pure; extract first |
-| Practice MCQ models + per-question reveal (NO scoring exists in Flutter) | `Pages/practice/mcqpage.dart:12-46,99-114,245-263` | verified (e2e; no UI in slice) | 003 / PR #12 | "Grading" = reveal-only; score/results would be NEW behaviour (separate ledger row if ever wanted). Backend ignores `num_question` (never worked: old param was plural) |
-| Course module list + sorting | `Pages/coursePage/course_page.dart` | not started | — | Numeric-prefix sort; capitalize extension |
-| Lesson markdown + TTS cleaner | `Pages/coursePage/lesson_page.dart:53-66` | not started | — | `cleanMarkdownText` is pure string logic |
+| Practice MCQ models + per-question reveal (NO scoring exists in Flutter) | `Pages/practice/mcqpage.dart:12-46,99-114,245-263` | merged | 003 / PR #12 (14dff35) | "Grading" = reveal-only; score/results would be NEW behaviour (separate ledger row if ever wanted). Backend ignores `num_question` (never worked: old param was plural) |
+| Course module list + sorting | `Pages/coursePage/course_page.dart` | logic verified (fetch + screen not started) | 004 | `CourseText`: filter-empty + numeric-prefix sort, `capitalize`, display names, lesson title/file name; Dart string semantics in `DartText`. Screen carry-forwards in 004 log |
+| Lesson markdown + TTS cleaner | `Pages/coursePage/lesson_page.dart:53-66` | verified (JVM + on-device; no UI in slice) | 004 | `LessonText.cleanMarkdownText`; 112 Dart-executed goldens; Dart `\s`/`.`/multiline-`^`/trim sets reproduced exactly |
 | Auth (login/signup/onboarding) | `Services/auth.dart`, `Pages/login/*`, `Pages/home/onboarding_page.dart` | not started | — | Firebase Auth; username→email lookup via `GET /onboarding/{username}` |
 | Home (greeting, news carousel, grid) | `Pages/home/home.dart` | not started | — | News is a static bundled JSON (`assets/finance.json`), not live |
 | Chatbot (Gemini) | `Pages/chatbot/chatbot_page.dart` | not started | — | Flutter calls Gemini directly with a bundled key — security decision needed before porting |
@@ -83,6 +83,33 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
   Locale.US) matches Dart `toStringAsFixed(2)` for all realistic amounts and
   exact binary ties, but diverges at |x| ≥ 1e21 (Dart → exponential). Unreachable
   for incomes; revisit only if a slice renders such values.
+
+- **004 accepted divergences (text utils, unreachable for maintainer-controlled
+  ASCII module slugs):** (1) case mapping — Dart VM tables are older Unicode:
+  749 code points (JDK 17; more on ART/ICU) where Dart leaves the char unchanged
+  but `Character.toUpperCase/LowerCase` map it (Georgian Mtavruli, Cyrillic
+  U+0524-052F, IPA letters…); never the reverse; ASCII/Latin-1 identical —
+  verified by exhaustive comparison over all code points. (2) sort tie order for
+  >33 modules — Dart `List.sort` is insertion sort (stable) up to 33 elements and
+  dual-pivot quicksort (unstable) beyond; Kotlin `sortedBy` is stable. Input order
+  is itself non-deterministic: backend `/subfolder` returns a Python `set` of
+  str (hash-randomised per process; no PYTHONHASHSEED set), so no reproducible
+  behaviour is lost.
+- **004 carry-forwards for the course/lesson screen slices:** `/subfolder`
+  order is random per backend process (set) and can include `""` (a blob named
+  exactly `content/` → parts[1] == "") — the filter matters; `List<String>.from` throws on
+  non-string titles → caught → EMPTY list, spinner off, no error UI;
+  `getModuleNames` throws RangeError for an empty `_` part (`1_a__b`, trailing
+  `_`) inside itemBuilder → Flutter error widget for that tile; skeleton shows 5
+  "Module Name" tiles while loading; learning_page has 8 hard-coded lesson nodes
+  regardless of content; `backgroundImages[moduleName]` only knows 3 display
+  names — any other module passes null into `DecorationImage(image:)` (dynamic
+  → TypeError at build; exact text unverified); lesson fetch failures (non-200,
+  null content) render the literal "Failed to load content" as markdown and TTS
+  reads it; `late String content` → tapping the speaker before load throws
+  LateInitializationError (swallowed); `FutureBuilder(future: fetchFile())` is
+  created in build, so every setState (incl. toggling TTS) RE-FETCHES the lesson
+  and flashes the loader; TTS is en-US, pitch 0.8, cleaned text only.
 
 ## Chunk log
 
@@ -190,3 +217,33 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
   longOrNull misclassified; now String.toLongOrNull). +8 regression guards.
 - Open: practice-screen decisions queued in carry-forwards (AppBar title,
   zero-question crash policy). Next: 004 text utils.
+
+### 004 — Course/lesson text utils (Dart string semantics)
+- Branch `migration/004-text-utils` → PR (draft until CI green).
+- Ported: `LessonText.cleanMarkdownText` (lesson_page.dart:53-66),
+  `CourseText` — `capitalize` (course_page.dart:11-15), `sortModules` +
+  `moduleSortKey` (:42-49), `moduleDisplayName` (:63-66), `lessonTitle` /
+  `lessonFileName` (learning_page.dart:29-30) — and `DartText`, the Dart
+  runtime string semantics they need.
+- Characterised by EXECUTING Dart 3.14, exhaustively where it matters: per-BMP
+  code unit tables for RegExp `\s`, `.`, multiline `^`, `trim`, `int.tryParse`
+  padding; all-code-point case-mapping comparison vs JDK 17. Golden tables were
+  EMITTED by Dart as Kotlin literals (no hand-typed goldens).
+- Naive Kotlin would have drifted in 7 ways, each now locked by a test that a
+  mutation run confirmed fails without the fix: Java `\s` is ASCII-only (Dart
+  includes NBSP/U+3000/BOM…); Dart multiline `^` fires between `\r` and `\n`
+  (`- a\r\n- b` → `a\rb`); Java `.` stops at U+0085, Dart's doesn't
+  (`(a\u0085b)` → ``); Dart trim strips U+0085/BOM but not U+001C-1F (Kotlin
+  is the reverse); `uppercase()` maps `ß`→`SS` and applies final sigma, Dart
+  doesn't; `int.tryParse` accepts `0x` hex (64-bit wrap: `0xFFFFFFFFFFFFFFFF` →
+  -1) and trims, while `toLongOrNull` accepts non-ASCII digits (`٣`). 12/12
+  mutations killed.
+- Tests: JVM +16 (DartTextTest 5, CourseTextTest 8, LessonTextTest 3 — 112
+  clean goldens, 38 capitalize, 15 display-name, 74 int.tryParse, 16 sort
+  tables). On-device +3 (`DartTextOnDeviceTest`): ART's `java.util.regex` is
+  ICU-backed, so the regex classes are re-proven exhaustively on the emulator.
+  e2e 4/4 locally (penny, API 36).
+- Decisions: accepted divergences recorded above (newer-Unicode case pairs;
+  >33-item tie order). Quirks preserved: `C# ` eaten by the heading regex,
+  `* ` bullets leave a space, every one-line `(…)` deleted lazily, empty `_`
+  part throws RangeError with Dart's text.
