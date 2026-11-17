@@ -53,7 +53,11 @@ class HomeE2eTest {
         compose.onNodeWithTag("home-tile-1").performScrollTo().performClick()
         compose.onNodeWithTag("tracker-tab-dashboard").assertIsDisplayed()
         compose.onNodeWithTag("tracker-back").performClick()
-        listOf(2 to "/stockprofile", 3 to "/practice").forEach { (i, route) ->
+        // 011: the Practice tile opens the real practice list.
+        compose.onNodeWithTag("home-tile-3").performScrollTo().performClick()
+        compose.onNodeWithTag("practice-page").assertIsDisplayed()
+        compose.onNodeWithTag("back").performClick()
+        listOf(2 to "/stockprofile").forEach { (i, route) ->
             compose.onNodeWithTag("home-tile-$i").performScrollTo().performClick()
             compose.onNodeWithTag("not-migrated-route").assertTextEquals("$route — not migrated yet")
             compose.onNodeWithTag("not-migrated-back").performClick()
