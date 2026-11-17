@@ -39,12 +39,17 @@ class AuthE2eTest {
 
     @Test
     fun wrongPasswordIsSilent() {
-        start()
+        val services = start()
         type("login-username", "demo")
         type("login-password", "nope")
         tap("login-submit")
         compose.waitForIdle()
-        compose.onNodeWithTag("login-page").assertIsDisplayed()
+        // Silent failure = no navigation, no session, no prefs (login.dart:185-203).
+        // (Asserting on-screen visibility raced the IME animation intermittently.)
+        check(!compose.onAllNodesWithTagExists("home-page"))
+        compose.onNodeWithTag("login-submit").assertExists()
+        check(services.auth.state.value == com.penny.app.core.AuthState.SignedOut)
+        check(kotlinx.coroutines.runBlocking { services.prefs.username() } == null)
     }
 
     @Test
