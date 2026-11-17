@@ -29,11 +29,11 @@ class AppShellE2eTest {
         compose.onNodeWithTag("login-submit").performScrollTo().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
 
-        // A still-unmigrated route renders the placeholder and comes back.
+        // 015: every Flutter route is migrated; a bottom-bar round trip.
         compose.onNodeWithTag("home-nav-chat").performClick()
-        compose.onNodeWithTag("not-migrated-route").assertTextEquals("/chatbot — not migrated yet")
-        compose.onNodeWithTag("not-migrated-back").performClick()
-        compose.onNodeWithTag("home-page").assertIsDisplayed()
+        compose.onNodeWithTag("chat-page").assertIsDisplayed()
+        compose.onNodeWithTag("chat-nav-home").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
 
         compose.onNodeWithTag("home-nav-profile").performClick()
         compose.onNodeWithTag("profile-sign-out").performClick()

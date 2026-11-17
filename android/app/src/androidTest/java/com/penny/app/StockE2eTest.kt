@@ -64,4 +64,22 @@ class StockE2eTest {
         compose.onNodeWithTag("stock-range-1W").performScrollTo().performClick()
         compose.onNodeWithTag("stock-chart").assertIsDisplayed()
     }
+
+    @Test
+    fun retappingTheSelectedRangeFetchesAgainLikeFlutter() {
+        val calls = java.util.concurrent.atomic.AtomicInteger()
+        val market = object : com.penny.app.core.StockMarket by com.penny.app.core.FakeStockMarket() {
+            override suspend fun live(ticker: String) = calls.incrementAndGet().let { com.penny.app.core.FakeStockMarket().live(ticker) }
+        }
+        val base = PennyServices.fakes(signedIn = true)
+        compose.setContent {
+            PennyApp(PennyServices(base.auth, base.users, base.prefs, base.profileImages, base.expenses, base.courses,
+                base.speech, base.mcq, base.pickImage, stocks = market))
+        }
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
+        compose.onNodeWithTag("home-tile-2").performScrollTo().performClick()
+        compose.waitUntil(5_000) { calls.get() == 1 }
+        compose.onNodeWithTag("stock-range-1D").performScrollTo().performClick() // already selected
+        compose.waitUntil(5_000) { calls.get() == 2 }
+    }
 }

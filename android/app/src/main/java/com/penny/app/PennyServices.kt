@@ -2,6 +2,8 @@ package com.penny.app
 
 import android.content.Context
 import com.penny.app.core.AuthService
+import com.penny.app.core.ChatModel
+import com.penny.app.core.FakeChatModel
 import com.penny.app.core.CourseContent
 import com.penny.app.core.FakeCourseContent
 import com.penny.app.core.FakeMcqBackend
@@ -41,6 +43,8 @@ class PennyServices(
     /** Gallery picker; null = the system photo picker. Returns an image URI or null if cancelled. */
     val pickImage: (suspend () -> String?)? = null,
     val stocks: StockMarket = FakeStockMarket(),
+    /** Gemini stand-in (Flutter bundles the API key — security decision pending). */
+    val chat: ChatModel = FakeChatModel(),
 ) {
     companion object {
         /** Demo world: account demo@penny.app / penny123, onboarded as "demo". */

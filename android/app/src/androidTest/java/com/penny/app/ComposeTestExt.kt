@@ -7,5 +7,5 @@ import androidx.compose.ui.test.onAllNodesWithText
 fun ComposeContentTestRule.onAllNodesWithTagExists(tag: String): Boolean =
     onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty()
 
-fun ComposeContentTestRule.onAllNodesWithTextExists(text: String): Boolean =
-    onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
+fun ComposeContentTestRule.onAllNodesWithTextExists(text: String, substring: Boolean = false): Boolean =
+    onAllNodesWithText(text, substring = substring, useUnmergedTree = substring).fetchSemanticsNodes().isNotEmpty()
