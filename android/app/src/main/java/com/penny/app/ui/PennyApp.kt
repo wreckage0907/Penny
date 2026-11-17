@@ -87,33 +87,6 @@ fun PennyApp(services: PennyServices, nav: NavHostController = rememberNavContro
                 composable(AppRoutes.navRoute(AppRoutes.EDIT_PROFILE)) {
                     EditProfileScreen(services, onBack = { nav.popBackStack() })
                 }
-                composable(AppRoutes.navRoute(AppRoutes.COURSE_PAGE)) {
-                    CourseListScreen(services, onBack = { nav.popBackStack() }) { folder ->
-                        nav.navigate("learning/${Uri.encode(folder)}")
-                    }
-                }
-                // MaterialPageRoute pushes in Flutter (no route names): internal routes.
-                composable("learning/{subfolder}") { entry ->
-                    val folder = entry.arguments?.getString("subfolder").orEmpty()
-                    LearningScreen(folder, onBack = { nav.popBackStack() }) { index ->
-                        nav.navigate("lesson/${Uri.encode(folder)}/$index")
-                    }
-                }
-                composable("lesson/{subfolder}/{index}") { entry ->
-                    LessonScreen(
-                        services,
-                        entry.arguments?.getString("subfolder").orEmpty(),
-                        entry.arguments?.getString("index")?.toIntOrNull() ?: 0,
-                        onBack = { nav.popBackStack() },
-                    )
-                }
-                composable(AppRoutes.navRoute(AppRoutes.PRACTICE)) {
-                    PracticeListScreen(onBack = { nav.popBackStack() }) { index -> nav.navigate("mcq/$index") }
-                }
-                composable("mcq/{index}") { entry ->
-                    McqScreen(services, entry.arguments?.getString("index")?.toIntOrNull() ?: 0, onBack = { nav.popBackStack() })
-                }
-                composable(AppRoutes.navRoute(AppRoutes.BUDGET)) { ExpenseTrackerScreen(services, onBack = { nav.popBackStack() }) }
             }
           }
         }

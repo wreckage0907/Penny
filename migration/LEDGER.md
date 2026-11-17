@@ -614,6 +614,10 @@ implementation.
 - With /chatbot done every named Flutter route is migrated: the
   `NotMigratedScreen` fallback was removed; shell/home e2e now assert real
   pages.
+- OC review: six routes (courses, learning, lesson, practice, mcq, budget)
+  were registered TWICE in PennyApp's NavHost — an artifact of earlier text
+  splices (harmless: identical blocks, later wins); removed (15 unique
+  destinations).
 - Fix found by visual review: the window PANNED under the keyboard (no soft
   input mode declared) — MainActivity now uses `adjustResize`; app bar and
   bottom bar stay visible while typing (affects every text-input screen).
