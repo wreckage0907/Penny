@@ -243,6 +243,16 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
   tables). On-device +3 (`DartTextOnDeviceTest`): ART's `java.util.regex` is
   ICU-backed, so the regex classes are re-proven exhaustively on the emulator.
   e2e 4/4 locally (penny, API 36).
+- Adversarial review (subagent, differential, verified by execution against
+  the REAL compiled classes): 0 mismatches over 700k random/token markdown
+  inputs and 300k+ int.tryParse/sort-key inputs (boundaries 2^63/2^64, 1000
+  leading zeros); all 52k capitalize mismatches trace to the 749 documented
+  code points (scope confirmed exact, never the reverse, no length changes);
+  ≤33 stable / 34 unstable re-confirmed over 20k trials. Folded in: surrogate-
+  in-parens goldens on ART (lone surrogates under ICU), and the golden helper
+  now requires the Dart RangeError stand-in for "Dart threw" cases (any
+  exception used to count). Noted, not changed: lessonTitle/FileName take Int
+  (Dart int is 64-bit) — index is one of 8 hard-coded nodes, unreachable.
 - Decisions: accepted divergences recorded above (newer-Unicode case pairs;
   >33-item tie order). Quirks preserved: `C# ` eaten by the heading regex,
   `* ` bullets leave a space, every one-line `(…)` deleted lazily, empty `_`

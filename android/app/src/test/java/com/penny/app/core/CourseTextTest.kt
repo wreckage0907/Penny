@@ -110,7 +110,12 @@ class CourseTextTest {
 
     private fun check(goldens: List<Golden>, f: (String) -> String) {
         val failures = goldens.mapNotNull { g ->
-            val actual = runCatching { f(g.input) }.getOrNull()
+            // `null` golden = Dart threw RangeError: only our RangeError stand-in counts.
+            val actual = try {
+                f(g.input)
+            } catch (e: IndexOutOfBoundsException) {
+                if (e.message == DartText.EMPTY_INDEX_RANGE_ERROR) null else "<wrong error: ${e.message}>"
+            }
             if (actual == g.expected) null else "${g.label}: expected <${g.expected}> got <$actual>"
         }
         assertEquals(failures.joinToString("\n"), 0, failures.size)

@@ -34,6 +34,11 @@ class DartTextOnDeviceTest {
         Golden("U+001C is not whitespace (Kotlin trim would strip)", "\u001Ctext\u001C", "\u001Ctext\u001C"),
         Golden("ideographic space after star", "*\u3000x", "x"),
         Golden("nested CRLF list", "- a\r\n  - b\r\n", "a\rb"),
+        // Surrogates inside (…): ICU matches by code point; Dart-executed.
+        Golden("emoji in parens", "a (\uD83D\uDE00) b", "a  b"),
+        Golden("lone high surrogate in parens", "(\uD83D)", ""),
+        Golden("lone low surrogate in parens", "x (\uDE00 y) z", "x  z"),
+        Golden("emoji heading, paren cut by newline", "## \uD83D\uDE00 (\uD83D\n)", "\uD83D\uDE00 (\uD83D\n)"),
     )
 
     @Test
