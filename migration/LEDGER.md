@@ -11,7 +11,7 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 | Analysis screen (real data, charts) | `Pages/expenseTracker/income_analysis.dart` | not started | — | Needs expense/income API slice first; charts via Compose |
 | Expense/income API client + DTOs | `Pages/expenseTracker/expense_service.dart` (pure Dart, 164 lines) | merged | 002 / PR #11 (3d30b01) | Backend quirks mirrored exactly; 45 new JVM tests (URL/JSON/MockWebServer contract); decisions in quirks section |
 | Expense dashboard (CRUD, pie, month/year) | `Pages/expenseTracker/expense_dashboard.dart` | not started | — | Aggregation logic at :163-189 is pure; extract first |
-| Practice MCQ models + per-question reveal (NO scoring exists in Flutter) | `Pages/practice/mcqpage.dart:12-46,99-114,245-263` | in progress | 003 | "Grading" = reveal-only; score/results would be NEW behaviour (separate ledger row if ever wanted). Backend ignores `num_question` (never worked: old param was plural) |
+| Practice MCQ models + per-question reveal (NO scoring exists in Flutter) | `Pages/practice/mcqpage.dart:12-46,99-114,245-263` | verified (e2e; no UI in slice) | 003 / PR #12 | "Grading" = reveal-only; score/results would be NEW behaviour (separate ledger row if ever wanted). Backend ignores `num_question` (never worked: old param was plural) |
 | Course module list + sorting | `Pages/coursePage/course_page.dart` | not started | — | Numeric-prefix sort; capitalize extension |
 | Lesson markdown + TTS cleaner | `Pages/coursePage/lesson_page.dart:53-66` | not started | — | `cleanMarkdownText` is pure string logic |
 | Auth (login/signup/onboarding) | `Services/auth.dart`, `Pages/login/*`, `Pages/home/onboarding_page.dart` | not started | — | Firebase Auth; username→email lookup via `GET /onboarding/{username}` |
@@ -164,7 +164,8 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 - Open: none blocking. Next: 003 MCQ models + grading.
 
 ### 003 — MCQ models + per-question reveal + fetch
-- Branch `migration/003-mcq-grading` → PR (draft until CI green).
+- Branch `migration/003-mcq-grading` → PR #12. CI run 44091674562 green on
+  3969dd8; PR #12 ready for maintainer review.
 - Premise corrected: Flutter has NO scoring/results/threshold anywhere in the
   file's history — "grading" is the reveal colouring table only. Ported scope
   (a): models + verdict + progress/labels + transitions + slug table + fetch.
