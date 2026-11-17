@@ -9,9 +9,9 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 |---|---|---|---|---|
 | Budget split + investment projection math | `Pages/expenseTracker/income_analysis.dart:120-155` | merged | 001 / PR #10 (c758ebf) | Quirks preserved: 7 rates / 4 used (incl. duplicate 0.10 dead tail); iterative compounding (raw-bits locked); unguarded inputs (neg/NaN/Inf/±0.0/underflow tested); 21 JVM tests + 1 e2e |
 | Analysis screen (real data, charts) | `Pages/expenseTracker/income_analysis.dart` | not started | — | Needs expense/income API slice first; charts via Compose |
-| Expense/income API client + DTOs | `Pages/expenseTracker/expense_service.dart` (pure Dart, 164 lines) | verified (e2e; no UI in slice) | 002 / PR #11 | Backend quirks mirrored exactly; 45 new JVM tests (URL/JSON/MockWebServer contract); decisions in quirks section |
+| Expense/income API client + DTOs | `Pages/expenseTracker/expense_service.dart` (pure Dart, 164 lines) | merged | 002 / PR #11 (3d30b01) | Backend quirks mirrored exactly; 45 new JVM tests (URL/JSON/MockWebServer contract); decisions in quirks section |
 | Expense dashboard (CRUD, pie, month/year) | `Pages/expenseTracker/expense_dashboard.dart` | not started | — | Aggregation logic at :163-189 is pure; extract first |
-| Practice MCQ models + grading | `Pages/practice/mcqpage.dart:12-46,99-114,245-263` | not started | — | Backend ignores `num_question`, always returns 10 |
+| Practice MCQ models + per-question reveal (NO scoring exists in Flutter) | `Pages/practice/mcqpage.dart:12-46,99-114,245-263` | in progress | 003 | "Grading" = reveal-only; score/results would be NEW behaviour (separate ledger row if ever wanted). Backend ignores `num_question` (never worked: old param was plural) |
 | Course module list + sorting | `Pages/coursePage/course_page.dart` | not started | — | Numeric-prefix sort; capitalize extension |
 | Lesson markdown + TTS cleaner | `Pages/coursePage/lesson_page.dart:53-66` | not started | — | `cleanMarkdownText` is pure string logic |
 | Auth (login/signup/onboarding) | `Services/auth.dart`, `Pages/login/*`, `Pages/home/onboarding_page.dart` | not started | — | Firebase Auth; username→email lookup via `GET /onboarding/{username}` |
@@ -24,7 +24,7 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 
 - `PUT /income/{user}/{year}/{month}` takes `amount` as a **query param**; the Flutter app sends JSON (→ 422). Flutter never uses it; `POST /income` **adds to** existing income. **Verified in-process (002):** PUT also ADDS (never sets) and 400s ("404: Finance document not found.") when the doc is absent; all handler 404s are re-raised as **400** `{"detail":"404: …"}` by blanket excepts; `?year=0`/`?month=` treated as absent (truthiness); month-without-year ignored on both GETs; DELETE by name removes ALL duplicates and returns a **lying 200** for unknown names, cascading empty category→month→year keys; POST into a month lacking `categories` leaks KeyError as 400 `{"detail":"'categories'"}`; unfiltered GET /income breaks (400) if `finances` holds livestock's `"user"` sibling; responses compact UTF-8 JSON, no charset; key order = Firestore order (do not sort).
 - `/stocks/buy` and `/stocks/sell` raise KeyError (`finances['user']` doesn't exist). Flutter trades locally only.
-- `/generate_questions` ignores `num_question`, always 10.
+- `/generate_questions` ignores `num_question`, always 10. **Verified (003):** param was removed in 8a4a27f and even before that the signature was plural `num_questions`, so the client's singular param NEVER worked; "10" is prompt intent, not enforced — `[]` → 200 with zero questions; option count and `ans` format unvalidated (lowercase/full-text `ans` → no option ever green); invalid chapter → **400** `{"detail":"Invalid chapter"}` (not 422); any parse/generation failure → **500** `{"detail":"Failed to generate questions"}` (narrow fence stripping: bare ``` or CRLF or preamble → 500); top-level key is the chapter DISPLAY name (client ignores it, takes values.first); keys `question_1..N` 1-based unpadded; **import-time `generate_content("Test")` re-raises → retired model/key kills the WHOLE backend boot**, not just MCQ.
 - No auth on any endpoint; `user_id` trusted from URL. `POST /set-custom-claims` is unauthenticated.
 - `google-generativeai` + gemini-1.5 models are retired; backend needs a model migration before chatbot/MCQ slices can work end-to-end.
 - Root `render.yaml` is misconfigured; `backend/render.yaml` is the real one.
@@ -63,6 +63,20 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
   value, Pydantic identical); kotlinx lexer accepts NaN/Infinity literals where
   Dart jsonDecode throws (backend 500s on non-finite before serialising);
   DELETE sends Content-Length: 0 (Dart none) — cosmetic.
+- **003 carry-forwards for the practice screen slice:** AppBar title is
+  hard-coded "Chapter 1" for every chapter (mcqpage.dart:155) — parity default
+  reproduce, fix only as explicit decision; zero-question 200 payload crashes
+  Flutter at `values.elementAt(0)` (RangeError during build) — screen slice
+  must decide crash-equivalent error state vs "no questions" (maintainer call);
+  option strings ALREADY carry "A) " prefixes from the backend — never
+  double-prefix in Compose; out-of-range chapter index → null slug → Dart
+  TypeError in initState (core returns null, screen reproduces failure);
+  same-frame double tap last-wins (no confirm step); error screen has no retry;
+  transport-error inner text diverges (Dart ClientException vs IOException),
+  wrap structure preserved; malformed-JSON 200 inner text diverges likewise
+  (Dart FormatException vs kotlinx JsonDecodingException), single wrap kept.
+  Practice slice must encode Dart 3.14 RangeError text for the zero-question
+  crash: "RangeError (index): Index out of range: index should be less than N: N".
 - **Dart mutable state:** `savings`/`years`/`annualReturns` are instance fields;
   a projection taken before income load is 6 × 0.0. Relevant to initial-frame UI.
 - **Money formatting divergence (deferred):** `Money.format` (Java `%.2f`,
@@ -148,3 +162,30 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 - Decisions: see quirks section (INTERNET approved; int-income PRESERVE;
   UTF-8 FIX; OkHttp timeouts kept; retries off = parity).
 - Open: none blocking. Next: 003 MCQ models + grading.
+
+### 003 — MCQ models + per-question reveal + fetch
+- Branch `migration/003-mcq-grading` → PR (draft until CI green).
+- Premise corrected: Flutter has NO scoring/results/threshold anywhere in the
+  file's history — "grading" is the reveal colouring table only. Ported scope
+  (a): models + verdict + progress/labels + transitions + slug table + fetch.
+  A score feature would be NEW behaviour (own ledger row if ever requested).
+- Ported: `McqModels` (decode-only, Dart cast-error texts reproduced verbatim —
+  executed on Dart 3.14; first-value chapter, insertion order, duplicate-key
+  last-wins), `McqState` (one-shot select, next no-op at last, letters
+  charCode 65+i unbounded, progress double incl Infinity@0, labels),
+  `McqChapters` (slug table, null out of range), `McqApiException` + dartRender
+  (doubled "Exception: " wrap), `McqService` (GET num_question=5, exactly-200,
+  non-object → Invalid response format, catch-all rewrap, retries off).
+- Tests: 108 JVM total (66 prior + 18 models + 11 state + 13 contract);
+  e2e 1/1 unchanged (no UI in slice).
+  Backend fixtures verified in-process by subagent (real questionGen router,
+  stubbed genai): 400 invalid chapter, 500 generic, empty-200, lowercase ans,
+  raw UTF-8, fence-parse 500 matrix.
+- Decisions: insertion order preserved (NO numeric sort — reviewer suggestion
+  rejected as divergence); ans byte-exact (no normalisation); decode-only.
+- Adversarial review: two real low-severity drifts in dartKind, both verified
+  in Dart then fixed — JsonObject as cast SOURCE prints '_Map<String, dynamic>'
+  (underscore), and exponent-form integers (1e2) are double in Dart (kotlinx
+  longOrNull misclassified; now String.toLongOrNull). +8 regression guards.
+- Open: practice-screen decisions queued in carry-forwards (AppBar title,
+  zero-question crash policy). Next: 004 text utils.
