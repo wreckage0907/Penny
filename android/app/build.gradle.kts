@@ -46,6 +46,8 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended") // 007: Flutter icon set stand-ins
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.activity:activity-compose:1.9.3")
+    // Slice 008: network images (news carousel, profile picture).
+    implementation("io.coil-kt:coil-compose:2.7.0")
     // Slice 006: app shell navigation (Flutter named routes).
     implementation("androidx.navigation:navigation-compose:2.8.5")
 

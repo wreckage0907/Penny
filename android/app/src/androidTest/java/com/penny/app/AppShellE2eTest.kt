@@ -27,20 +27,22 @@ class AppShellE2eTest {
         compose.onNodeWithTag("login-username").performScrollTo().performTextInput("demo")
         compose.onNodeWithTag("login-password").performScrollTo().performTextInput("penny123")
         compose.onNodeWithTag("login-submit").performScrollTo().performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("shell-home") }
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
 
-        compose.onNodeWithTag("shell-route-/coursepage").performScrollTo().performClick()
+        // 008 replaced the temporary shell home with the real Home grid.
+        compose.onNodeWithTag("home-tile-0").performScrollTo().performClick()
         compose.onNodeWithTag("not-migrated-route").assertTextEquals("/coursepage — not migrated yet")
         compose.onNodeWithTag("not-migrated-back").performClick()
-        compose.onNodeWithTag("shell-home").assertIsDisplayed()
+        compose.onNodeWithTag("home-page").assertIsDisplayed()
 
-        compose.onNodeWithTag("shell-sign-out").performScrollTo().performClick()
-        compose.onNodeWithTag("login-page").assertIsDisplayed()
+        compose.onNodeWithTag("home-nav-profile").performClick()
+        compose.onNodeWithTag("profile-sign-out").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("login-page") }
     }
 
     @Test
     fun seededSignedInUserSkipsLogin() {
         compose.setContent { PennyApp(PennyServices.fakes(signedIn = true)) }
-        compose.onNodeWithTag("shell-home").assertIsDisplayed()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
     }
 }

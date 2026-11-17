@@ -2,8 +2,10 @@ package com.penny.app
 
 import com.penny.app.core.AuthService
 import com.penny.app.core.FakeAuthService
+import com.penny.app.core.FakeProfileImages
 import com.penny.app.core.FakeUserDirectory
 import com.penny.app.core.InMemoryUserPrefs
+import com.penny.app.core.ProfileImages
 import com.penny.app.core.UserDirectory
 import com.penny.app.core.UserPrefs
 import kotlinx.coroutines.runBlocking
@@ -17,6 +19,7 @@ class PennyServices(
     val auth: AuthService,
     val users: UserDirectory,
     val prefs: UserPrefs = InMemoryUserPrefs(),
+    val profileImages: ProfileImages = FakeProfileImages(),
 ) {
     companion object {
         /** Demo world: account demo@penny.app / penny123, onboarded as "demo". */
