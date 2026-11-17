@@ -7,9 +7,9 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 
 | Feature | Flutter source (`mobile/lib/`) | Native status | Chunk / PR | Notes |
 |---|---|---|---|---|
-| Budget split + investment projection math | `Pages/expenseTracker/income_analysis.dart:120-155` | verified (e2e + visual) | 001 | Quirks preserved: 7 rates / 4 used (incl. duplicate 0.10 dead tail); iterative compounding (raw-bits locked); unguarded inputs (neg/NaN/Inf/±0.0/underflow tested); 21 JVM tests + 1 e2e |
+| Budget split + investment projection math | `Pages/expenseTracker/income_analysis.dart:120-155` | merged | 001 / PR #10 (c758ebf) | Quirks preserved: 7 rates / 4 used (incl. duplicate 0.10 dead tail); iterative compounding (raw-bits locked); unguarded inputs (neg/NaN/Inf/±0.0/underflow tested); 21 JVM tests + 1 e2e |
 | Analysis screen (real data, charts) | `Pages/expenseTracker/income_analysis.dart` | not started | — | Needs expense/income API slice first; charts via Compose |
-| Expense/income API client + DTOs | `Pages/expenseTracker/expense_service.dart` (pure Dart, 164 lines) | not started | — | Best next slice; mirror backend quirks exactly |
+| Expense/income API client + DTOs | `Pages/expenseTracker/expense_service.dart` (pure Dart, 164 lines) | in progress | 002 | Best next slice; mirror backend quirks exactly |
 | Expense dashboard (CRUD, pie, month/year) | `Pages/expenseTracker/expense_dashboard.dart` | not started | — | Aggregation logic at :163-189 is pure; extract first |
 | Practice MCQ models + grading | `Pages/practice/mcqpage.dart:12-46,99-114,245-263` | not started | — | Backend ignores `num_question`, always returns 10 |
 | Course module list + sorting | `Pages/coursePage/course_page.dart` | not started | — | Numeric-prefix sort; capitalize extension |
@@ -28,12 +28,20 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 - No auth on any endpoint; `user_id` trusted from URL. `POST /set-custom-claims` is unauthenticated.
 - `google-generativeai` + gemini-1.5 models are retired; backend needs a model migration before chatbot/MCQ slices can work end-to-end.
 - Root `render.yaml` is misconfigured; `backend/render.yaml` is the real one.
-- **Int-income TypeError (slice 002 decision, preserve by default):** Dart assigns
+- **Int-income TypeError (DECIDED 2026-11-17: PRESERVE):** Dart assigns
   JSON income (dynamic) to a `double` field; an integer payload (backend returns
   int `0` for months with no income entry, `expenseTracker.py:229,236`) throws
   TypeError, caught at `income_analysis.dart:110-117` → income 0.0 **and expenses
   wiped** → "No data available" even when expenses exist. A Kotlin DTO coercing
-  `0 → 0.0` would visibly diverge (pies rendered). Decide explicitly in 002.
+  `0 → 0.0` would visibly diverge (pies rendered). Maintainer chose PRESERVE:
+  002's DTO keeps income as raw JSON (no coercion); an int income reproduces
+  the TypeError→catch path (income 0, expenses wiped) in the analysis slice.
+  A fix remains possible as its own explicit chunk.
+- **002 decisions (maintainer, 2026-11-17):** INTERNET manifest permission
+  approved; int-income quirk preserved (above). HTTP/JSON stack chosen by
+  orchestrator: OkHttp + kotlinx.serialization, MockWebServer for JVM
+  contract tests (encodes backend quirks as canned responses without needing
+  Firebase creds).
 - **Dart mutable state:** `savings`/`years`/`annualReturns` are instance fields;
   a projection taken before income load is 6 × 0.0. Relevant to initial-frame UI.
 - **Money formatting divergence (deferred):** `Money.format` (Java `%.2f`,
