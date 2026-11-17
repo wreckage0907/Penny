@@ -10,7 +10,7 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 | Budget split + investment projection math | `Pages/expenseTracker/income_analysis.dart:120-155` | merged | 001 / PR #10 (c758ebf) | Quirks preserved: 7 rates / 4 used (incl. duplicate 0.10 dead tail); iterative compounding (raw-bits locked); unguarded inputs (neg/NaN/Inf/±0.0/underflow tested); 21 JVM tests + 1 e2e |
 | Analysis screen (real data, charts) | `Pages/expenseTracker/income_analysis.dart` | not started | — | Needs expense/income API slice first; charts via Compose |
 | Expense/income API client + DTOs | `Pages/expenseTracker/expense_service.dart` (pure Dart, 164 lines) | merged | 002 / PR #11 (3d30b01) | Backend quirks mirrored exactly; 45 new JVM tests (URL/JSON/MockWebServer contract); decisions in quirks section |
-| Expense dashboard (CRUD, pie, month/year) | `Pages/expenseTracker/expense_dashboard.dart` | logic verified (screen + CRUD not started) | 005 | `ExpenseAggregation` (categories, subtotal-then-accumulate total, partial-total-on-throw, income int quirk, bar flex) + `ExpenseDashboardText`; carry-forwards in 005 log |
+| Expense dashboard (CRUD, pie, month/year) | `Pages/expenseTracker/expense_dashboard.dart` | verified on FAKES (e2e + visual) | 005 + 009 | `ExpenseAggregation` (categories, subtotal-then-accumulate total, partial-total-on-throw, income int quirk, bar flex) + `ExpenseDashboardText`; carry-forwards in 005 log |
 | Practice MCQ models + per-question reveal (NO scoring exists in Flutter) | `Pages/practice/mcqpage.dart:12-46,99-114,245-263` | merged | 003 / PR #12 (14dff35) | "Grading" = reveal-only; score/results would be NEW behaviour (separate ledger row if ever wanted). Backend ignores `num_question` (never worked: old param was plural) |
 | Course module list + sorting | `Pages/coursePage/course_page.dart` | logic merged (fetch + screen not started) | 004 / PR #13 (34d8503) | `CourseText`: filter-empty + numeric-prefix sort, `capitalize`, display names, lesson title/file name; Dart string semantics in `DartText`. Screen carry-forwards in 004 log |
 | Lesson markdown + TTS cleaner | `Pages/coursePage/lesson_page.dart:53-66` | merged | 004 / PR #13 (34d8503) | `LessonText.cleanMarkdownText`; 112 Dart-executed goldens; Dart `\s`/`.`/multiline-`^`/trim sets reproduced exactly |
@@ -395,3 +395,42 @@ implementation.
   Screenshot `migration/shots/slice008-home.png`.
 - Tests: JVM 160 (+HomeLogicTest 7, AuthFlowsTest +1); e2e 18/18
   (+HomeE2eTest 4; shell/auth e2e now use the real Home + profile sign-out).
+
+### 009 — Expense tracker + dashboard screen on a fake backend
+- Branch `migration/009-expense-tracker` → PR. OC review + ci-ok → merge.
+- Seam: `ExpenseApi` extracted from the 002 `ExpenseService` (unchanged
+  HTTP impl); `FakeExpenseBackend` mimics backend/routers/expenseTracker.py
+  per user: amounts stored as floats, POST/PUT income ADD, missing filtered
+  month → int 0 (int-income trigger, now exercised end-to-end), DELETE
+  removes every same-name expense + cascades, UPDATE name+amount first hit
+  (may move category), 404s → 400 {"detail":"404: …"} wrapped as
+  "Failed to <action>: <body>", Python-truthiness filters. Demo user seeded
+  for the current and previous month (`FakeExpenseRegistry.demo`).
+- Screen (`ExpenseTrackerScreen`): tracker app bar + Dashboard/Analysis tabs
+  (Analysis = placeholder until its slice); month/year pickers (±5 years);
+  ring pie (centerSpaceRadius 70, radius 10, sectionsSpace 3, palette from
+  005), Total, legend; income/expense card with flex bars (flex ≤ 0 → no bar,
+  NaN/Inf → error stand-in); category cards → bottom sheet with edit/delete;
+  add-expense and add-income dialogs; green/red SnackBars.
+- Flows (`DashboardFlows`), Dart quirks kept: username = claim else prefs
+  (no username → "Null check operator used on a null value" inside the try);
+  "Please fill all fields"; `double.parse` outside the try → unparseable
+  amount is SILENT (dialog stays); NaN/Infinity parse but fail jsonEncode
+  ("Converting object to an encodable object failed: NaN"); doubled
+  "Exception: Failed to …" SnackBars; edit keeps last valid amount, prefills
+  Dart `toString` ("5.0"), int old amount → "type 'int' is not a subtype of
+  type 'double'"; income tryParse → "Invalid amount entered", call NOT
+  awaited, display = ENTERED amount while the backend adds; the sheet keeps
+  its own list (edits mutate the tapped entry, deletes drop same name+amount).
+- New Dart semantics in `DartText` (Dart-emitted goldens): `doubleTryParse`
+  (46 cases) and `doubleToString` (34 cases); `Money` ≥1e21 now delegates to
+  the shared shortest-digits engine (5,965 goldens still green).
+- Divergences: delete-success toast rendered as a green SnackBar; Flutter's
+  persistent bottom sheet → Material3 modal sheet; Flutter's NaN-income build
+  error replaces the whole dashboard, here only the bar row shows the error.
+- Tests: JVM 177 (+FakeExpenseBackendTest 9, DashboardFlowsTest 8,
+  DartTextTest +2); e2e 24/24 (+ExpenseTrackerE2eTest 6: totals/legend/
+  categories, month switch + int-0 income, add validation/silent/success,
+  sheet edit + delete, income garbage + entered-not-sum, analysis tab).
+  Screenshot `migration/shots/slice009-dashboard.png`.
+- 008 review note folded in: unused `username` state removed from Home.

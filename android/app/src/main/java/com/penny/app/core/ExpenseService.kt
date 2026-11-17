@@ -40,10 +40,10 @@ class ExpenseService(
     private val client: OkHttpClient = OkHttpClient.Builder()
         .retryOnConnectionFailure(false)
         .build(),
-) {
+) : ExpenseApi {
     private val json = Json
 
-    suspend fun addExpense(expense: Expense) {
+    override suspend fun addExpense(expense: Expense) {
         write(
             "POST",
             ExpenseUrls.addExpense(baseUrl, userId),
@@ -52,7 +52,7 @@ class ExpenseService(
         )
     }
 
-    suspend fun addIncome(amount: Double, year: Int, month: String) {
+    override suspend fun addIncome(amount: Double, year: Int, month: String) {
         write(
             "POST",
             ExpenseUrls.addIncome(baseUrl, userId),
@@ -61,7 +61,7 @@ class ExpenseService(
         )
     }
 
-    suspend fun updateIncome(year: Int, month: String, amount: Double) {
+    override suspend fun updateIncome(year: Int, month: String, amount: Double) {
         write(
             "PUT",
             ExpenseUrls.updateIncome(baseUrl, userId, year, month),
@@ -70,10 +70,10 @@ class ExpenseService(
         )
     }
 
-    suspend fun getIncome(year: Int? = null, month: String? = null): JsonObject =
+    override suspend fun getIncome(year: Int?, month: String?): JsonObject =
         read(ExpenseUrls.income(baseUrl, userId, year, month), "get income")
 
-    suspend fun updateExpense(
+    override suspend fun updateExpense(
         oldName: String,
         oldAmount: Double,
         oldCategory: String,
@@ -94,10 +94,10 @@ class ExpenseService(
         )
     }
 
-    suspend fun getExpenses(year: Int? = null, month: String? = null): JsonObject =
+    override suspend fun getExpenses(year: Int?, month: String?): JsonObject =
         read(ExpenseUrls.expenses(baseUrl, userId, year, month), "get expenses")
 
-    suspend fun deleteExpense(year: Int, month: String, category: String, name: String) {
+    override suspend fun deleteExpense(year: Int, month: String, category: String, name: String) {
         val request = Request.Builder()
             .url(ExpenseUrls.deleteExpense(baseUrl, userId, year, month, category, name))
             .delete()

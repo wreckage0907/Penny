@@ -1,7 +1,6 @@
 package com.penny.app.core
 
 import java.math.BigDecimal
-import java.math.MathContext
 import java.math.RoundingMode
 
 /**
@@ -32,33 +31,6 @@ object Money {
         return if (negative && !digits.startsWith("-")) "-$digits" else digits
     }
 
-    /**
-     * Dart/JS `toStringAsExponential()` with no fraction digits: the shortest
-     * decimal that round-trips to [value]; among equally short candidates the
-     * closest to the exact value, ties to an even last digit (ECMAScript rule;
-     * no double in the 5,965-golden set reaches an exact tie). Both the floor
-     * and ceiling candidates are checked at each precision because the
-     * round-trip interval is asymmetric at powers of two.
-     */
-    internal fun exponential(value: Double): String {
-        val exact = BigDecimal(Math.abs(value))
-        var best: BigDecimal? = null
-        for (precision in 1..17) {
-            val candidates = listOf(RoundingMode.FLOOR, RoundingMode.CEILING)
-                .map { exact.round(MathContext(precision, it)) }
-                .distinct()
-                .filter { it.toDouble() == Math.abs(value) }
-            if (candidates.isEmpty()) continue
-            best = candidates.minWithOrNull(
-                compareBy<BigDecimal> { (it - exact).abs() }
-                    .thenBy { it.stripTrailingZeros().unscaledValue().testBit(0) },
-            )
-            break
-        }
-        val shortest = best!!.stripTrailingZeros()
-        val digits = shortest.unscaledValue().toString()
-        val exponent = digits.length - 1 - shortest.scale()
-        val mantissa = if (digits.length == 1) digits else digits[0] + "." + digits.substring(1)
-        return (if (value < 0) "-" else "") + mantissa + "e+" + exponent
-    }
+    /** Dart `toStringAsExponential()` = Dart `toString()` for |x| >= 1e21. */
+    internal fun exponential(value: Double): String = DartText.doubleToString(value)
 }

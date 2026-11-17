@@ -68,7 +68,6 @@ private fun tileImageModifier(index: Int) = Modifier.size(TILE_IMAGE_DP[index].f
 /** Home (Pages/home/home.dart): greeting + avatar, 2×2 grid, Finance News, bottom bar. */
 @Composable
 fun HomeScreen(services: PennyServices, navigate: (String) -> Unit) {
-    var username by remember { mutableStateOf<String?>(null) }
     var fullName by remember { mutableStateOf<String?>(null) }
     var imageUrl by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
@@ -78,7 +77,6 @@ fun HomeScreen(services: PennyServices, navigate: (String) -> Unit) {
 
     LaunchedEffect(Unit) {
         val (u, f) = HomeLogic.identity(services.auth.customClaims(), services.prefs.username(), services.prefs.fullName())
-        username = u
         fullName = f
         if (u != null) {
             // _loadProfileImage now and every 50 minutes; errors keep the old URL.
