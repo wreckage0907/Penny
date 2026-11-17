@@ -255,10 +255,16 @@ fun EditProfileScreen(services: PennyServices, onBack: () -> Unit) {
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         pending?.complete(uri?.toString())
     }
-    suspend fun pick(): String? = services.pickImage?.invoke() ?: CompletableDeferred<String?>().also {
-        pending = it
+    suspend fun pick(): String? {
+        services.pickImage?.let { return it() }
+        // A second tap while the picker is open supersedes the first request
+        // instead of leaving it suspended forever (012 review note 2).
+        pending?.complete(null)
+        val request = CompletableDeferred<String?>()
+        pending = request
         launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-    }.await()
+        return request.await()
+    }
 
     suspend fun loadImage() {
         username?.let { u -> runCatching { services.profileImages.imageUrl(u) }.onSuccess { imageUrl = it } }

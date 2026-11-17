@@ -128,9 +128,9 @@ class ExpenseTrackerE2eTest {
     }
 
     @Test
-    fun analysisTabIsAPlaceholderForNow() {
+    fun analysisTabOpensTheAnalysisPage() {
         open()
         compose.onNodeWithTag("tracker-tab-analysis").performClick()
-        compose.onNodeWithTag("analysis-not-migrated").assertIsDisplayed()
+        compose.onNodeWithTag("analysis-page").assertIsDisplayed() // 013: migrated
     }
 }

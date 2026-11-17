@@ -8,7 +8,7 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 | Feature | Flutter source (`mobile/lib/`) | Native status | Chunk / PR | Notes |
 |---|---|---|---|---|
 | Budget split + investment projection math | `Pages/expenseTracker/income_analysis.dart:120-155` | merged | 001 / PR #10 (c758ebf) | Quirks preserved: 7 rates / 4 used (incl. duplicate 0.10 dead tail); iterative compounding (raw-bits locked); unguarded inputs (neg/NaN/Inf/±0.0/underflow tested); 21 JVM tests + 1 e2e |
-| Analysis screen (real data, charts) | `Pages/expenseTracker/income_analysis.dart` | not started | — | Needs expense/income API slice first; charts via Compose |
+| Analysis screen (real data, charts) | `Pages/expenseTracker/income_analysis.dart` | verified on FAKES (e2e + visual) | 001 + 013 | `AnalysisLogic` + `AnalysisTab`; int-income quirk wipes the expenses here (one try) |
 | Expense/income API client + DTOs | `Pages/expenseTracker/expense_service.dart` (pure Dart, 164 lines) | merged | 002 / PR #11 (3d30b01) | Backend quirks mirrored exactly; 45 new JVM tests (URL/JSON/MockWebServer contract); decisions in quirks section |
 | Expense dashboard (CRUD, pie, month/year) | `Pages/expenseTracker/expense_dashboard.dart` | verified on FAKES (e2e + visual) | 005 + 009 | `ExpenseAggregation` (categories, subtotal-then-accumulate total, partial-total-on-throw, income int quirk, bar flex) + `ExpenseDashboardText`; carry-forwards in 005 log |
 | Practice MCQ models + per-question reveal (NO scoring exists in Flutter) | `Pages/practice/mcqpage.dart`, `list_of_modules.dart` | verified on FAKES (e2e + visual) | 003 / PR #12 (14dff35) + 011 | "Grading" = reveal-only; score/results would be NEW behaviour (separate ledger row if ever wanted). Backend ignores `num_question` (never worked: old param was plural) |
@@ -537,3 +537,29 @@ implementation.
   identity + sign out, change password mismatch→success→next login, edit
   prefill + four toasts + claims, picture upload→delete, delete account).
   Screenshots `migration/shots/slice012-{settings,edit-toasts}.png`.
+
+### 013 — Analysis tab on the fake backend (+ 012 review follow-ups)
+- Branch `migration/013-analysis` → PR. OC review + ci-ok → merge.
+- Ported (`AnalysisLogic` + `AnalysisTab`, income_analysis.dart): income THEN
+  expenses in ONE try — an int income (the backend's `0` for a month without
+  income) is a TypeError that zeroes the income AND wipes the expenses, so a
+  month with expenses but no income entry shows "No data available for $month
+  $year" (e2e-asserted); lazy `.cast<Map>()` (element types unchecked at
+  load); 50/30/20 split via the 001 `BudgetSplit`; investment bar chart (001
+  projection, 6 year groups × 4 rods, maxY = largest value, `$value.toInt()`
+  labels); per-category pie pager (amount/total*100, only when the total is
+  finite and > 0; centerSpaceRadius 80) with the page's OWN palette (pink,
+  deepPurple, deepOrange, blueAccent, teal, yellow), card total via
+  `amount as double? ?? 0.0`, names via Dart interpolation; flex bars with the
+  005 half-away rounding. Goldens emitted by executing the verbatim Dart
+  (dart013/an.dart, 9 fixtures).
+- 012 review notes folded in: deleteAccount/saveProfile catch every exception
+  like Dart `catch (e)` (test with an IOException directory); a second
+  picture tap supersedes a pending picker request instead of hanging it.
+- Process note: a CI watch printed `ci-ok:` with an empty conclusion (race in
+  the status read); PR #21 was confirmed completed/success after merging.
+  From now on `gh pr checks` must show ci-ok pass immediately before merge.
+- Tests: JVM 199 (+AnalysisLogicTest 3, ProfileFlowsTest +1); e2e 41/41
+  (+AnalysisTabE2eTest 3: demo split + first category, expenses-without-
+  income month → no data, previous month). Screenshots
+  `migration/shots/slice013-analysis{,-pies}.png`.

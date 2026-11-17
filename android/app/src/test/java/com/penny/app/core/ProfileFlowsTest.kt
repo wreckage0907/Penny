@@ -125,4 +125,14 @@ class ProfileFlowsTest {
         assertEquals(ProfileFlows.Outcome.Done("Profile picture deleted successfully"), ProfileFlows.deletePicture(w.images, "demo"))
         assertNull(w.images.imageUrl("demo"))
     }
+
+    @Test
+    fun `a transport error is still the delete-account SnackBar (Dart catch-all)`() = runBlocking {
+        val w = World()
+        val failing = object : UserDirectory by w.dir {
+            override suspend fun deleteUser(username: String): Boolean = throw java.io.IOException("reset")
+        }
+        assertEquals(ProfileFlows.Outcome.Failed("An error occurred while deleting account: java.io.IOException: reset"),
+            ProfileFlows.deleteAccount(w.auth, failing, w.prefs, "demo", null))
+    }
 }
