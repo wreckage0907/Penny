@@ -11,7 +11,7 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 | Analysis screen (real data, charts) | `Pages/expenseTracker/income_analysis.dart` | not started | — | Needs expense/income API slice first; charts via Compose |
 | Expense/income API client + DTOs | `Pages/expenseTracker/expense_service.dart` (pure Dart, 164 lines) | merged | 002 / PR #11 (3d30b01) | Backend quirks mirrored exactly; 45 new JVM tests (URL/JSON/MockWebServer contract); decisions in quirks section |
 | Expense dashboard (CRUD, pie, month/year) | `Pages/expenseTracker/expense_dashboard.dart` | verified on FAKES (e2e + visual) | 005 + 009 | `ExpenseAggregation` (categories, subtotal-then-accumulate total, partial-total-on-throw, income int quirk, bar flex) + `ExpenseDashboardText`; carry-forwards in 005 log |
-| Practice MCQ models + per-question reveal (NO scoring exists in Flutter) | `Pages/practice/mcqpage.dart:12-46,99-114,245-263` | merged | 003 / PR #12 (14dff35) | "Grading" = reveal-only; score/results would be NEW behaviour (separate ledger row if ever wanted). Backend ignores `num_question` (never worked: old param was plural) |
+| Practice MCQ models + per-question reveal (NO scoring exists in Flutter) | `Pages/practice/mcqpage.dart`, `list_of_modules.dart` | verified on FAKES (e2e + visual) | 003 / PR #12 (14dff35) + 011 | "Grading" = reveal-only; score/results would be NEW behaviour (separate ledger row if ever wanted). Backend ignores `num_question` (never worked: old param was plural) |
 | Course module list + sorting | `Pages/coursePage/course_page.dart` (+ learning_page, lesson_page) | verified on FAKES (e2e + visual) | 004 / PR #13 (34d8503) | `CourseText`: filter-empty + numeric-prefix sort, `capitalize`, display names, lesson title/file name; Dart string semantics in `DartText`. Screen carry-forwards in 004 log |
 | Lesson markdown + TTS cleaner | `Pages/coursePage/lesson_page.dart:53-66` | merged | 004 / PR #13 (34d8503) | `LessonText.cleanMarkdownText`; 112 Dart-executed goldens; Dart `\s`/`.`/multiline-`^`/trim sets reproduced exactly |
 | Auth (login/signup/onboarding) | `Services/auth.dart`, `Pages/login/*`, `Pages/home/onboarding_page.dart` | verified on FAKES (e2e + visual) | 007 | Screens + `AuthFlows` on `FakeAuthService` / `FakeUserDirectory` / `InMemoryUserPrefs`; real auth stack pending maintainer decision; image upload not mimicked |
@@ -88,7 +88,9 @@ implementation.
   wrap structure preserved; malformed-JSON 200 inner text diverges likewise
   (Dart FormatException vs kotlinx JsonDecodingException), single wrap kept.
   Practice slice must encode Dart 3.14 RangeError text for the zero-question
-  crash: "RangeError (index): Index out of range: index should be less than N: N".
+  crash — CORRECTED in 011 by execution: the EMPTY case reads "RangeError
+  (index): Index out of range: no indices are valid: 0"; "index should be
+  less than N: I" is the non-empty wording.
 - **Dart mutable state:** `savings`/`years`/`annualReturns` are instance fields;
   a projection taken before income load is 6 × 0.0. Relevant to initial-frame UI.
 - **Money formatting (CORRECTED in 005):** the 001 claim that Java `%.2f`
@@ -473,3 +475,29 @@ implementation.
   module without background → error). Note: touch-injection offsets are
   relative to a node's VISIBLE bounds (cost one debugging round).
   Screenshots `migration/shots/slice010-{courses,path,lesson}.png`.
+
+### 011 — Practice list + MCQ page on a fake questions backend
+- Branch `migration/011-practice` → PR. OC review + ci-ok → merge.
+- Seam: `McqApi` (003 `McqService` implements it); its response half is now
+  `McqService.interpret(code, body)`, shared by `FakeMcqBackend`, so the
+  fake's error strings are the HTTP client's by construction (003 contract
+  tests unchanged and green). The fake mimics questionGen.py: 10 questions
+  regardless of `num_question`, display-name top key, "A) "-prefixed
+  options, letter answers, unknown chapter → 400 {"detail":"Invalid
+  chapter"}. Chapter 1 has real sample questions; the others generic.
+- Screens: PracticeList — "List of Modules", one finished module (opens
+  MCQPage(index 0)), two "unfinished" modules whose tap only prints (kept);
+  MCQPage — FutureBuilder states (loader, "Error: Exception: Failed to load
+  questions: Exception: …", data), AppBar hard-coded "Chapter 1" (parity
+  default kept), "n/N" progress bar, "Question n/N", Hint → info toast
+  (SnackBar here), options coloured by the 003 reveal table with ✓/✕,
+  one-shot selection, "Next Question" always enabled and a no-op on the last
+  question (no results screen), options never re-prefixed.
+- Decisions taken as parity defaults (ledger carry-forwards from 003): empty
+  chapter → the Dart RangeError text as an error screen (crash-equivalent);
+  out-of-range chapter index → "type 'Null' is not a subtype of type
+  'String'" error (unreachable: only index 0 is tappable).
+- Tests: JVM 186 (+FakeMcqBackendTest 4); e2e 33/33 (+PracticeE2eTest 6:
+  unfinished no-op + Chapter 1 opens, wrong answer reveal + lock, next to
+  10/10 and no-op, hint, double-wrapped fetch error, empty-chapter
+  RangeError). Screenshots `migration/shots/slice011-{practice,mcq}.png`.

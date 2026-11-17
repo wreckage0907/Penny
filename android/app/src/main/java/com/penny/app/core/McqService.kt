@@ -27,25 +27,41 @@ class McqService(
     private val client: OkHttpClient = OkHttpClient.Builder()
         .retryOnConnectionFailure(false)
         .build(),
-) {
-    suspend fun fetchQuestions(chapter: String, numQuestions: Int = 5): McqChapter {
+) : McqApi {
+    override suspend fun fetchQuestions(chapter: String, numQuestions: Int): McqChapter {
         try {
             val request = Request.Builder()
                 .url("$baseUrl/generate_questions/$chapter?num_question=$numQuestions")
                 .get()
                 .build()
             val response = execute(request)
-            val body = response.body?.string() ?: ""
-            if (response.code != 200) {
-                throw McqApiException("Failed to load questions: ${response.code}")
-            }
-            val element = Json.parseToJsonElement(body)
-            if (element !is JsonObject) {
-                throw McqApiException("Invalid response format")
-            }
-            return McqChapter.fromJson(element)
+            return interpret(response.code, response.body?.string() ?: "")
+        } catch (e: McqApiException) {
+            throw e
         } catch (e: Exception) {
             throw McqApiException("Failed to load questions: ${dartRender(e)}")
+        }
+    }
+
+    companion object {
+        /**
+         * The response half of fetchQuestions, shared with [FakeMcqBackend]
+         * so both produce identical messages: exactly 200 + a JSON object,
+         * every failure wrapped once more as 'Failed to load questions: $e'.
+         */
+        fun interpret(code: Int, body: String): McqChapter {
+            try {
+                if (code != 200) {
+                    throw McqApiException("Failed to load questions: $code")
+                }
+                val element = Json.parseToJsonElement(body)
+                if (element !is JsonObject) {
+                    throw McqApiException("Invalid response format")
+                }
+                return McqChapter.fromJson(element)
+            } catch (e: Exception) {
+                throw McqApiException("Failed to load questions: ${dartRender(e)}")
+            }
         }
     }
 
