@@ -62,6 +62,20 @@ class ExpenseUrlsTest {
     }
 
     @Test
+    fun `getIncome query values use Dart encodeQueryComponent semantics`() {
+        // Executed against Dart 3.14: Uri.replace(queryParameters:) encodes
+        // values with encodeQueryComponent — unlike the raw :114/:156 sites.
+        assertEquals("$base/income/$user?month=Nov+5", ExpenseUrls.income(base, user, null, "Nov 5"))
+        assertEquals("$base/income/$user?month=a%26b%3Dc", ExpenseUrls.income(base, user, null, "a&b=c"))
+        assertEquals("$base/income/$user?month=a%2Bb", ExpenseUrls.income(base, user, null, "a+b"))
+        assertEquals("$base/income/$user?month=a%23b", ExpenseUrls.income(base, user, null, "a#b"))
+        assertEquals("$base/income/$user?month=100%25", ExpenseUrls.income(base, user, null, "100%"))
+        assertEquals("$base/income/$user?month=%2A~", ExpenseUrls.income(base, user, null, "*~"))
+        // Empty values emit the key without '=' (Dart _makeQuery).
+        assertEquals("$base/income/$user?year=2026&month", ExpenseUrls.income(base, user, 2026, ""))
+    }
+
+    @Test
     fun `getExpenses with no filters has no query at all`() {
         assertEquals("$base/expenses/$user", ExpenseUrls.expenses(base, user, null, null))
     }

@@ -26,13 +26,28 @@ object ExpenseUrls {
 
     fun income(baseUrl: String, userId: String, year: Int?, month: String?): String {
         val params = buildList {
-            if (year != null) add("year=$year")
-            if (month != null) add("month=$month")
+            if (year != null) add("year=${encodeQueryComponent(year.toString())}")
+            if (month != null) {
+                // Dart's _makeQuery omits '=' for empty values.
+                add(if (month.isEmpty()) "month" else "month=${encodeQueryComponent(month)}")
+            }
         }
         // Dart replaces the query with an empty map when both are null,
         // which leaves a trailing '?' on the wire.
         return "$baseUrl/income/$userId?" + params.joinToString("&")
     }
+
+    /**
+     * Dart `Uri.encodeQueryComponent` (used by Uri.replace(queryParameters:),
+     * expense_service.dart:91) — NOT the raw-interpolation path of :114/:156.
+     * Verified against Dart 3.14: space→'+', '&'→%26, '#'→%23, '+'→%2B,
+     * '%'→%25, '*'→%2A, '~' stays raw. Java's URLEncoder differs only on
+     * '*' and '~', corrected here.
+     */
+    private fun encodeQueryComponent(value: String): String =
+        java.net.URLEncoder.encode(value, "UTF-8")
+            .replace("*", "%2A")
+            .replace("%7E", "~")
 
     fun expenses(baseUrl: String, userId: String, year: Int?, month: String?): String {
         var url = "$baseUrl/expenses/$userId"
