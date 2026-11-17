@@ -14,6 +14,6 @@ class LaunchE2eTest {
 
     @Test
     fun coldLaunchShowsLogin() {
-        compose.onNodeWithTag("shell-login").assertIsDisplayed()
+        compose.onNodeWithTag("login-page").assertIsDisplayed()
     }
 }

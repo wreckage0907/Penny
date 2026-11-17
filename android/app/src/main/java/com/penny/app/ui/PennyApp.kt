@@ -27,7 +27,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.penny.app.PennyServices
 import com.penny.app.core.AppRoutes
-import com.penny.app.core.FakeAuthService
 import kotlinx.coroutines.launch
 
 /**
@@ -43,7 +42,10 @@ fun PennyApp(services: PennyServices, nav: NavHostController = rememberNavContro
           Box(Modifier.fillMaxSize().safeDrawingPadding()) {
             NavHost(nav, startDestination = AppRoutes.navRoute(AppRoutes.ROOT)) {
                 composable(AppRoutes.navRoute(AppRoutes.ROOT)) { AuthWrapper(services, nav) }
-                AppRoutes.NAMED.forEach { name ->
+                composable(AppRoutes.navRoute(AppRoutes.LOGIN)) { LoginScreen(services, authNav(nav)) }
+                composable(AppRoutes.navRoute(AppRoutes.SIGNUP)) { SignUpScreen(services, authNav(nav)) }
+                composable(AppRoutes.navRoute(AppRoutes.ONBOARDING)) { OnboardingScreen(services, authNav(nav)) }
+                AppRoutes.NAMED.filter { it !in MIGRATED }.forEach { name ->
                     composable(AppRoutes.navRoute(name)) {
                         NotMigratedScreen(name, onBack = { nav.popBackStack() })
                     }
@@ -54,6 +56,19 @@ fun PennyApp(services: PennyServices, nav: NavHostController = rememberNavContro
     }
 }
 
+private val MIGRATED = setOf(AppRoutes.LOGIN, AppRoutes.SIGNUP, AppRoutes.ONBOARDING)
+
+/**
+ * Flutter pushes '/home' after sign-in; here Home is what the root
+ * AuthWrapper renders once signed in, so "go home" pops back to the root.
+ */
+fun authNav(nav: NavHostController) = AuthNav(
+    toHome = { nav.popBackStack(AppRoutes.navRoute(AppRoutes.ROOT), inclusive = false) },
+    toOnboarding = { nav.navigate(AppRoutes.navRoute(AppRoutes.ONBOARDING)) },
+    toSignUp = { nav.navigate(AppRoutes.navRoute(AppRoutes.SIGNUP)) },
+    toLogin = { nav.navigate(AppRoutes.navRoute(AppRoutes.LOGIN)) },
+)
+
 /** main_functions.dart:11-23 — renders Home or Login inline from auth state. */
 @Composable
 fun AuthWrapper(services: PennyServices, nav: NavHostController) {
@@ -62,28 +77,7 @@ fun AuthWrapper(services: PennyServices, nav: NavHostController) {
         AppRoutes.RootScreen.LOADING ->
             CircularProgressIndicator(Modifier.testTag("auth-loading"))
         AppRoutes.RootScreen.HOME -> ShellHome(services, nav)
-        AppRoutes.RootScreen.LOGIN -> ShellLogin(services)
-    }
-}
-
-/** TEMPORARY (006): stands in for LoginPage until slice 007. */
-@Composable
-private fun ShellLogin(services: PennyServices) {
-    val scope = rememberCoroutineScope()
-    Column(
-        Modifier.fillMaxSize().padding(24.dp).testTag("shell-login"),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text("Penny — login not migrated yet", Modifier.testTag("shell-login-title"))
-        Button(
-            onClick = {
-                scope.launch {
-                    services.auth.login(FakeAuthService.DEMO_EMAIL, FakeAuthService.DEMO_PASSWORD)
-                }
-            },
-            modifier = Modifier.padding(top = 16.dp).testTag("shell-demo-login"),
-        ) { Text("Continue with demo account") }
+        AppRoutes.RootScreen.LOGIN -> LoginScreen(services, authNav(nav))
     }
 }
 
