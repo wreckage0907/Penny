@@ -26,6 +26,7 @@ class CourseE2eTest {
         override suspend fun speak(text: String, language: String, pitch: Float) { calls += "speak[$language,$pitch]:$text" }
         override suspend fun stop() { calls += "stop" }
         override fun setOnComplete(onComplete: () -> Unit) = Unit
+        override fun release() { calls += "release" }
     }
 
     private fun open(content: FakeCourseContent = FakeCourseContent(), speech: RecordingSpeech = RecordingSpeech()): RecordingSpeech {
@@ -71,6 +72,9 @@ class CourseE2eTest {
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("lesson-content") }
         compose.onNodeWithTag("lesson-speak").performClick()
         compose.waitUntil(5_000) { speech.calls.lastOrNull() == "stop" }
+        // Leaving the lesson releases the engine (review 010 blocking issue).
+        compose.onNodeWithTag("back").performClick()
+        compose.waitUntil(5_000) { speech.calls.lastOrNull() == "release" }
     }
 
     @Test

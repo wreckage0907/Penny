@@ -455,6 +455,13 @@ implementation.
   Flutter's MarkdownStyleSheet sizes; speaker toggle; `late content` →
   tapping before load does nothing; the FutureBuilder-in-build quirk is kept:
   every toggle RE-FETCHES the lesson and flashes the loader).
+- OC review round 1 → CHANGES REQUESTED (fixed): the TextToSpeech engine was
+  never shut down (one leaked engine per lesson visit) and the dispose-time
+  stop() ran on an already-cancelled scope. `Speech.release()` (stop +
+  shutdown) now runs directly in onDispose; the init callback's ready/pending
+  state is lock-guarded (binder thread vs main); completion handler set after
+  speak like Flutter. e2e asserts release on leaving the lesson (mutation:
+  removing it fails the test).
 - Unverified Flutter suspicion (not reproduced): the painter fires onTap
   during paint with a retained tap location, so a repaint after returning
   from a lesson might reopen it.

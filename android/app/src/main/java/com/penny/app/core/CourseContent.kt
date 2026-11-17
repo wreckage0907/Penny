@@ -156,6 +156,13 @@ interface Speech {
     suspend fun speak(text: String, language: String, pitch: Float)
     suspend fun stop()
     fun setOnComplete(onComplete: () -> Unit)
+
+    /**
+     * Stop and free the engine (review 010: flutter_tts is one app-wide
+     * plugin, but a TextToSpeech per lesson must be shut down on dispose).
+     * Synchronous so it can run directly in onDispose.
+     */
+    fun release()
 }
 
 /** toggleSpeak (lesson_page.dart:68-89): en-US, pitch 0.8, cleaned markdown. */

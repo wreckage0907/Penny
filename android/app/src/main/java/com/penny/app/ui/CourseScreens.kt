@@ -227,7 +227,9 @@ fun LessonScreen(services: PennyServices, subfolder: String, index: Int, onBack:
         )
         content = loaded
     }
-    DisposableEffect(Unit) { onDispose { scope.launch { speech.stop() } } }
+    // dispose() → flutterTts.stop(); called directly: the composition's
+    // coroutine scope is already cancelled here.
+    DisposableEffect(Unit) { onDispose { speech.release() } }
 
     Scaffold(
         containerColor = PennyPalette.background,
@@ -245,9 +247,9 @@ fun LessonScreen(services: PennyServices, subfolder: String, index: Int, onBack:
                                 speech.stop()
                                 isSpeaking = false
                             } else {
-                                speech.setOnComplete { isSpeaking = false }
                                 speech.speak(LessonSpeech.spokenText(text), LessonSpeech.LANGUAGE, LessonSpeech.PITCH)
                                 isSpeaking = true
+                                speech.setOnComplete { isSpeaking = false } // after speak, like Flutter
                             }
                             fetches++
                         }
@@ -297,13 +299,22 @@ private fun lessonMarkdownColors() = markdownColor(
 
 /** flutter_tts stand-in over android.speech.tts. */
 class AndroidSpeech(context: Context) : Speech {
-    private var onComplete: () -> Unit = {}
+    @Volatile private var onComplete: () -> Unit = {}
+    private val lock = Any()
     private var ready = false
+    private var released = false
     private val pending = mutableListOf<() -> Unit>()
+
+    // The init callback runs on a binder thread; `ready`/`pending` are guarded
+    // so an utterance queued during init is never lost (review 010 note 2).
     private val tts: TextToSpeech = TextToSpeech(context.applicationContext) { status ->
-        ready = status == TextToSpeech.SUCCESS
-        if (ready) pending.forEach { it() }
-        pending.clear()
+        val queued: List<() -> Unit> = synchronized(lock) {
+            ready = status == TextToSpeech.SUCCESS && !released
+            val toRun = if (ready) pending.toList() else emptyList()
+            pending.clear()
+            toRun
+        }
+        queued.forEach { it() }
     }.apply {
         setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) = Unit
@@ -320,7 +331,12 @@ class AndroidSpeech(context: Context) : Speech {
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "penny-lesson")
             Unit
         }
-        if (ready) run() else pending += run
+        val now = synchronized(lock) {
+            if (released) return
+            if (!ready) pending += run
+            ready
+        }
+        if (now) run()
     }
 
     override suspend fun stop() {
@@ -329,5 +345,14 @@ class AndroidSpeech(context: Context) : Speech {
 
     override fun setOnComplete(onComplete: () -> Unit) {
         this.onComplete = onComplete
+    }
+
+    override fun release() {
+        synchronized(lock) {
+            released = true
+            pending.clear()
+        }
+        tts.stop()
+        tts.shutdown()
     }
 }
