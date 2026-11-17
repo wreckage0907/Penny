@@ -6,7 +6,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import com.penny.app.core.FakeAuthService
+import androidx.compose.ui.test.performTextInput
 import com.penny.app.ui.PennyApp
 import org.junit.Rule
 import org.junit.Test
@@ -19,12 +19,15 @@ class AppShellE2eTest {
 
     @Test
     fun signedOutLandsOnLoginThenDemoLoginReachesHomeAndRoutes() {
-        val services = PennyServices(auth = FakeAuthService.demo())
+        val services = PennyServices.fakes()
         compose.setContent { PennyApp(services) }
 
-        compose.onNodeWithTag("shell-login").assertIsDisplayed()
-        compose.onNodeWithTag("shell-demo-login").performClick()
-        compose.onNodeWithTag("shell-home").assertIsDisplayed()
+        // 007 replaced the temporary shell login with the real LoginPage.
+        compose.onNodeWithTag("login-page").assertIsDisplayed()
+        compose.onNodeWithTag("login-username").performScrollTo().performTextInput("demo")
+        compose.onNodeWithTag("login-password").performScrollTo().performTextInput("penny123")
+        compose.onNodeWithTag("login-submit").performScrollTo().performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("shell-home") }
 
         compose.onNodeWithTag("shell-route-/coursepage").performScrollTo().performClick()
         compose.onNodeWithTag("not-migrated-route").assertTextEquals("/coursepage — not migrated yet")
@@ -32,16 +35,12 @@ class AppShellE2eTest {
         compose.onNodeWithTag("shell-home").assertIsDisplayed()
 
         compose.onNodeWithTag("shell-sign-out").performScrollTo().performClick()
-        compose.onNodeWithTag("shell-login").assertIsDisplayed()
+        compose.onNodeWithTag("login-page").assertIsDisplayed()
     }
 
     @Test
     fun seededSignedInUserSkipsLogin() {
-        val auth = FakeAuthService(
-            mapOf(FakeAuthService.DEMO_EMAIL to FakeAuthService.DEMO_PASSWORD),
-            signedInAs = FakeAuthService.DEMO_EMAIL,
-        )
-        compose.setContent { PennyApp(PennyServices(auth)) }
+        compose.setContent { PennyApp(PennyServices.fakes(signedIn = true)) }
         compose.onNodeWithTag("shell-home").assertIsDisplayed()
     }
 }

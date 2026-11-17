@@ -14,7 +14,7 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 | Practice MCQ models + per-question reveal (NO scoring exists in Flutter) | `Pages/practice/mcqpage.dart:12-46,99-114,245-263` | merged | 003 / PR #12 (14dff35) | "Grading" = reveal-only; score/results would be NEW behaviour (separate ledger row if ever wanted). Backend ignores `num_question` (never worked: old param was plural) |
 | Course module list + sorting | `Pages/coursePage/course_page.dart` | logic merged (fetch + screen not started) | 004 / PR #13 (34d8503) | `CourseText`: filter-empty + numeric-prefix sort, `capitalize`, display names, lesson title/file name; Dart string semantics in `DartText`. Screen carry-forwards in 004 log |
 | Lesson markdown + TTS cleaner | `Pages/coursePage/lesson_page.dart:53-66` | merged | 004 / PR #13 (34d8503) | `LessonText.cleanMarkdownText`; 112 Dart-executed goldens; Dart `\s`/`.`/multiline-`^`/trim sets reproduced exactly |
-| Auth (login/signup/onboarding) | `Services/auth.dart`, `Pages/login/*`, `Pages/home/onboarding_page.dart` | not started | — | Firebase Auth; username→email lookup via `GET /onboarding/{username}` |
+| Auth (login/signup/onboarding) | `Services/auth.dart`, `Pages/login/*`, `Pages/home/onboarding_page.dart` | verified on FAKES (e2e + visual) | 007 | Screens + `AuthFlows` on `FakeAuthService` / `FakeUserDirectory` / `InMemoryUserPrefs`; real auth stack pending maintainer decision; image upload not mimicked |
 | Home (greeting, news carousel, grid) | `Pages/home/home.dart` | not started | — | News is a static bundled JSON (`assets/finance.json`), not live |
 | Chatbot (Gemini) | `Pages/chatbot/chatbot_page.dart` | not started | — | Flutter calls Gemini directly with a bundled key — security decision needed before porting |
 | Stock emulator | `Pages/stocks/stock_profile.dart` | not started | — | Trading is local-only in Flutter; backend buy/sell endpoints are broken |
@@ -337,3 +337,32 @@ implementation.
   LaunchE2eTest 1). Screenshots: `migration/shots/slice006-{login,home}.png`.
 - Visual divergence (deferred to screen slices): Google Fonts (dmSans,
   poppins, darkerGrotesque) not bundled yet — system font.
+
+### 007 — Auth screens (login / sign-up / onboarding) on fakes
+- Branch `migration/007-auth-screens` → PR. OC review + ci-ok → merge.
+- Seams: `AuthService` grows customClaims, `signInWithProvider` (Google /
+  GitHub, `SocialSignIn` = auth.dart's result map), `verifyPhoneNumber` /
+  `signInWithSmsCode`; new `UserDirectory` (GET/POST /onboarding/{username},
+  /set-custom-claims) and `UserPrefs` (SharedPreferences username/fullName).
+  Fakes: `FakeUserDirectory` (POST overwrites, coins 0, blank or "/" username
+  → FastAPI 404 {"detail":"Not Found"}), fixed fake Google/GitHub accounts
+  (first sign-in isNewUser), phone code `123456` for E.164-ish numbers.
+  Demo world: username `demo` / password `penny123` (claims demo / Demo User).
+- Pure flows (`AuthFlows`), Flutter quirks kept: login takes a USERNAME
+  (email lookup via directory), every failure silent (print only);
+  fullName = Dart interpolation (`null` printed for a missing part); sign-up
+  → onboarding; onboarding posts profile → claims "first last" → home, errors
+  as SnackBar "An error occurred: Exception: …"; Google onboards only new
+  users, GitHub on the LOGIN page also when the username claim is missing
+  (signup page checks isNewUser only); phone always → onboarding
+  (`isFirstTime = true` placeholder).
+- Not mimicked yet: profile image upload (POST /prof) — avatar is a static
+  placeholder; Google prefill is dead code in Flutter (route passes no args).
+- Navigation divergence (stack shape only): Flutter pushes '/home' after
+  sign-in; here "home" pops to the root, which AuthWrapper renders as Home.
+- Visual: brand icons for Google/GitHub are letter badges ("G", "GH"); fonts
+  are system (deferred). Screenshots: `migration/shots/slice007-{login,signup}.png`.
+- Tests: JVM 152 (+AuthFlowsTest 10); e2e 14/14 (+AuthE2eTest 5: username
+  login, silent wrong password, sign-up → onboarding → home → sign-out →
+  log back in with the new username, Dart onboarding error text, phone flow).
+  006 shell tests now drive the real login screen.
