@@ -62,7 +62,7 @@ class HomeE2eTest {
         compose.onNodeWithTag("stock-page").assertIsDisplayed()
         compose.onNodeWithTag("back").performClick()
         compose.onNodeWithTag("home-nav-chat").performClick()
-        compose.onNodeWithTag("not-migrated-route").assertTextEquals("/chatbot — not migrated yet")
+        compose.onNodeWithTag("chat-page").assertIsDisplayed() // 015
     }
 
     @Test

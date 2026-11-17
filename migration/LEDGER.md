@@ -16,7 +16,7 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 | Lesson markdown + TTS cleaner | `Pages/coursePage/lesson_page.dart:53-66` | merged | 004 / PR #13 (34d8503) | `LessonText.cleanMarkdownText`; 112 Dart-executed goldens; Dart `\s`/`.`/multiline-`^`/trim sets reproduced exactly |
 | Auth (login/signup/onboarding) | `Services/auth.dart`, `Pages/login/*`, `Pages/home/onboarding_page.dart` | verified on FAKES (e2e + visual) | 007 | Screens + `AuthFlows` on `FakeAuthService` / `FakeUserDirectory` / `InMemoryUserPrefs`; real auth stack pending maintainer decision; image upload not mimicked |
 | Home (greeting, news carousel, grid) | `Pages/home/home.dart` | verified on FAKES (e2e + visual) | 008 | `HomeLogic` + `HomeScreen`; news = bundled `finance.json` (20 articles, 20 pages); avatar via `ProfileImages` seam (fake: no pictures) |
-| Chatbot (Gemini) | `Pages/chatbot/chatbot_page.dart` | not started | — | Flutter calls Gemini directly with a bundled key — security decision needed before porting |
+| Chatbot (Gemini) | `Pages/chatbot/chatbot_page.dart` | verified on FAKES (e2e + visual) | 015 | `ChatLogic` + `ChatbotScreen` on a `ChatModel` seam (fake canned replies); real provider = maintainer security decision (Flutter bundles the Gemini key) |
 | Stock emulator | `Pages/stocks/stock_profile.dart` | verified on FAKES (e2e + visual) | 014 | `StockLogic` + `StockScreen`; local-only trading kept; market = `StockMarket` seam with a deterministic synthetic fake (real: yfinance via /stocks/live, /historical) |
 | Profile settings / edit profile | `Pages/home/profile_settings.dart`, `edit_profile.dart` | verified on FAKES (e2e + visual) | 012 | `ProfileFlows` + screens; picture via system photo picker → `ProfileImages` PUT/DELETE; Firebase error texts mimicked (unverified) |
 
@@ -587,3 +587,40 @@ implementation.
 - Tests: JVM 204 (+StockLogicTest 5); e2e 44/44 (+StockE2eTest 3: hard-coded
   card + 0.0 holdings, buy → oversell error → sell to 0.0, search → NKE +
   range switch). Screenshot `migration/shots/slice014-market.png`.
+
+### 015 — Gemini Chat page on a fake chat model (ALL Flutter routes migrated)
+- Branch `migration/015-chatbot` → PR. OC review + ci-ok → merge.
+- Seam: `ChatModel.streamGenerateContent(question): Flow<List<String>>`
+  (one event per chunk, each a list of parts = `event.content.parts`).
+  Flutter calls Gemini FROM THE APP with a bundled API key — the security
+  decision stays open; the fake (`FakeChatModel`) streams canned
+  finance-assistant replies sentence by sentence (keyword-matched: budget,
+  save, invest, debt/loan; otherwise an intro line). NEW behaviour by design.
+- Ported (`ChatLogic` + `ChatbotScreen`), Dart-executed (dart015/fold.dart):
+  parts fold `"$previous ${part}"` → every reply starts with a SPACE and a
+  space is inserted at every chunk boundary; events append to the newest
+  message if it is Gemini's, else prepend a new one (a user message sent
+  mid-stream splits the reply); newest-first list; new chat ids
+  "New Chat ${keys.length}" (New Chat 1, 2, …); events land in whichever
+  chat is CURRENT when they arrive (switching chats mid-reply moves the rest
+  of it); stream errors are invisible; history is in-memory (lost on leave);
+  drawer "Chat History" with selection; user bubbles plain text on
+  buttonColor, Gemini bubbles markdown on cardColor; empty input not sent
+  (DashChat behaviour, unverified detail); bottom bar home / chat (disabled) /
+  profile.
+- 014 review note 1 folded in: re-tapping the SELECTED range re-fetches and
+  restarts the 1D timer like Flutter (tap counter in the effect key; e2e with
+  a counting market; removing the counter fails it).
+- With /chatbot done every named Flutter route is migrated: the
+  `NotMigratedScreen` fallback was removed; shell/home e2e now assert real
+  pages.
+- OC review: six routes (courses, learning, lesson, practice, mcq, budget)
+  were registered TWICE in PennyApp's NavHost — an artifact of earlier text
+  splices (harmless: identical blocks, later wins); removed (15 unique
+  destinations).
+- Fix found by visual review: the window PANNED under the keyboard (no soft
+  input mode declared) — MainActivity now uses `adjustResize`; app bar and
+  bottom bar stay visible while typing (affects every text-input screen).
+- Tests: JVM 209 (+ChatLogicTest 4); e2e 48/48 (+StockE2eTest 1; ChatbotE2eTest 3: streamed
+  markdown reply, numbered chats keep separate history, empty input + bottom
+  bar). Screenshot `migration/shots/slice015-chat.png`.

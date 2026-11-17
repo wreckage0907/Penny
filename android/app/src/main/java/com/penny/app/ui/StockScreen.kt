@@ -73,6 +73,8 @@ fun StockScreen(services: PennyServices, onBack: () -> Unit, now: () -> ZonedDat
     val toasts = remember { mutableStateListOf<Pair<ProfileFlows.Toast, String>>() }
     var ticker by remember { mutableStateOf("AAPL") }
     var range by remember { mutableStateOf("1D") }
+    // Every range tap (even on the selected one) re-runs the fetch/timer in Flutter (014 review note 1).
+    var rangeTaps by remember { mutableStateOf(0) }
     var points by remember { mutableStateOf<List<StockLogic.Point>>(emptyList()) }
     var holdings by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
     var searching by remember { mutableStateOf(false) }
@@ -88,7 +90,7 @@ fun StockScreen(services: PennyServices, onBack: () -> Unit, now: () -> ZonedDat
     }
 
     // initState: live data now; while the range is 1D, refresh every minute.
-    LaunchedEffect(range) {
+    LaunchedEffect(range, rangeTaps) {
         if (range == "1D") {
             loadLive()
             while (true) {
@@ -160,7 +162,7 @@ fun StockScreen(services: PennyServices, onBack: () -> Unit, now: () -> ZonedDat
                 Spacer(Modifier.height(15.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     StockLogic.RANGES.forEach { r ->
-                        Text(r, Modifier.clickable { range = r }.testTag("stock-range-$r"), fontSize = 16.sp,
+                        Text(r, Modifier.clickable { range = r; rangeTaps++ }.testTag("stock-range-$r"), fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold, color = if (r == range) PennyPalette.button else PennyPalette.text)
                     }
                 }
