@@ -10,10 +10,10 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 | Budget split + investment projection math | `Pages/expenseTracker/income_analysis.dart:120-155` | merged | 001 / PR #10 (c758ebf) | Quirks preserved: 7 rates / 4 used (incl. duplicate 0.10 dead tail); iterative compounding (raw-bits locked); unguarded inputs (neg/NaN/Inf/±0.0/underflow tested); 21 JVM tests + 1 e2e |
 | Analysis screen (real data, charts) | `Pages/expenseTracker/income_analysis.dart` | not started | — | Needs expense/income API slice first; charts via Compose |
 | Expense/income API client + DTOs | `Pages/expenseTracker/expense_service.dart` (pure Dart, 164 lines) | merged | 002 / PR #11 (3d30b01) | Backend quirks mirrored exactly; 45 new JVM tests (URL/JSON/MockWebServer contract); decisions in quirks section |
-| Expense dashboard (CRUD, pie, month/year) | `Pages/expenseTracker/expense_dashboard.dart` | not started | — | Aggregation logic at :163-189 is pure; extract first |
+| Expense dashboard (CRUD, pie, month/year) | `Pages/expenseTracker/expense_dashboard.dart` | logic verified (screen + CRUD not started) | 005 | `ExpenseAggregation` (categories, subtotal-then-accumulate total, partial-total-on-throw, income int quirk, bar flex) + `ExpenseDashboardText`; carry-forwards in 005 log |
 | Practice MCQ models + per-question reveal (NO scoring exists in Flutter) | `Pages/practice/mcqpage.dart:12-46,99-114,245-263` | merged | 003 / PR #12 (14dff35) | "Grading" = reveal-only; score/results would be NEW behaviour (separate ledger row if ever wanted). Backend ignores `num_question` (never worked: old param was plural) |
-| Course module list + sorting | `Pages/coursePage/course_page.dart` | logic verified (fetch + screen not started) | 004 | `CourseText`: filter-empty + numeric-prefix sort, `capitalize`, display names, lesson title/file name; Dart string semantics in `DartText`. Screen carry-forwards in 004 log |
-| Lesson markdown + TTS cleaner | `Pages/coursePage/lesson_page.dart:53-66` | verified (JVM + on-device; no UI in slice) | 004 | `LessonText.cleanMarkdownText`; 112 Dart-executed goldens; Dart `\s`/`.`/multiline-`^`/trim sets reproduced exactly |
+| Course module list + sorting | `Pages/coursePage/course_page.dart` | logic merged (fetch + screen not started) | 004 / PR #13 (34d8503) | `CourseText`: filter-empty + numeric-prefix sort, `capitalize`, display names, lesson title/file name; Dart string semantics in `DartText`. Screen carry-forwards in 004 log |
+| Lesson markdown + TTS cleaner | `Pages/coursePage/lesson_page.dart:53-66` | merged | 004 / PR #13 (34d8503) | `LessonText.cleanMarkdownText`; 112 Dart-executed goldens; Dart `\s`/`.`/multiline-`^`/trim sets reproduced exactly |
 | Auth (login/signup/onboarding) | `Services/auth.dart`, `Pages/login/*`, `Pages/home/onboarding_page.dart` | not started | — | Firebase Auth; username→email lookup via `GET /onboarding/{username}` |
 | Home (greeting, news carousel, grid) | `Pages/home/home.dart` | not started | — | News is a static bundled JSON (`assets/finance.json`), not live |
 | Chatbot (Gemini) | `Pages/chatbot/chatbot_page.dart` | not started | — | Flutter calls Gemini directly with a bundled key — security decision needed before porting |
@@ -79,10 +79,14 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
   crash: "RangeError (index): Index out of range: index should be less than N: N".
 - **Dart mutable state:** `savings`/`years`/`annualReturns` are instance fields;
   a projection taken before income load is 6 × 0.0. Relevant to initial-frame UI.
-- **Money formatting divergence (deferred):** `Money.format` (Java `%.2f`,
-  Locale.US) matches Dart `toStringAsFixed(2)` for all realistic amounts and
-  exact binary ties, but diverges at |x| ≥ 1e21 (Dart → exponential). Unreachable
-  for incomes; revisit only if a slice renders such values.
+- **Money formatting (CORRECTED in 005):** the 001 claim that Java `%.2f`
+  "matches Dart `toStringAsFixed(2)` for all realistic amounts" was WRONG —
+  `%.2f` rounds the shortest decimal repr, Dart rounds the exact binary value
+  (1.005 → Dart "1.00", `%.2f` "1.01"; also 2.675, 0.015, 100.005, 999999.995,
+  1e15+0.125). Never visible in 001 (its goldens are not near-ties). 005 swaps
+  in exact `BigDecimal(double)` HALF_UP + Dart's "-0.00"/NaN/Infinity spelling;
+  42 Dart-emitted goldens, on JVM and ART. Remaining divergence (deferred):
+  |x| ≥ 1e21 (Dart → exponential). Unreachable for amounts.
 
 - **004 accepted divergences (text utils, unreachable for maintainer-controlled
   ASCII module slugs):** (1) case mapping — Dart VM tables are older Unicode:
@@ -110,6 +114,20 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
   LateInitializationError (swallowed); `FutureBuilder(future: fetchFile())` is
   created in build, so every setState (incl. toggling TTS) RE-FETCHES the lesson
   and flashes the loader; TTS is en-US, pitch 0.8, cleaned text only.
+
+- **005 carry-forwards for the dashboard screen slice:** month/year change
+  fires `_loadExpenseData` + `_loadIncomeData` with NO cancellation — responses
+  can land out of order, last-arriving wins (stale month shown); a failed
+  expenses fetch keeps the PREVIOUS month's total in the "Expenses $x" text
+  while the pie says "No data"; a malformed payload shows "No data" with the
+  PARTIAL total; `-0.0` income renders "$-0.00"; add-income sets the displayed
+  income to the ENTERED amount although `POST /income` ADDS (display ≠ backend
+  until reload) and the call is not awaited (errors silently lost); income bar
+  `Flexible(flex: 0)` when income is 0 (green bar collapses), negative amounts
+  give negative flex (Flutter behaviour unverified); delete removes ALL same
+  name+amount entries locally then reloads; empty category list still gets a
+  legend dot, a 0-value pie slice and a "$0.00" tile; icon lookup is exact-case
+  (8 names) else tags; snackbar texts per 002 carry-forwards.
 
 ## Chunk log
 
@@ -257,3 +275,27 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
   >33-item tie order). Quirks preserved: `C# ` eaten by the heading regex,
   `* ` bullets leave a space, every one-line `(…)` deleted lazily, empty `_`
   part throws RangeError with Dart's text.
+
+### 005 — Expense dashboard aggregation (+ Money.format parity fix)
+- Branch `migration/005-expense-aggregation` → PR. Review: OpenCode agent
+  (via Herdr) — merge authorised by maintainer once OC is green AND ci-ok green.
+- Ported: `ExpenseAggregation` — `categoriesFor` (:171-179), `categoryTotals`
+  (:184-189, :1137), `onExpensesFetched` / `onExpensesFetchFailed`
+  (:146-169), `incomeFor` (:127-144), `barFlex` (:1074, :1084);
+  `ExpenseDashboardText` — month names / initial month / year range, amount
+  label, subtitle, palette (verified against Flutter 3.22 colors.dart),
+  icon mapping with tags fallback.
+- Characterised by EXECUTING the verbatim Dart methods on jsonDecode'd
+  fixtures; Dart emitted all Kotlin golden literals (31 load fixtures incl. 15
+  malformed shapes, 16 income, 24 flex, 42 toStringAsFixed). Doubles compared
+  bit-for-bit.
+- Found + fixed a merged-code parity bug: `Money.format` (001) — see quirks.
+- Quirks preserved: subtotal-then-accumulate (0.8999999999999999 vs flat
+  0.9 — my hand-derived "flat" value was wrong; the executed one is in the
+  test); partial total survives a malformed payload; fetch failure keeps the
+  previous total; only Dart-double income survives (int → 0.0); flex rounds
+  half away from zero, clamps to int64, throws on NaN/Infinity.
+- Tests: JVM 132 (116 + ExpenseAggregationTest 7 + MoneyTest +1 table);
+  on-device +2 (`ExpenseAggregationOnDeviceTest`: Android BigDecimal is not
+  the JDK's); e2e 6/6 locally incl. unchanged Analysis screen. Mutation run
+  13/13 killed (incl. reverting Money to %.2f).
