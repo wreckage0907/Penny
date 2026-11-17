@@ -74,6 +74,7 @@ fun PennyApp(services: PennyServices, nav: NavHostController = rememberNavContro
                 composable("mcq/{index}") { entry ->
                     McqScreen(services, entry.arguments?.getString("index")?.toIntOrNull() ?: 0, onBack = { nav.popBackStack() })
                 }
+                composable(AppRoutes.navRoute(AppRoutes.STOCK_PROFILE)) { StockScreen(services, onBack = { nav.popBackStack() }) }
                 composable(AppRoutes.navRoute(AppRoutes.BUDGET)) { ExpenseTrackerScreen(services, onBack = { nav.popBackStack() }) }
                 composable(AppRoutes.navRoute(AppRoutes.PROFILE_SETTINGS)) {
                     ProfileSettingsScreen(
@@ -125,7 +126,7 @@ fun PennyApp(services: PennyServices, nav: NavHostController = rememberNavContro
 
 private val MIGRATED = setOf(
     AppRoutes.LOGIN, AppRoutes.SIGNUP, AppRoutes.ONBOARDING, AppRoutes.HOME, AppRoutes.PROFILE_SETTINGS,
-    AppRoutes.BUDGET, AppRoutes.COURSE_PAGE, AppRoutes.PRACTICE, AppRoutes.EDIT_PROFILE,
+    AppRoutes.BUDGET, AppRoutes.COURSE_PAGE, AppRoutes.PRACTICE, AppRoutes.EDIT_PROFILE, AppRoutes.STOCK_PROFILE,
 )
 
 /** `Navigator.pushNamed(context, name)` for a Flutter route name. */

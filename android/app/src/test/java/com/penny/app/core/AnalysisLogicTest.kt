@@ -85,4 +85,12 @@ class AnalysisLogicTest {
         assertEquals(projections[3][5], AnalysisLogic.maxY(projections), 0.0) // Gold, year 5
         assertEquals(0.0, AnalysisLogic.maxY(InvestmentProjection.project(0.0)), 0.0)
     }
+
+    @Test
+    fun `section percentages divide THEN multiply (discriminating fixture, Dart-executed)`() {
+        // dart013/disc.dart: (0.1 / 0.7999999999999999) * 100 = 12.500000000000004,
+        // while 0.1 * 100 / 0.7999999999999999 = 12.500000000000002 (013 review note 1).
+        val rows = listOf(0.1, 0.7).map { kotlinx.serialization.json.JsonObject(mapOf("amount" to kotlinx.serialization.json.JsonPrimitive(it))) }
+        assertEquals(12.500000000000004, AnalysisLogic.sections(rows)[0], 0.0)
+    }
 }

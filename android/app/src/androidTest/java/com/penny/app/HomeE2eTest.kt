@@ -57,11 +57,10 @@ class HomeE2eTest {
         compose.onNodeWithTag("home-tile-3").performScrollTo().performClick()
         compose.onNodeWithTag("practice-page").assertIsDisplayed()
         compose.onNodeWithTag("back").performClick()
-        listOf(2 to "/stockprofile").forEach { (i, route) ->
-            compose.onNodeWithTag("home-tile-$i").performScrollTo().performClick()
-            compose.onNodeWithTag("not-migrated-route").assertTextEquals("$route — not migrated yet")
-            compose.onNodeWithTag("not-migrated-back").performClick()
-        }
+        // 014: the Predict Stocks tile opens the Market page.
+        compose.onNodeWithTag("home-tile-2").performScrollTo().performClick()
+        compose.onNodeWithTag("stock-page").assertIsDisplayed()
+        compose.onNodeWithTag("back").performClick()
         compose.onNodeWithTag("home-nav-chat").performClick()
         compose.onNodeWithTag("not-migrated-route").assertTextEquals("/chatbot — not migrated yet")
     }

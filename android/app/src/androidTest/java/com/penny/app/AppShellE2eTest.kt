@@ -30,8 +30,8 @@ class AppShellE2eTest {
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
 
         // A still-unmigrated route renders the placeholder and comes back.
-        compose.onNodeWithTag("home-tile-2").performScrollTo().performClick()
-        compose.onNodeWithTag("not-migrated-route").assertTextEquals("/stockprofile — not migrated yet")
+        compose.onNodeWithTag("home-nav-chat").performClick()
+        compose.onNodeWithTag("not-migrated-route").assertTextEquals("/chatbot — not migrated yet")
         compose.onNodeWithTag("not-migrated-back").performClick()
         compose.onNodeWithTag("home-page").assertIsDisplayed()
 
