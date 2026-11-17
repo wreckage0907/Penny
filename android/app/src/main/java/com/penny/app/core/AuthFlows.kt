@@ -173,6 +173,15 @@ object AuthFlows {
         else -> AuthNext.HOME
     }
 
+    /**
+     * signout (auth.dart:231-236): auth sign-out + clearUserData (removes the
+     * `username` / `fullName` prefs); the caller then resets to login.
+     */
+    suspend fun signOut(auth: AuthService, prefs: UserPrefs) {
+        auth.signOut()
+        prefs.clear()
+    }
+
     sealed interface OnboardingResult {
         data object Home : OnboardingResult
         data class Error(val snackbar: String) : OnboardingResult
@@ -196,5 +205,9 @@ object AuthFlows {
         OnboardingResult.Home
     } catch (e: OnboardingException) {
         OnboardingResult.Error("An error occurred: ${e.message}")
+    } catch (e: Exception) {
+        // Dart `catch (e)` catches everything (review 007): a real
+        // implementation's transport error must still become the SnackBar.
+        OnboardingResult.Error("An error occurred: $e")
     }
 }

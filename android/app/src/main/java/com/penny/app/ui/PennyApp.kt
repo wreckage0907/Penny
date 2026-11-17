@@ -27,6 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.penny.app.PennyServices
 import com.penny.app.core.AppRoutes
+import com.penny.app.core.AuthFlows
 import kotlinx.coroutines.launch
 
 /**
@@ -45,6 +46,23 @@ fun PennyApp(services: PennyServices, nav: NavHostController = rememberNavContro
                 composable(AppRoutes.navRoute(AppRoutes.LOGIN)) { LoginScreen(services, authNav(nav)) }
                 composable(AppRoutes.navRoute(AppRoutes.SIGNUP)) { SignUpScreen(services, authNav(nav)) }
                 composable(AppRoutes.navRoute(AppRoutes.ONBOARDING)) { OnboardingScreen(services, authNav(nav)) }
+                composable(AppRoutes.navRoute(AppRoutes.HOME)) { HomeScreen(services, navigateNamed(nav)) }
+                composable(AppRoutes.navRoute(AppRoutes.PROFILE_SETTINGS)) {
+                    // TEMPORARY (008): Profile Settings is not migrated, but it is
+                    // where Flutter's only sign-out lives — keep that reachable.
+                    NotMigratedScreen(AppRoutes.PROFILE_SETTINGS, onBack = { nav.popBackStack() }) {
+                        val scope = rememberCoroutineScope()
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    AuthFlows.signOut(services.auth, services.prefs)
+                                    nav.popBackStack(AppRoutes.navRoute(AppRoutes.ROOT), inclusive = false)
+                                }
+                            },
+                            modifier = Modifier.padding(top = 12.dp).testTag("profile-sign-out"),
+                        ) { Text("Sign out") }
+                    }
+                }
                 AppRoutes.NAMED.filter { it !in MIGRATED }.forEach { name ->
                     composable(AppRoutes.navRoute(name)) {
                         NotMigratedScreen(name, onBack = { nav.popBackStack() })
@@ -56,7 +74,12 @@ fun PennyApp(services: PennyServices, nav: NavHostController = rememberNavContro
     }
 }
 
-private val MIGRATED = setOf(AppRoutes.LOGIN, AppRoutes.SIGNUP, AppRoutes.ONBOARDING)
+private val MIGRATED = setOf(
+    AppRoutes.LOGIN, AppRoutes.SIGNUP, AppRoutes.ONBOARDING, AppRoutes.HOME, AppRoutes.PROFILE_SETTINGS,
+)
+
+/** `Navigator.pushNamed(context, name)` for a Flutter route name. */
+fun navigateNamed(nav: NavHostController): (String) -> Unit = { name -> nav.navigate(AppRoutes.navRoute(name)) }
 
 /**
  * Flutter pushes '/home' after sign-in; here Home is what the root
@@ -76,43 +99,21 @@ fun AuthWrapper(services: PennyServices, nav: NavHostController) {
     when (AppRoutes.rootFor(state)) {
         AppRoutes.RootScreen.LOADING ->
             CircularProgressIndicator(Modifier.testTag("auth-loading"))
-        AppRoutes.RootScreen.HOME -> ShellHome(services, nav)
+        AppRoutes.RootScreen.HOME -> HomeScreen(services, navigateNamed(nav))
         AppRoutes.RootScreen.LOGIN -> LoginScreen(services, authNav(nav))
-    }
-}
-
-/** TEMPORARY (006): stands in for Home until slice 008 — lists every route. */
-@Composable
-private fun ShellHome(services: PennyServices, nav: NavHostController) {
-    val scope = rememberCoroutineScope()
-    Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp)
-            .testTag("shell-home"),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text("Penny — home not migrated yet", Modifier.testTag("shell-home-title"))
-        AppRoutes.NAMED.filter { it != AppRoutes.LOGIN && it != AppRoutes.HOME }.forEach { name ->
-            OutlinedButton(
-                onClick = { nav.navigate(AppRoutes.navRoute(name)) },
-                modifier = Modifier.testTag("shell-route-$name"),
-            ) { Text(name) }
-        }
-        Button(
-            onClick = { scope.launch { services.auth.signOut() } },
-            modifier = Modifier.testTag("shell-sign-out"),
-        ) { Text("Sign out") }
     }
 }
 
 /** Placeholder for a Flutter route whose screen is not migrated yet. */
 @Composable
-fun NotMigratedScreen(route: String, onBack: () -> Unit) {
+fun NotMigratedScreen(route: String, onBack: () -> Unit, extra: @Composable () -> Unit = {}) {
     Box(Modifier.fillMaxSize().padding(24.dp).testTag("not-migrated"), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("$route — not migrated yet", Modifier.testTag("not-migrated-route"))
             OutlinedButton(onClick = onBack, modifier = Modifier.padding(top = 12.dp).testTag("not-migrated-back")) {
                 Text("Back")
             }
+            extra()
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.penny.app
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -33,7 +34,7 @@ class AuthE2eTest {
         type("login-username", "demo")
         type("login-password", "penny123")
         tap("login-submit")
-        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("shell-home") }
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
     }
 
     @Test
@@ -60,15 +61,17 @@ class AuthE2eTest {
         type("onb-email", "new@penny.app")
         type("onb-phone", "+1 555 0199")
         tap("onb-submit")
-        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("shell-home") }
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
 
-        tap("shell-sign-out")
+        compose.onNodeWithTag("home-nav-profile").performClick()
+        compose.onNodeWithTag("profile-sign-out").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("login-page") }
         type("login-username", "newbie")
         type("login-password", "secret1")
         tap("login-submit")
-        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("shell-home") }
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
         check(kotlinx.coroutines.runBlocking { services.prefs.fullName() } == "New Bie")
+        compose.onNodeWithTag("home-greeting").assertTextEquals("WELCOME,\nNew Bie")
     }
 
     @Test

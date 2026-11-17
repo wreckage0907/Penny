@@ -128,10 +128,26 @@ class AuthFlowsTest {
     }
 
     @Test
-    fun `claims are null signed out and empty before onboarding`() = runBlocking {
+    fun `claims are null signed out and the seeded demo claims once signed in`() = runBlocking {
         val (auth, _, _) = world()
         assertNull(auth.customClaims())
         auth.login(FakeAuthService.DEMO_EMAIL, FakeAuthService.DEMO_PASSWORD)
         assertEquals(mapOf("username" to "demo", "fullName" to "Demo User"), auth.customClaims())
+    }
+
+    @Test
+    fun `any directory failure becomes the onboarding SnackBar, like Dart catch-all`() = runBlocking {
+        val (auth, _, _) = world()
+        AuthFlows.signUp("x@y.io", "123456", auth)
+        val failing = object : UserDirectory {
+            override suspend fun getUser(username: String) = null
+            override suspend fun createUser(username: String, profile: NewUser) =
+                throw java.io.IOException("connection reset")
+            override suspend fun setCustomClaims(uid: String, username: String, fullName: String) = Unit
+        }
+        assertEquals(
+            AuthFlows.OnboardingResult.Error("An error occurred: java.io.IOException: connection reset"),
+            AuthFlows.submitOnboarding(NewUser("z", "a", "b", "c", "d"), failing, auth),
+        )
     }
 }

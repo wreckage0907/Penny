@@ -15,7 +15,7 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 | Course module list + sorting | `Pages/coursePage/course_page.dart` | logic merged (fetch + screen not started) | 004 / PR #13 (34d8503) | `CourseText`: filter-empty + numeric-prefix sort, `capitalize`, display names, lesson title/file name; Dart string semantics in `DartText`. Screen carry-forwards in 004 log |
 | Lesson markdown + TTS cleaner | `Pages/coursePage/lesson_page.dart:53-66` | merged | 004 / PR #13 (34d8503) | `LessonText.cleanMarkdownText`; 112 Dart-executed goldens; Dart `\s`/`.`/multiline-`^`/trim sets reproduced exactly |
 | Auth (login/signup/onboarding) | `Services/auth.dart`, `Pages/login/*`, `Pages/home/onboarding_page.dart` | verified on FAKES (e2e + visual) | 007 | Screens + `AuthFlows` on `FakeAuthService` / `FakeUserDirectory` / `InMemoryUserPrefs`; real auth stack pending maintainer decision; image upload not mimicked |
-| Home (greeting, news carousel, grid) | `Pages/home/home.dart` | not started | — | News is a static bundled JSON (`assets/finance.json`), not live |
+| Home (greeting, news carousel, grid) | `Pages/home/home.dart` | verified on FAKES (e2e + visual) | 008 | `HomeLogic` + `HomeScreen`; news = bundled `finance.json` (20 articles, 20 pages); avatar via `ProfileImages` seam (fake: no pictures) |
 | Chatbot (Gemini) | `Pages/chatbot/chatbot_page.dart` | not started | — | Flutter calls Gemini directly with a bundled key — security decision needed before porting |
 | Stock emulator | `Pages/stocks/stock_profile.dart` | not started | — | Trading is local-only in Flutter; backend buy/sell endpoints are broken |
 | Profile settings / edit profile | `Pages/home/profile_settings.dart`, `edit_profile.dart` | not started | — | Image upload via `POST /prof` multipart |
@@ -366,3 +366,32 @@ implementation.
   login, silent wrong password, sign-up → onboarding → home → sign-out →
   log back in with the new username, Dart onboarding error text, phone flow).
   006 shell tests now drive the real login screen.
+
+### 008 — Home on fakes
+- Branch `migration/008-home` → PR. OC review + ci-ok → merge.
+- Ported (`HomeLogic` + `HomeScreen`, home.dart): identity — claims win only
+  when BOTH username and fullName claims exist, else both from prefs;
+  greeting `'WELCOME,\n$fullName'` (Dart prints "null"); 2×2 grid with the
+  HARD-CODED course progress ("74%" text, 0.7 ring) and Flutter routes
+  (/coursepage, /budget, /stockprofile, /practice); Finance News = bundled
+  `finance.json`, carousel ALWAYS 20 pages (page ≥ article count would be a
+  Dart RangeError — unreachable, the file has exactly 20), null fields →
+  "No title" / "No description" / via.placeholder.com; tap opens the article
+  URL; dots indicator; bottom bar (home disabled, chat → /chatbot, person →
+  /profilesettings); profile picture via new `ProfileImages` seam
+  (`GET /prof/{username}` → url|null), refreshed every 50 min (signed URLs
+  expire in 1 h). Coil 2.7.0 added for network images.
+- TEMPORARY: the /profilesettings placeholder carries "Sign out" (Flutter's
+  only sign-out lives there) via `AuthFlows.signOut` = auth sign-out +
+  clearUserData (removes username/fullName prefs) — 007 review note 1.
+- 007 review folded in: onboarding catches ALL exceptions like Dart
+  `catch (e)` (test with an IOException-throwing directory); misnamed claims
+  test renamed. Not mimicked (noted): phone auto-retrieval
+  (verificationCompleted) — the fake always asks for the code.
+- Divergences: the initial-frame RangeError flash (articles empty before
+  readJson) cannot happen — the asset is read synchronously; Home's nested
+  MaterialApp/Navigator is flattened into the single NavHost.
+- Visual: asset illustrations sized in dp = PNG px (Flutter logical pixels).
+  Screenshot `migration/shots/slice008-home.png`.
+- Tests: JVM 160 (+HomeLogicTest 7, AuthFlowsTest +1); e2e 18/18
+  (+HomeE2eTest 4; shell/auth e2e now use the real Home + profile sign-out).
