@@ -42,7 +42,20 @@ interface AuthService {
 
     /** signInWithSmsCode (:145-157): true when signed in. */
     suspend fun signInWithSmsCode(smsCode: String): Boolean
+
+    /**
+     * reauthenticateWithCredential(email, current) + updatePassword(new)
+     * (profile_settings.dart:91-125). Throws [AuthFailure] with the text the
+     * page interpolates (`${e.toString()}`).
+     */
+    suspend fun changePassword(currentPassword: String, newPassword: String)
+
+    /** `user.delete()` (profile_settings.dart:155): removes the account, signs out. */
+    suspend fun deleteCurrentUser()
 }
+
+/** A Firebase/Dart error whose `toString()` the pages show verbatim. */
+class AuthFailure(val dartText: String) : RuntimeException(dartText)
 
 enum class SocialProvider { GOOGLE, GITHUB }
 
@@ -99,6 +112,33 @@ class FakeAuthService(
 
     override suspend fun signOut() {
         _state.value = AuthState.SignedOut
+    }
+
+    override suspend fun changePassword(currentPassword: String, newPassword: String) {
+        val user = (state.value as? AuthState.SignedIn)?.user
+            ?: throw AuthFailure("Exception: No user currently signed in")
+        // `user.email!` — phone accounts have no email.
+        if (user.email.isEmpty()) throw AuthFailure("Null check operator used on a null value")
+        val key = user.email.lowercase()
+        if (passwords[key] != currentPassword) throw AuthFailure(INVALID_CREDENTIAL)
+        if (newPassword.length < MIN_PASSWORD) throw AuthFailure(WEAK_PASSWORD)
+        passwords[key] = newPassword
+    }
+
+    override suspend fun deleteCurrentUser() {
+        val user = (state.value as? AuthState.SignedIn)?.user ?: return
+        val key = users.entries.firstOrNull { it.value == user }?.key
+        if (key != null) {
+            users.remove(key)
+            passwords.remove(key)
+        }
+        claims.remove(user.uid)
+        _state.value = AuthState.SignedOut
+    }
+
+    /** Remove custom claims (`DELETE /delete-custom-claims/{uid}`). */
+    fun deleteCustomClaims(uid: String) {
+        claims.remove(uid)
     }
 
     /** uid of a known email account (seeding helper). */
@@ -165,6 +205,15 @@ class FakeAuthService(
         const val MIN_PASSWORD = 6
         private val EMAIL = Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
         fun isValidEmail(email: String): Boolean = EMAIL.matches(email)
+
+        /**
+         * FlutterFire `FirebaseAuthException.toString()` texts (mimicked, not
+         * executable here): wrong current password with email-enumeration
+         * protection (default for projects since 2023) and a too-short new one.
+         */
+        const val INVALID_CREDENTIAL =
+            "[firebase_auth/invalid-credential] The supplied auth credential is incorrect, malformed or has expired."
+        const val WEAK_PASSWORD = "[firebase_auth/weak-password] Password should be at least 6 characters"
 
         const val GOOGLE_EMAIL = "google.user@gmail.com"
         const val GITHUB_EMAIL = "github.user@users.noreply.github.com"

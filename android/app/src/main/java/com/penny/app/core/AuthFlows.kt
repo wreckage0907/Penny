@@ -19,6 +19,18 @@ interface UserDirectory {
     suspend fun createUser(username: String, profile: NewUser): JsonObject
 
     suspend fun setCustomClaims(uid: String, username: String, fullName: String)
+
+    /** `PUT /onboarding/{username}`: false = 404 (no such user). */
+    suspend fun updateUser(username: String, firstName: String, lastName: String, email: String, phone: String): Boolean
+
+    /** `DELETE /onboarding/{username}`: false = 404. Also drops the user's data (see fake). */
+    suspend fun deleteUser(username: String): Boolean
+
+    /** `PUT /update-custom-claims/{uid}`: true = 200. */
+    suspend fun updateCustomClaims(uid: String, username: String, fullName: String): Boolean
+
+    /** `DELETE /delete-custom-claims/{uid}` (response ignored by the app). */
+    suspend fun deleteCustomClaims(uid: String)
 }
 
 /** NewUser (onboarding_page.dart:15-29). */
@@ -39,7 +51,11 @@ class OnboardingException(message: String) : RuntimeException(message)
  * custom claims land on the fake auth account. An empty or slash-containing
  * username never reaches the handler (FastAPI 404 "Not Found").
  */
-class FakeUserDirectory(private val auth: FakeAuthService) : UserDirectory {
+class FakeUserDirectory(
+    private val auth: FakeAuthService,
+    /** delete_user also deletes the expenses/chatbot docs and profile blobs. */
+    private val onUserDeleted: (String) -> Unit = {},
+) : UserDirectory {
     private val docs = linkedMapOf<String, JsonObject>()
 
     override suspend fun getUser(username: String): JsonObject? =
@@ -69,10 +85,40 @@ class FakeUserDirectory(private val auth: FakeAuthService) : UserDirectory {
         auth.setCustomClaims(uid, mapOf("username" to username, "fullName" to fullName))
     }
 
+    /** update_user REPLACES the `user` map — `coins` is dropped (backend quirk). */
+    override suspend fun updateUser(username: String, firstName: String, lastName: String, email: String, phone: String): Boolean {
+        if (getUser(username) == null) return false
+        docs[username] = buildJsonObject {
+            put("user", buildJsonObject {
+                put("firstName", firstName)
+                put("lastName", lastName)
+                put("email", email)
+                put("phone", phone)
+            })
+        }
+        return true
+    }
+
+    override suspend fun deleteUser(username: String): Boolean {
+        if (getUser(username) == null) return false
+        docs.remove(username)
+        onUserDeleted(username)
+        return true
+    }
+
+    override suspend fun updateCustomClaims(uid: String, username: String, fullName: String): Boolean {
+        auth.setCustomClaims(uid, mapOf("username" to username, "fullName" to fullName))
+        return true
+    }
+
+    override suspend fun deleteCustomClaims(uid: String) {
+        auth.deleteCustomClaims(uid)
+    }
+
     companion object {
         /** Directory with the demo account onboarded (username "demo"). */
-        suspend fun demo(auth: FakeAuthService): FakeUserDirectory {
-            val dir = FakeUserDirectory(auth)
+        suspend fun demo(auth: FakeAuthService, onUserDeleted: (String) -> Unit = {}): FakeUserDirectory {
+            val dir = FakeUserDirectory(auth, onUserDeleted)
             dir.createUser("demo", NewUser("demo", "Demo", "User", FakeAuthService.DEMO_EMAIL, "+1 555 0100"))
             val uid = auth.uidOf(FakeAuthService.DEMO_EMAIL)
             if (uid != null) dir.setCustomClaims(uid, "demo", "Demo User")

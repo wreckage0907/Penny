@@ -14,13 +14,30 @@ import kotlinx.serialization.json.jsonObject
 interface ProfileImages {
     /** The signed URL, or null when the user has no picture. Throws on transport/5xx. */
     suspend fun imageUrl(username: String): String?
+
+    /** `PUT /prof/{username}` (replace): true = 200. Throws on transport errors. */
+    suspend fun upload(username: String, localImage: String): Boolean
+
+    /**
+     * `DELETE /prof/{username}`: 200 whether or not a picture existed
+     * ("No profile picture found" is still a 200). Throws on transport errors.
+     */
+    suspend fun delete(username: String): Boolean
 }
 
-/** In-memory mimic: nobody has a picture until one is set. */
+/** In-memory mimic: nobody has a picture until one is set or uploaded. */
 class FakeProfileImages : ProfileImages {
     private val urls = mutableMapOf<String, String>()
     fun set(username: String, url: String) { urls[username] = url }
     override suspend fun imageUrl(username: String): String? = urls[username]
+    override suspend fun upload(username: String, localImage: String): Boolean {
+        urls[username] = localImage // the fake "signed URL" is the picked image itself
+        return true
+    }
+    override suspend fun delete(username: String): Boolean {
+        urls.remove(username)
+        return true
+    }
 }
 
 /** One Finance News card (home.dart:135-205). */

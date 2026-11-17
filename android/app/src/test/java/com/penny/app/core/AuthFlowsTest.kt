@@ -144,6 +144,10 @@ class AuthFlowsTest {
             override suspend fun createUser(username: String, profile: NewUser) =
                 throw java.io.IOException("connection reset")
             override suspend fun setCustomClaims(uid: String, username: String, fullName: String) = Unit
+            override suspend fun updateUser(username: String, firstName: String, lastName: String, email: String, phone: String) = false
+            override suspend fun deleteUser(username: String) = false
+            override suspend fun updateCustomClaims(uid: String, username: String, fullName: String) = false
+            override suspend fun deleteCustomClaims(uid: String) = Unit
         }
         assertEquals(
             AuthFlows.OnboardingResult.Error("An error occurred: java.io.IOException: connection reset"),
