@@ -140,4 +140,112 @@ class DartTextTest {
         assertEquals("𐐨", DartText.toLowerCase("𐐀"))
         assertEquals("Ǆ", DartText.toUpperCase("ǆ"))
     }
+
+    private val doubleParseGoldens = listOf(
+        "12" to 12.0,
+        "12.5" to 12.5,
+        " 12 " to 12.0,
+        "\u00093\u000A" to 3.0,
+        "-4" to -4.0,
+        "+4" to 4.0,
+        ".5" to 0.5,
+        "5." to 5.0,
+        "1e3" to 1000.0,
+        "1E3" to 1000.0,
+        "1e+3" to 1000.0,
+        "1e-3" to 0.001,
+        "-0" to -0.0,
+        "0x10" to null,
+        "NaN" to Double.NaN,
+        "-NaN" to Double.NaN,
+        "Infinity" to Double.POSITIVE_INFINITY,
+        "-Infinity" to Double.NEGATIVE_INFINITY,
+        "+Infinity" to Double.POSITIVE_INFINITY,
+        "infinity" to null,
+        "inf" to null,
+        "1,000" to null,
+        "1_000" to null,
+        "" to null,
+        " " to null,
+        "abc" to null,
+        "12abc" to null,
+        "1.2.3" to null,
+        "1e" to null,
+        "e3" to null,
+        "." to null,
+        "-.5" to -0.5,
+        "00012" to 12.0,
+        "1e400" to Double.POSITIVE_INFINITY,
+        "-1e400" to Double.NEGATIVE_INFINITY,
+        "4.9e-324" to 5e-324,
+        "1e-400" to 0.0,
+        "\u00A012" to 12.0,
+        "\u00857" to 7.0,
+        "\uFEFF7" to 7.0,
+        "\u200B7" to null,
+        "\u0661\u0662" to null,
+        "\uFF11" to null,
+        "0.1" to 0.1,
+        "1.7976931348623157e308" to 1.7976931348623157e308,
+        "123456789012345678901234567890" to 1.2345678901234568e29,
+    )
+
+    private val doubleToStringGoldens = listOf(
+        5.0 to "5.0",
+        0.0 to "0.0",
+        -0.0 to "-0.0",
+        1.0 to "1.0",
+        12.5 to "12.5",
+        0.1 to "0.1",
+        0.30000000000000004 to "0.30000000000000004",
+        100.0 to "100.0",
+        1000000.0 to "1000000.0",
+        100000000000000000000.0 to "100000000000000000000.0",
+        1e21 to "1e+21",
+        1.5e21 to "1.5e+21",
+        123456789012345680000.0 to "123456789012345680000.0",
+        0.000001 to "0.000001",
+        1e-7 to "1e-7",
+        1.5e-7 to "1.5e-7",
+        0.000001234 to "0.000001234",
+        -2.5 to "-2.5",
+        1e100 to "1e+100",
+        5e-324 to "5e-324",
+        1.7976931348623157e308 to "1.7976931348623157e+308",
+        Double.NaN to "NaN",
+        Double.POSITIVE_INFINITY to "Infinity",
+        Double.NEGATIVE_INFINITY to "-Infinity",
+        2.675 to "2.675",
+        1234.565 to "1234.565",
+        9007199254740992.0 to "9007199254740992.0",
+        0.8999999999999999 to "0.8999999999999999",
+        123.456 to "123.456",
+        1000000000000000.0 to "1000000000000000.0",
+        10000000000000000.0 to "10000000000000000.0",
+        100000000000000000.0 to "100000000000000000.0",
+        4.35 to "4.35",
+        100.005 to "100.005",
+    )
+
+    @Test
+    fun `doubleTryParse matches executed Dart double tryParse (slice 009)`() {
+        val failures = doubleParseGoldens.mapNotNull { (input, expected) ->
+            val actual = DartText.doubleTryParse(input)
+            val same = if (expected == null) actual == null
+            else actual != null && java.lang.Double.doubleToRawLongBits(actual).let {
+                it == java.lang.Double.doubleToRawLongBits(expected) || (actual.isNaN() && expected.isNaN())
+            }
+            if (same) null else "<$input>: expected $expected got $actual"
+        }
+        assertEquals(failures.joinToString("\n"), 0, failures.size)
+    }
+
+    @Test
+    fun `doubleToString matches executed Dart double toString (slice 009)`() {
+        val failures = doubleToStringGoldens.mapNotNull { (v, expected) ->
+            val actual = DartText.doubleToString(v)
+            if (actual == expected) null else "$v: expected $expected got $actual"
+        }
+        assertEquals(failures.joinToString("\n"), 0, failures.size)
+    }
 }

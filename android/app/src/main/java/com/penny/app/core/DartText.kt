@@ -1,6 +1,9 @@
 package com.penny.app.core
 
+import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.MathContext
+import java.math.RoundingMode
 
 /**
  * Dart-runtime string semantics that the course/lesson ports depend on.
@@ -93,6 +96,76 @@ internal object DartText {
         // Guard: Kotlin's toLongOrNull would accept non-ASCII digits (٣, １).
         if (!DECIMAL.matches(s)) return null
         return (if (negative) "-$s" else s).toLongOrNull()
+    }
+
+    /**
+     * Shortest decimal digits that round-trip to [abs] (finite, > 0), as
+     * (digits, decimal exponent of the first digit). Among equally short
+     * candidates the closest to the exact value wins, ties to an even last
+     * digit (ECMAScript rule, which Dart follows). Both floor and ceiling are
+     * tried at each precision: the round-trip interval is asymmetric at powers
+     * of two (verified on every 2^k, k = 70..1023, slice 006).
+     */
+    fun shortestDigits(abs: Double): Pair<String, Int> {
+        val exact = BigDecimal(abs)
+        for (precision in 1..17) {
+            val best = listOf(RoundingMode.FLOOR, RoundingMode.CEILING)
+                .map { exact.round(MathContext(precision, it)) }
+                .distinct()
+                .filter { it.toDouble() == abs }
+                .minWithOrNull(
+                    compareBy<BigDecimal> { (it - exact).abs() }
+                        .thenBy { it.stripTrailingZeros().unscaledValue().testBit(0) },
+                ) ?: continue
+            val shortest = best.stripTrailingZeros()
+            val digits = shortest.unscaledValue().toString()
+            return digits to (digits.length - 1 - shortest.scale())
+        }
+        error("unreachable: 17 digits always round-trip")
+    }
+
+    /**
+     * Dart `double.toString()`: shortest round-trip digits; plain decimal for
+     * 1e-6 <= |x| < 1e21 (integers keep ".0"), exponential otherwise
+     * ("1e-7", "1.5e+21"); "NaN", "Infinity", "-0.0" as Dart prints them.
+     */
+    fun doubleToString(value: Double): String {
+        if (value.isNaN()) return "NaN"
+        if (value.isInfinite()) return if (value > 0) "Infinity" else "-Infinity"
+        if (value == 0.0) return if (1.0 / value < 0) "-0.0" else "0.0"
+        val sign = if (value < 0) "-" else ""
+        val abs = Math.abs(value)
+        val (digits, exp) = shortestDigits(abs)
+        if (abs >= 1e-6 && abs < 1e21) {
+            val body = when {
+                exp >= digits.length - 1 -> digits + "0".repeat(exp - digits.length + 1) + ".0"
+                exp >= 0 -> digits.substring(0, exp + 1) + "." + digits.substring(exp + 1)
+                else -> "0." + "0".repeat(-exp - 1) + digits
+            }
+            return sign + body
+        }
+        val mantissa = if (digits.length == 1) digits else digits[0] + "." + digits.substring(1)
+        return sign + mantissa + "e" + (if (exp >= 0) "+" else "-") + Math.abs(exp)
+    }
+
+    private val DOUBLE_LITERAL = Regex("[+-]?(NaN|Infinity|([0-9]+\\.?[0-9]*|\\.[0-9]+)([eE][+-]?[0-9]+)?)")
+
+    /**
+     * Dart `double.tryParse(source)`: Dart-trimmed; optional sign; `NaN`
+     * (even "-NaN"), `Infinity`, or ASCII decimal with optional fraction
+     * (".5", "5." ok) and exponent; overflow → ±Infinity. No hex, no
+     * grouping, no non-ASCII digits.
+     */
+    fun doubleTryParse(source: String): Double? {
+        val s = trim(source)
+        if (!DOUBLE_LITERAL.matches(s)) return null
+        val negative = s.startsWith('-')
+        val body = s.trimStart('+', '-')
+        return when (body) {
+            "NaN" -> Double.NaN
+            "Infinity" -> if (negative) Double.NEGATIVE_INFINITY else Double.POSITIVE_INFINITY
+            else -> s.toDouble()
+        }
     }
 
     /** Dart `RangeError` text for `""[0]` — user-visible via the error widget. */

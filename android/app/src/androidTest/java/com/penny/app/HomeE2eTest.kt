@@ -49,7 +49,11 @@ class HomeE2eTest {
     @Test
     fun tilesAndBottomBarOpenTheirFlutterRoutes() {
         signedIn()
-        listOf(1 to "/budget", 2 to "/stockprofile", 3 to "/practice").forEach { (i, route) ->
+        // 009: the Expense Tracker tile opens the real tracker.
+        compose.onNodeWithTag("home-tile-1").performScrollTo().performClick()
+        compose.onNodeWithTag("tracker-tab-dashboard").assertIsDisplayed()
+        compose.onNodeWithTag("tracker-back").performClick()
+        listOf(2 to "/stockprofile", 3 to "/practice").forEach { (i, route) ->
             compose.onNodeWithTag("home-tile-$i").performScrollTo().performClick()
             compose.onNodeWithTag("not-migrated-route").assertTextEquals("$route — not migrated yet")
             compose.onNodeWithTag("not-migrated-back").performClick()
