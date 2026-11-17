@@ -126,13 +126,7 @@ fun ExpenseTrackerScreen(services: PennyServices, onBack: () -> Unit, today: Loc
         },
     ) { inner ->
         Box(Modifier.padding(inner)) {
-            if (tab == 0) {
-                ExpenseDashboardTab(services, today)
-            } else {
-                Box(Modifier.fillMaxSize().testTag("analysis-not-migrated"), contentAlignment = Alignment.Center) {
-                    Text("Analysis — not migrated yet")
-                }
-            }
+            if (tab == 0) ExpenseDashboardTab(services, today) else AnalysisTab(services, today)
         }
     }
 }
@@ -398,7 +392,7 @@ private fun DashCard(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun Picker(value: String, options: List<String>, tag: String, widthDp: Int, onPick: (String) -> Unit) {
+internal fun Picker(value: String, options: List<String>, tag: String, widthDp: Int, onPick: (String) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
         Row(

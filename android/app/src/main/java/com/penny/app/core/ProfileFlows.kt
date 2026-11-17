@@ -62,6 +62,9 @@ object ProfileFlows {
         Outcome.Done("Account deleted successfully")
     } catch (e: AuthFailure) {
         Outcome.Failed("An error occurred while deleting account: ${e.dartText}")
+    } catch (e: Exception) {
+        // Dart `catch (e)` catches everything (012 review): transport errors too.
+        Outcome.Failed("An error occurred while deleting account: $e")
     }
 
     /** Edit Profile prefill (:83-130): `userData?['x'] ?? ''`; any non-string → all empty. */
@@ -122,6 +125,8 @@ object ProfileFlows {
                 }
             } catch (e: AuthFailure) {
                 SaveResult.SnackBar("An error occurred while updating profile: ${e.dartText}")
+            } catch (e: Exception) {
+                SaveResult.SnackBar("An error occurred while updating profile: $e")
             }
         }
         prefs.saveFullName(fullName)
