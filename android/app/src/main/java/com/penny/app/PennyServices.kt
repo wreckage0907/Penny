@@ -36,6 +36,8 @@ class PennyServices(
     /** Text-to-speech factory; null = the Android TextToSpeech implementation. */
     val speech: ((Context) -> Speech)? = null,
     val mcq: McqApi = FakeMcqBackend(),
+    /** Gallery picker; null = the system photo picker. Returns an image URI or null if cancelled. */
+    val pickImage: (suspend () -> String?)? = null,
 ) {
     companion object {
         /** Demo world: account demo@penny.app / penny123, onboarded as "demo". */
@@ -44,8 +46,16 @@ class PennyServices(
                 mapOf(FakeAuthService.DEMO_EMAIL to FakeAuthService.DEMO_PASSWORD),
                 signedInAs = if (signedIn) FakeAuthService.DEMO_EMAIL else null,
             )
-            val users = runBlocking { FakeUserDirectory.demo(auth) }
-            return PennyServices(auth, users, expenses = FakeExpenseRegistry.demo()::forUser)
+            val expenses = FakeExpenseRegistry.demo()
+            val images = FakeProfileImages()
+            // delete_user also drops the user's expenses doc and profile blobs.
+            val users = runBlocking {
+                FakeUserDirectory.demo(auth) { username ->
+                    expenses.remove(username)
+                    runBlocking { images.delete(username) }
+                }
+            }
+            return PennyServices(auth, users, profileImages = images, expenses = expenses::forUser)
         }
     }
 }
@@ -59,6 +69,7 @@ object AppGraph {
 class FakeExpenseRegistry {
     private val backends = mutableMapOf<String, FakeExpenseBackend>()
     fun forUser(username: String): FakeExpenseBackend = backends.getOrPut(username) { FakeExpenseBackend() }
+    fun remove(username: String) { backends.remove(username) }
 
     companion object {
         /** The demo user with sample expenses + income this month and last. */

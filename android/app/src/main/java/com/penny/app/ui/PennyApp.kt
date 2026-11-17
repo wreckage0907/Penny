@@ -76,21 +76,42 @@ fun PennyApp(services: PennyServices, nav: NavHostController = rememberNavContro
                 }
                 composable(AppRoutes.navRoute(AppRoutes.BUDGET)) { ExpenseTrackerScreen(services, onBack = { nav.popBackStack() }) }
                 composable(AppRoutes.navRoute(AppRoutes.PROFILE_SETTINGS)) {
-                    // TEMPORARY (008): Profile Settings is not migrated, but it is
-                    // where Flutter's only sign-out lives — keep that reachable.
-                    NotMigratedScreen(AppRoutes.PROFILE_SETTINGS, onBack = { nav.popBackStack() }) {
-                        val scope = rememberCoroutineScope()
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    AuthFlows.signOut(services.auth, services.prefs)
-                                    nav.popBackStack(AppRoutes.navRoute(AppRoutes.ROOT), inclusive = false)
-                                }
-                            },
-                            modifier = Modifier.padding(top = 12.dp).testTag("profile-sign-out"),
-                        ) { Text("Sign out") }
+                    ProfileSettingsScreen(
+                        services, onBack = { nav.popBackStack() }, navigate = navigateNamed(nav),
+                        // signout(): pushNamedAndRemoveUntil('/login') — the root shows Login once signed out.
+                        toLogin = { nav.popBackStack(AppRoutes.navRoute(AppRoutes.ROOT), inclusive = false) },
+                    )
+                }
+                composable(AppRoutes.navRoute(AppRoutes.EDIT_PROFILE)) {
+                    EditProfileScreen(services, onBack = { nav.popBackStack() })
+                }
+                composable(AppRoutes.navRoute(AppRoutes.COURSE_PAGE)) {
+                    CourseListScreen(services, onBack = { nav.popBackStack() }) { folder ->
+                        nav.navigate("learning/${Uri.encode(folder)}")
                     }
                 }
+                // MaterialPageRoute pushes in Flutter (no route names): internal routes.
+                composable("learning/{subfolder}") { entry ->
+                    val folder = entry.arguments?.getString("subfolder").orEmpty()
+                    LearningScreen(folder, onBack = { nav.popBackStack() }) { index ->
+                        nav.navigate("lesson/${Uri.encode(folder)}/$index")
+                    }
+                }
+                composable("lesson/{subfolder}/{index}") { entry ->
+                    LessonScreen(
+                        services,
+                        entry.arguments?.getString("subfolder").orEmpty(),
+                        entry.arguments?.getString("index")?.toIntOrNull() ?: 0,
+                        onBack = { nav.popBackStack() },
+                    )
+                }
+                composable(AppRoutes.navRoute(AppRoutes.PRACTICE)) {
+                    PracticeListScreen(onBack = { nav.popBackStack() }) { index -> nav.navigate("mcq/$index") }
+                }
+                composable("mcq/{index}") { entry ->
+                    McqScreen(services, entry.arguments?.getString("index")?.toIntOrNull() ?: 0, onBack = { nav.popBackStack() })
+                }
+                composable(AppRoutes.navRoute(AppRoutes.BUDGET)) { ExpenseTrackerScreen(services, onBack = { nav.popBackStack() }) }
                 AppRoutes.NAMED.filter { it !in MIGRATED }.forEach { name ->
                     composable(AppRoutes.navRoute(name)) {
                         NotMigratedScreen(name, onBack = { nav.popBackStack() })
@@ -104,7 +125,7 @@ fun PennyApp(services: PennyServices, nav: NavHostController = rememberNavContro
 
 private val MIGRATED = setOf(
     AppRoutes.LOGIN, AppRoutes.SIGNUP, AppRoutes.ONBOARDING, AppRoutes.HOME, AppRoutes.PROFILE_SETTINGS,
-    AppRoutes.BUDGET, AppRoutes.COURSE_PAGE, AppRoutes.PRACTICE,
+    AppRoutes.BUDGET, AppRoutes.COURSE_PAGE, AppRoutes.PRACTICE, AppRoutes.EDIT_PROFILE,
 )
 
 /** `Navigator.pushNamed(context, name)` for a Flutter route name. */
@@ -135,14 +156,13 @@ fun AuthWrapper(services: PennyServices, nav: NavHostController) {
 
 /** Placeholder for a Flutter route whose screen is not migrated yet. */
 @Composable
-fun NotMigratedScreen(route: String, onBack: () -> Unit, extra: @Composable () -> Unit = {}) {
+fun NotMigratedScreen(route: String, onBack: () -> Unit) {
     Box(Modifier.fillMaxSize().padding(24.dp).testTag("not-migrated"), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("$route — not migrated yet", Modifier.testTag("not-migrated-route"))
             OutlinedButton(onClick = onBack, modifier = Modifier.padding(top = 12.dp).testTag("not-migrated-back")) {
                 Text("Back")
             }
-            extra()
         }
     }
 }

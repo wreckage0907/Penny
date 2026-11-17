@@ -18,7 +18,7 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 | Home (greeting, news carousel, grid) | `Pages/home/home.dart` | verified on FAKES (e2e + visual) | 008 | `HomeLogic` + `HomeScreen`; news = bundled `finance.json` (20 articles, 20 pages); avatar via `ProfileImages` seam (fake: no pictures) |
 | Chatbot (Gemini) | `Pages/chatbot/chatbot_page.dart` | not started | — | Flutter calls Gemini directly with a bundled key — security decision needed before porting |
 | Stock emulator | `Pages/stocks/stock_profile.dart` | not started | — | Trading is local-only in Flutter; backend buy/sell endpoints are broken |
-| Profile settings / edit profile | `Pages/home/profile_settings.dart`, `edit_profile.dart` | not started | — | Image upload via `POST /prof` multipart |
+| Profile settings / edit profile | `Pages/home/profile_settings.dart`, `edit_profile.dart` | verified on FAKES (e2e + visual) | 012 | `ProfileFlows` + screens; picture via system photo picker → `ProfileImages` PUT/DELETE; Firebase error texts mimicked (unverified) |
 
 ## Service mimicry (maintainer decision 2026-11-17)
 
@@ -501,3 +501,39 @@ implementation.
   unfinished no-op + Chapter 1 opens, wrong answer reveal + lock, next to
   10/10 and no-op, hint, double-wrapped fetch error, empty-chapter
   RangeError). Screenshots `migration/shots/slice011-{practice,mcq}.png`.
+
+### 012 — Profile Settings + Edit Profile on fakes
+- Branch `migration/012-profile` → PR. OC review + ci-ok → merge.
+- Seams grown: `AuthService.changePassword` (re-auth + update) and
+  `deleteCurrentUser` with `AuthFailure(dartText)`; `UserDirectory`
+  update/delete user + update/delete claims (fake: PUT replaces the `user`
+  map and DROPS `coins`; DELETE cascades to the user's expenses doc and
+  profile picture via an `onUserDeleted` hook, like delete_user);
+  `ProfileImages.upload/delete` (DELETE succeeds even with no picture);
+  `PennyServices.pickImage` (system PickVisualMedia by default; injectable).
+- Flows (`ProfileFlows`), Flutter quirks kept: identity rules differ by page
+  (Settings = Home's both-claims rule, Edit = username-claim rule); change
+  password checks the mismatch first, never clears the dialog fields, shows
+  `Failed to change password: <FirebaseAuthException.toString()>` — texts
+  MIMICKED: "[firebase_auth/invalid-credential] The supplied auth credential is
+  incorrect, malformed or has expired." / "[firebase_auth/weak-password]
+  Password should be at least 6 characters" (unverifiable without a live
+  project); phone users hit `user.email!` → "Null check operator used on a
+  null value"; delete account = DELETE user → Storage delete of the loaded
+  picture URL → DELETE claims → user.delete() → sign out + clear prefs → login
+  — with a picture, the Storage delete FAILS after the server already wiped
+  the data and the account survives (mimicked object-not-found, unverified);
+  Edit Profile prefills `?? ''` (any non-string → all empty), shows the
+  username as `username ?? ' '`, Save fires FOUR toasts (success, error, info,
+  warning) all "Profile Updated Successfully", and ALWAYS saves the full name
+  to prefs even if the update failed or no username was found; picture delete
+  reports success even when there was nothing to delete.
+- Divergences: toastification → a small `ToastHost` (opaque, tinted, 4 s);
+  the delete-account success SnackBar is not shown after navigating to login
+  (Flutter's root ScaffoldMessenger keeps it visible); returning from Edit
+  Profile does not refresh Settings' name (same as Flutter: no initState).
+- The 008 TEMPORARY sign-out placeholder is gone (real Sign Out button).
+- Tests: JVM 195 (+ProfileFlowsTest 9); e2e 38/38 (+ProfileE2eTest 5:
+  identity + sign out, change password mismatch→success→next login, edit
+  prefill + four toasts + claims, picture upload→delete, delete account).
+  Screenshots `migration/shots/slice012-{settings,edit-toasts}.png`.
