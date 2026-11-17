@@ -1,0 +1,7 @@
+.gradle/
+build/
+local.properties
+.avd/
+.shots/
+.kotlin/
+*.apk

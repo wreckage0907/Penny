@@ -1,0 +1,13 @@
+#!/bin/sh -e
+# Pre-commit gate: unit tests always; a backend syntax check when backend/
+# is touched. E2E is NOT here (too slow for every commit) — it is required
+# before pushing and enforced by CI. Installed automatically by
+# android/settings.gradle.kts on any Gradle run.
+cd "$(dirname "$0")/.."
+. scripts/env.sh
+
+(cd android && ./gradlew --quiet test)
+
+if ! git diff --cached --quiet -- backend; then
+    python3 -m compileall -q backend
+fi
