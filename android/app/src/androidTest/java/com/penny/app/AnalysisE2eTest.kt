@@ -1,8 +1,10 @@
 package com.penny.app
 
 import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -10,11 +12,18 @@ import org.junit.Test
  * E2E for migration slice 1: the ported budget math, rendered on a real
  * device/emulator. Expected strings come from the same goldens as the JVM
  * tests (income 50000 -> savings 10000 -> 5-year projections).
+ * Since 006 the app launches into the auth shell, so the screen is rendered
+ * directly (same theme, same assertions).
  */
 class AnalysisE2eTest {
 
     @get:Rule
-    val compose = createAndroidComposeRule<MainActivity>()
+    val compose = createComposeRule()
+
+    @Before
+    fun render() {
+        compose.setContent { MaterialTheme { AnalysisScreen(sampleIncome = 50_000.0) } }
+    }
 
     @Test
     fun splitAndProjectionShowForSampleIncome() {

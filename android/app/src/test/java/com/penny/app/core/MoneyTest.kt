@@ -91,4 +91,30 @@ class MoneyTest {
         }
         assertEquals(failures.joinToString("\n"), 0, failures.size)
     }
+
+    @Test
+    fun `at or above 1e21 matches Dart exponential spelling on 5965 executed goldens`() {
+        // money_big_goldens.txt: "<ieee754 bits hex> <Dart toStringAsFixed(2)>",
+        // emitted by Dart 3.14 (dart006/big.dart): every 2^k for k=70..1023
+        // (asymmetric round-trip intervals), random decimals and bit patterns.
+        val lines = javaClass.classLoader!!.getResource("money_big_goldens.txt")!!.readText().lines()
+            .filter { it.isNotBlank() }
+        val failures = lines.mapNotNull { line ->
+            val (hex, expected) = line.split(' ')
+            val v = java.lang.Double.longBitsToDouble(java.lang.Long.parseUnsignedLong(hex, 16))
+            val actual = Money.format(v)
+            if (actual == expected) null else "$v ($hex): expected $expected got $actual"
+        }
+        assertEquals(5965, lines.size)
+        assertEquals(failures.take(20).joinToString("\n"), 0, failures.size)
+    }
+
+    @Test
+    fun `exponential boundary and spelling`() {
+        assertEquals("1e+21", Money.format(1e21))
+        assertEquals("-1e+21", Money.format(-1e21))
+        assertEquals("1.5e+21", Money.format(1.5e21))
+        assertEquals("1.7976931348623157e+308", Money.format(Double.MAX_VALUE))
+        assertEquals("999999999999999868928.00", Money.format(9.999999999999999e20))
+    }
 }

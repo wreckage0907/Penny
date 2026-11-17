@@ -20,6 +20,18 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 | Stock emulator | `Pages/stocks/stock_profile.dart` | not started | — | Trading is local-only in Flutter; backend buy/sell endpoints are broken |
 | Profile settings / edit profile | `Pages/home/profile_settings.dart`, `edit_profile.dart` | not started | — | Image upload via `POST /prof` multipart |
 
+## Service mimicry (maintainer decision 2026-11-17)
+
+The backend/auth stack is undecided (Firebase or something else). Until it is
+chosen, screens depend on **interfaces** (`PennyServices`) and the app ships
+with in-memory **fakes that mimic the current services' verified semantics**
+(backend quirks above, Firebase auth rules). Fakes are NEW behaviour, not
+parity: no persistence across process death, no network, no latency. Each
+screen slice adds its seam + fake; the real HTTP clients from 002/003 stay as
+alternative implementations. Swapping stacks later = implementing the
+interfaces, not touching screens. Auth flows remain ask-first for any REAL
+implementation.
+
 ## Backend quirks to respect (or explicitly decide to fix)
 
 - `PUT /income/{user}/{year}/{month}` takes `amount` as a **query param**; the Flutter app sends JSON (→ 422). Flutter never uses it; `POST /income` **adds to** existing income. **Verified in-process (002):** PUT also ADDS (never sets) and 400s ("404: Finance document not found.") when the doc is absent; all handler 404s are re-raised as **400** `{"detail":"404: …"}` by blanket excepts; `?year=0`/`?month=` treated as absent (truthiness); month-without-year ignored on both GETs; DELETE by name removes ALL duplicates and returns a **lying 200** for unknown names, cascading empty category→month→year keys; POST into a month lacking `categories` leaks KeyError as 400 `{"detail":"'categories'"}`; unfiltered GET /income breaks (400) if `finances` holds livestock's `"user"` sibling; responses compact UTF-8 JSON, no charset; key order = Firestore order (do not sort).
@@ -85,8 +97,9 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
   (1.005 → Dart "1.00", `%.2f` "1.01"; also 2.675, 0.015, 100.005, 999999.995,
   1e15+0.125). Never visible in 001 (its goldens are not near-ties). 005 swaps
   in exact `BigDecimal(double)` HALF_UP + Dart's "-0.00"/NaN/Infinity spelling;
-  42 Dart-emitted goldens, on JVM and ART. Remaining divergence (deferred):
-  |x| ≥ 1e21 (Dart → exponential). Unreachable for amounts.
+  42 Dart-emitted goldens, on JVM and ART. The |x| ≥ 1e21 exponential
+  spelling was closed in 006 (shortest round-trip digits, 5,965 Dart-emitted
+  goldens) — `Money.format` now has NO known divergence from Dart.
 
 - **004 accepted divergences (text utils, unreachable for maintainer-controlled
   ASCII module slugs):** (1) case mapping — Dart VM tables are older Unicode:
@@ -295,7 +308,32 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
   test); partial total survives a malformed payload; fetch failure keeps the
   previous total; only Dart-double income survives (int → 0.0); flex rounds
   half away from zero, clamps to int64, throws on NaN/Infinity.
-- Tests: JVM 132 (116 + ExpenseAggregationTest 7 + MoneyTest +1 table);
+- Tests: JVM 132 (124 + ExpenseAggregationTest 7 + MoneyTest +1 table);
   on-device +2 (`ExpenseAggregationOnDeviceTest`: Android BigDecimal is not
   the JDK's); e2e 6/6 locally incl. unchanged Analysis screen. Mutation run
   13/13 killed (incl. reverting Money to %.2f).
+
+### 006 — App shell on fake services (+ Money ≥1e21 parity)
+- Branch `migration/006-app-shell` → PR. Review: OpenCode via Herdr; merge
+  when OC GREEN + ci-ok green (maintainer rule, round 5).
+- Ported: route table verbatim (main.dart:44-56) as `AppRoutes`; AuthWrapper
+  decision (main_functions.dart:11-23: waiting → spinner, user → Home, else
+  Login, rendered INLINE like Flutter); AppColours as `PennyColors` + Material3
+  `PennyTheme`; NavHost with every named route; edge-to-edge insets (API 36).
+- Seam: `AuthService` (+ `AuthState`, `PennyUser`) with `FakeAuthService`
+  mimicking the Firebase rules auth.dart:15-51 branches on (null on failure;
+  weak-password < 6; email-already-in-use case-insensitive; invalid-email;
+  sign-up signs in). Demo account `demo@penny.app` / `penny123`.
+- TEMPORARY UI (replaced by 007/008): shell login ("Continue with demo
+  account") and a shell home listing every route; unmigrated routes render
+  `NotMigratedScreen`. The 001 Analysis demo is no longer the launch screen;
+  its e2e renders the composable directly (assertions unchanged).
+- Money: |x| ≥ 1e21 now returns Dart's `toStringAsExponential()` spelling
+  (shortest round-trip digits; floor+ceiling candidates — half-even-only
+  mutation fails 3 power-of-two goldens). Even-digit tiebreak is the
+  ECMAScript rule, unreached by any golden.
+- Tests: JVM 142 (+AuthServiceTest 4, AppRoutesTest 4, MoneyTest +2 incl. a
+  5,965-line Dart-emitted resource); e2e 9/9 (+AppShellE2eTest 2,
+  LaunchE2eTest 1). Screenshots: `migration/shots/slice006-{login,home}.png`.
+- Visual divergence (deferred to screen slices): Google Fonts (dmSans,
+  poppins, darkerGrotesque) not bundled yet — system font.
