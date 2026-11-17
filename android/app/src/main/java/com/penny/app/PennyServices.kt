@@ -5,6 +5,8 @@ import com.penny.app.core.AuthService
 import com.penny.app.core.CourseContent
 import com.penny.app.core.FakeCourseContent
 import com.penny.app.core.FakeMcqBackend
+import com.penny.app.core.FakeStockMarket
+import com.penny.app.core.StockMarket
 import com.penny.app.core.McqApi
 import com.penny.app.core.Speech
 import com.penny.app.core.Expense
@@ -38,6 +40,7 @@ class PennyServices(
     val mcq: McqApi = FakeMcqBackend(),
     /** Gallery picker; null = the system photo picker. Returns an image URI or null if cancelled. */
     val pickImage: (suspend () -> String?)? = null,
+    val stocks: StockMarket = FakeStockMarket(),
 ) {
     companion object {
         /** Demo world: account demo@penny.app / penny123, onboarded as "demo". */

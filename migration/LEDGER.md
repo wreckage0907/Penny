@@ -17,7 +17,7 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 | Auth (login/signup/onboarding) | `Services/auth.dart`, `Pages/login/*`, `Pages/home/onboarding_page.dart` | verified on FAKES (e2e + visual) | 007 | Screens + `AuthFlows` on `FakeAuthService` / `FakeUserDirectory` / `InMemoryUserPrefs`; real auth stack pending maintainer decision; image upload not mimicked |
 | Home (greeting, news carousel, grid) | `Pages/home/home.dart` | verified on FAKES (e2e + visual) | 008 | `HomeLogic` + `HomeScreen`; news = bundled `finance.json` (20 articles, 20 pages); avatar via `ProfileImages` seam (fake: no pictures) |
 | Chatbot (Gemini) | `Pages/chatbot/chatbot_page.dart` | not started | — | Flutter calls Gemini directly with a bundled key — security decision needed before porting |
-| Stock emulator | `Pages/stocks/stock_profile.dart` | not started | — | Trading is local-only in Flutter; backend buy/sell endpoints are broken |
+| Stock emulator | `Pages/stocks/stock_profile.dart` | verified on FAKES (e2e + visual) | 014 | `StockLogic` + `StockScreen`; local-only trading kept; market = `StockMarket` seam with a deterministic synthetic fake (real: yfinance via /stocks/live, /historical) |
 | Profile settings / edit profile | `Pages/home/profile_settings.dart`, `edit_profile.dart` | verified on FAKES (e2e + visual) | 012 | `ProfileFlows` + screens; picture via system photo picker → `ProfileImages` PUT/DELETE; Firebase error texts mimicked (unverified) |
 
 ## Service mimicry (maintainer decision 2026-11-17)
@@ -563,3 +563,27 @@ implementation.
   (+AnalysisTabE2eTest 3: demo split + first category, expenses-without-
   income month → no data, previous month). Screenshots
   `migration/shots/slice013-analysis{,-pies}.png`.
+
+### 014 — Market (stocks) page on a synthetic fake market
+- Branch `migration/014-stocks` → PR. OC review + ci-ok → merge.
+- Seam: `StockMarket` (`/stocks/live`, `/stocks/historical`: chronological
+  `{"YYYY-MM-DD HH:MM:SS": {Open, High, Low, Close, …}}`, unknown ticker →
+  `{}`); `FakeStockMarket` = seeded random walk per ticker (390 minute bars
+  from 09:30 "live"; weekday daily bars, end-exclusive, for history).
+  Backend `/stocks/buy|sell` stay unused (broken; Flutter trades locally).
+- Ported (`StockLogic` + `StockScreen`), quirks kept and Dart-executed:
+  every price is HARD-CODED ($387 / Open $133 / High $129 / Low $333;
+  stockDetails' numbers unused); holdings are a local double map with NO
+  validation — "Bought 0.0 / -1.0 / NaN shares", sell allowed iff qty <=
+  available (negatives sell "up", NaN fails "Not enough shares to sell"),
+  exactly 0 removes the key; `${holdings[s] ?? 0}` prints "0.0" (executed —
+  Dart infers the literal as double); search = ticker OR name contains
+  (case-insensitive; "inc" matches all six INC. names); picking a stock
+  always loads LIVE data whatever range is selected; 1D refreshes every
+  minute; date ranges subtract n×24 h so DST shifts the start date (executed
+  under America/New_York: 2026-03-09 00:30 − 1 day → 2026-03-07); an int
+  Close aborts the update and keeps the old points; chart x bounds are the
+  FIRST/LAST points, y the min/max; green line, no axes.
+- Tests: JVM 204 (+StockLogicTest 5); e2e 44/44 (+StockE2eTest 3: hard-coded
+  card + 0.0 holdings, buy → oversell error → sell to 0.0, search → NKE +
+  range switch). Screenshot `migration/shots/slice014-market.png`.
