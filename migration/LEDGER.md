@@ -125,7 +125,9 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
   decide the int-income quirk (above) and needs INTERNET permission (ask-first).
 
 ### 002 — Expense/income API client + DTOs
-- Branch `migration/002-expense-api` → PR #11 (draft until CI green).
+- Branch `migration/002-expense-api` → PR #11. CI run 44084579687 green
+  (android-unit, android-e2e, changes; backend-check legitimately skipped —
+  ci-ok skip path now live-verified). PR #11 ready for maintainer review.
 - Ported: `ExpenseUrls` (pure URL builders), `ExpenseDtos` (request-only,
   snake_case update body), `ExpenseApiException` (verbatim message format),
   `ExpenseService` (OkHttp, suspend, raw JsonObject GETs — no coercion).
