@@ -29,9 +29,9 @@ class AppShellE2eTest {
         compose.onNodeWithTag("login-submit").performScrollTo().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
 
-        // 008 replaced the temporary shell home with the real Home grid.
-        compose.onNodeWithTag("home-tile-0").performScrollTo().performClick()
-        compose.onNodeWithTag("not-migrated-route").assertTextEquals("/coursepage — not migrated yet")
+        // A still-unmigrated route renders the placeholder and comes back.
+        compose.onNodeWithTag("home-tile-2").performScrollTo().performClick()
+        compose.onNodeWithTag("not-migrated-route").assertTextEquals("/stockprofile — not migrated yet")
         compose.onNodeWithTag("not-migrated-back").performClick()
         compose.onNodeWithTag("home-page").assertIsDisplayed()
 

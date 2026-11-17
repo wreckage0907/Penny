@@ -1,6 +1,10 @@
 package com.penny.app
 
+import android.content.Context
 import com.penny.app.core.AuthService
+import com.penny.app.core.CourseContent
+import com.penny.app.core.FakeCourseContent
+import com.penny.app.core.Speech
 import com.penny.app.core.Expense
 import com.penny.app.core.ExpenseApi
 import com.penny.app.core.ExpenseDashboardText
@@ -26,6 +30,9 @@ class PennyServices(
     val profileImages: ProfileImages = FakeProfileImages(),
     /** `ExpenseService(userId: username)` — one backend view per username. */
     val expenses: (String) -> ExpenseApi = FakeExpenseRegistry()::forUser,
+    val courses: CourseContent = FakeCourseContent(),
+    /** Text-to-speech factory; null = the Android TextToSpeech implementation. */
+    val speech: ((Context) -> Speech)? = null,
 ) {
     companion object {
         /** Demo world: account demo@penny.app / penny123, onboarded as "demo". */

@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import android.net.Uri
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -47,6 +48,26 @@ fun PennyApp(services: PennyServices, nav: NavHostController = rememberNavContro
                 composable(AppRoutes.navRoute(AppRoutes.SIGNUP)) { SignUpScreen(services, authNav(nav)) }
                 composable(AppRoutes.navRoute(AppRoutes.ONBOARDING)) { OnboardingScreen(services, authNav(nav)) }
                 composable(AppRoutes.navRoute(AppRoutes.HOME)) { HomeScreen(services, navigateNamed(nav)) }
+                composable(AppRoutes.navRoute(AppRoutes.COURSE_PAGE)) {
+                    CourseListScreen(services, onBack = { nav.popBackStack() }) { folder ->
+                        nav.navigate("learning/${Uri.encode(folder)}")
+                    }
+                }
+                // MaterialPageRoute pushes in Flutter (no route names): internal routes.
+                composable("learning/{subfolder}") { entry ->
+                    val folder = entry.arguments?.getString("subfolder").orEmpty()
+                    LearningScreen(folder, onBack = { nav.popBackStack() }) { index ->
+                        nav.navigate("lesson/${Uri.encode(folder)}/$index")
+                    }
+                }
+                composable("lesson/{subfolder}/{index}") { entry ->
+                    LessonScreen(
+                        services,
+                        entry.arguments?.getString("subfolder").orEmpty(),
+                        entry.arguments?.getString("index")?.toIntOrNull() ?: 0,
+                        onBack = { nav.popBackStack() },
+                    )
+                }
                 composable(AppRoutes.navRoute(AppRoutes.BUDGET)) { ExpenseTrackerScreen(services, onBack = { nav.popBackStack() }) }
                 composable(AppRoutes.navRoute(AppRoutes.PROFILE_SETTINGS)) {
                     // TEMPORARY (008): Profile Settings is not migrated, but it is
@@ -77,7 +98,7 @@ fun PennyApp(services: PennyServices, nav: NavHostController = rememberNavContro
 
 private val MIGRATED = setOf(
     AppRoutes.LOGIN, AppRoutes.SIGNUP, AppRoutes.ONBOARDING, AppRoutes.HOME, AppRoutes.PROFILE_SETTINGS,
-    AppRoutes.BUDGET,
+    AppRoutes.BUDGET, AppRoutes.COURSE_PAGE,
 )
 
 /** `Navigator.pushNamed(context, name)` for a Flutter route name. */

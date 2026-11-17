@@ -48,6 +48,8 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.9.3")
     // Slice 008: network images (news carousel, profile picture).
     implementation("io.coil-kt:coil-compose:2.7.0")
+    // Slice 010: lesson markdown (flutter_markdown stand-in).
+    implementation("com.mikepenz:multiplatform-markdown-renderer-m3:0.27.0")
     // Slice 006: app shell navigation (Flutter named routes).
     implementation("androidx.navigation:navigation-compose:2.8.5")
 

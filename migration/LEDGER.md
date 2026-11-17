@@ -12,7 +12,7 @@ Statuses: `not started` → `in progress` → `ported (tests green)` → `verifi
 | Expense/income API client + DTOs | `Pages/expenseTracker/expense_service.dart` (pure Dart, 164 lines) | merged | 002 / PR #11 (3d30b01) | Backend quirks mirrored exactly; 45 new JVM tests (URL/JSON/MockWebServer contract); decisions in quirks section |
 | Expense dashboard (CRUD, pie, month/year) | `Pages/expenseTracker/expense_dashboard.dart` | verified on FAKES (e2e + visual) | 005 + 009 | `ExpenseAggregation` (categories, subtotal-then-accumulate total, partial-total-on-throw, income int quirk, bar flex) + `ExpenseDashboardText`; carry-forwards in 005 log |
 | Practice MCQ models + per-question reveal (NO scoring exists in Flutter) | `Pages/practice/mcqpage.dart:12-46,99-114,245-263` | merged | 003 / PR #12 (14dff35) | "Grading" = reveal-only; score/results would be NEW behaviour (separate ledger row if ever wanted). Backend ignores `num_question` (never worked: old param was plural) |
-| Course module list + sorting | `Pages/coursePage/course_page.dart` | logic merged (fetch + screen not started) | 004 / PR #13 (34d8503) | `CourseText`: filter-empty + numeric-prefix sort, `capitalize`, display names, lesson title/file name; Dart string semantics in `DartText`. Screen carry-forwards in 004 log |
+| Course module list + sorting | `Pages/coursePage/course_page.dart` (+ learning_page, lesson_page) | verified on FAKES (e2e + visual) | 004 / PR #13 (34d8503) | `CourseText`: filter-empty + numeric-prefix sort, `capitalize`, display names, lesson title/file name; Dart string semantics in `DartText`. Screen carry-forwards in 004 log |
 | Lesson markdown + TTS cleaner | `Pages/coursePage/lesson_page.dart:53-66` | merged | 004 / PR #13 (34d8503) | `LessonText.cleanMarkdownText`; 112 Dart-executed goldens; Dart `\s`/`.`/multiline-`^`/trim sets reproduced exactly |
 | Auth (login/signup/onboarding) | `Services/auth.dart`, `Pages/login/*`, `Pages/home/onboarding_page.dart` | verified on FAKES (e2e + visual) | 007 | Screens + `AuthFlows` on `FakeAuthService` / `FakeUserDirectory` / `InMemoryUserPrefs`; real auth stack pending maintainer decision; image upload not mimicked |
 | Home (greeting, news carousel, grid) | `Pages/home/home.dart` | verified on FAKES (e2e + visual) | 008 | `HomeLogic` + `HomeScreen`; news = bundled `finance.json` (20 articles, 20 pages); avatar via `ProfileImages` seam (fake: no pictures) |
@@ -428,9 +428,41 @@ implementation.
 - Divergences: delete-success toast rendered as a green SnackBar; Flutter's
   persistent bottom sheet → Material3 modal sheet; Flutter's NaN-income build
   error replaces the whole dashboard, here only the bar row shows the error.
-- Tests: JVM 177 (+FakeExpenseBackendTest 9, DashboardFlowsTest 8,
+- Tests: JVM 177 (+FakeExpenseBackendTest 8, DashboardFlowsTest 7,
   DartTextTest +2); e2e 24/24 (+ExpenseTrackerE2eTest 6: totals/legend/
   categories, month switch + int-0 income, add validation/silent/success,
   sheet edit + delete, income garbage + entered-not-sum, analysis tab).
   Screenshot `migration/shots/slice009-dashboard.png`.
 - 008 review note folded in: unused `username` state removed from Home.
+
+### 010 — Courses: module list → learning path → lesson + TTS, on fakes
+- Branch `migration/010-courses` → PR. OC review + ci-ok → merge.
+- Seam: `CourseContent` (`GET /subfolder`, `GET /get-file/{subfolder}/{file}`)
+  with `FakeCourseContent`: 3 sample modules × 8 lessons whose display names
+  hit exactly learning_page's three background keys; the title list is
+  UNORDERED and contains "" like the backend's Python set; a missing file is
+  a backend 500. `Speech` seam (flutter_tts) with `AndroidSpeech`
+  (android.speech.tts) and a recording fake for tests.
+- Ported: `CourseFlows` — modules = 004 filter + numeric sort, any malformed
+  list → empty page; lesson content or the literal "Failed to load content";
+  `LearningPath` — the CustomPainter geometry with Dart op order (circles,
+  offset winding path, ≤ 40 hit test, 1900 logical px, reverse scroll so
+  lesson 1 is at the bottom); `LessonSpeech` — en-US, pitch 0.8, 004 cleaner.
+  Screens: course list (banner, "Modules", 5 "Module Name" skeleton tiles
+  while loading, RangeError name → error tile), learning path (background by
+  display name; unknown module → error stand-in like Flutter's TypeError),
+  lesson (markdown via mikepenz multiplatform-markdown-renderer-m3 0.27.0 with
+  Flutter's MarkdownStyleSheet sizes; speaker toggle; `late content` →
+  tapping before load does nothing; the FutureBuilder-in-build quirk is kept:
+  every toggle RE-FETCHES the lesson and flashes the loader).
+- Unverified Flutter suspicion (not reproduced): the painter fires onTap
+  during paint with a retained tap location, so a repaint after returning
+  from a lesson might reopen it.
+- Test fix: `AuthE2eTest.wrongPasswordIsSilent` intermittently failed
+  `assertIsDisplayed` while the IME animated; it now asserts the behaviour
+  (no Home, still signed out, no prefs saved) — stronger, not looser.
+- Tests: JVM 182 (+CourseFlowsTest 5); e2e 27/27 (+CourseE2eTest 3: sorted
+  names with "" dropped; path tap → lesson → spoken cleaned text + stop;
+  module without background → error). Note: touch-injection offsets are
+  relative to a node's VISIBLE bounds (cost one debugging round).
+  Screenshots `migration/shots/slice010-{courses,path,lesson}.png`.
