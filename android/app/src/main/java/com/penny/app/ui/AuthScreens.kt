@@ -1,8 +1,5 @@
 package com.penny.app.ui
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,37 +9,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.outlined.AddAPhoto
-import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.LockOpen
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.rounded.Visibility
-import androidx.compose.material.icons.rounded.VisibilityOff
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,313 +26,464 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.penny.app.PennyServices
 import com.penny.app.R
 import com.penny.app.core.AuthFlows
 import com.penny.app.core.AuthNext
+import com.penny.app.core.FakeAuthService
 import com.penny.app.core.NewUser
-import com.penny.app.core.SocialProvider
+import com.penny.app.core.ResetResult
 import kotlinx.coroutines.launch
 
-/** Navigation targets the auth pages use (Flutter pushNamed equivalents). */
+/**
+ * v2.1 auth (artboard frames 01–03): a revised Sign In with a 48dp password
+ * reveal and a complete Account Recovery destination, a Create Account that
+ * folds onboarding's identity fields into sign-up (username locked at
+ * choice, currency policy explicit), and Google / Phone OTP continues.
+ *
+ * Superseded v1 quirks (ledger): silent login failure (now an inline
+ * error), the GitHub social button (v2.1 IA keeps Google + Phone OTP),
+ * and the post-signup onboarding hop for email accounts (onboarding now
+ * serves only social/OTP accounts that still need a profile).
+ */
 class AuthNav(
     val toHome: () -> Unit,
     val toOnboarding: () -> Unit,
     val toSignUp: () -> Unit,
     val toLogin: () -> Unit,
+    val toRecovery: () -> Unit = toLogin,
 )
 
-private fun AuthNav.go(next: AuthNext) = when (next) {
-    AuthNext.HOME -> toHome()
-    AuthNext.ONBOARDING -> toOnboarding()
-    AuthNext.NOTHING -> Unit // Flutter only prints
+@Composable
+private fun AuthShell(scrollable: Boolean = true, tag: String, content: @Composable ColumnScopeAlias.() -> Unit) {
+    val pad = Modifier.padding(horizontal = 26.dp)
+    val column = Modifier
+        .fillMaxSize()
+        .tag(tag)
+        .then(pad)
+        .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
+        .padding(vertical = 24.dp)
+    Column(
+        column,
+        verticalArrangement = if (scrollable) Arrangement.Top else Arrangement.Center,
+    ) { content() }
 }
 
-/** LoginPage (login.dart): username + password, social row, sign-up link. */
+private typealias ColumnScopeAlias = androidx.compose.foundation.layout.ColumnScope
+
+@Composable
+private fun BrandMark(height: Int = 52) {
+    Icon(
+        painter = painterResource(R.drawable.title),
+        contentDescription = "Penny",
+        tint = PennyPalette.brand,
+        modifier = Modifier.height(height.dp).fillMaxWidth().padding(horizontal = 40.dp),
+    )
+}
+
+@Composable
+private fun AuthHeading(title: String, subtitle: String) {
+    Text(
+        title,
+        style = TextStyle(fontSize = 27.sp, fontWeight = FontWeight.W800, letterSpacing = (-0.8).sp),
+        modifier = Modifier.padding(top = 16.dp, bottom = 6.dp),
+    )
+    Text(subtitle, color = PennyPalette.muted, style = PennyType.secondaryPlain)
+}
+
+// ── 01 · Sign In ───────────────────────────────────────────────────────────
+
 @Composable
 fun LoginScreen(services: PennyServices, nav: AuthNav) {
     val scope = rememberCoroutineScope()
-    var username by remember { mutableStateOf("") }
+    var id by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    AuthPage(tag = "login-page", title = "Welcome Back!") {
-        UnderlineField(username, { username = it }, "Username", Icons.Outlined.Person, "login-username")
-        Spacer(Modifier.height(14.dp))
-        PasswordField(password, { password = it }, "login-password")
-        Spacer(Modifier.height(25.dp))
-        SocialRow(services, nav, onLoginPage = true)
-        Spacer(Modifier.height(20.dp))
-        PrimaryButton("Sign In", "login-submit") {
-            scope.launch {
-                nav.go(AuthFlows.login(username, password, services.users, services.auth, services.prefs))
+    var reveal by remember { mutableStateOf(false) }
+    var busy by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var phoneDialog by remember { mutableStateOf(false) }
+
+    Box(Modifier.fillMaxSize()) {
+        AuthShell(tag = "login-page") {
+            BrandMark()
+            AuthHeading("Welcome back", "Your money, learning, and next best step.")
+            Field(
+                "Email or username", id, { id = it; error = null },
+                placeholder = "demo@penny.app", tag = "login-id",
+            )
+            Field(
+                "Password", password, { password = it; error = null },
+                password = true,
+                tag = "login-password",
+                trailing = {
+                    IconBtn(
+                        if (reveal) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                        if (reveal) "Hide password" else "Show password",
+                        { reveal = !reveal },
+                        bg = androidx.compose.ui.graphics.Color.Transparent,
+                        tag = "login-password-toggle",
+                    )
+                },
+            )
+            TextLink("Forgot password?", { nav.toRecovery() }, Modifier.padding(top = 6.dp), tag = "login-forgot")
+            if (error != null) {
+                Notice(error!!, Modifier.padding(top = 12.dp), NoticeKind.NEG, tag = "login-error")
+            }
+            PennyButton(
+                if (busy) "Signing in…" else "Sign In",
+                {
+                    if (busy) return@PennyButton
+                    busy = true
+                    error = null
+                    scope.launch {
+                        val username = AuthFlows.resolveLoginIdentifier(id, services.users)
+                        val next = if (username == null) AuthNext.NOTHING else AuthFlows.login(
+                            username, password, services.users, services.auth, services.prefs,
+                        )
+                        busy = false
+                        when (next) {
+                            AuthNext.HOME -> nav.toHome()
+                            AuthNext.NOTHING, AuthNext.ONBOARDING ->
+                                error = "Could not sign in. Check your details and try again."
+                        }
+                    }
+                },
+                Modifier.padding(top = 12.dp),
+                tag = "login-submit",
+            )
+            Box(Modifier.padding(top = 20.dp)) { TextDivider("or continue with") }
+            Row(Modifier.padding(top = 20.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                SocialContinue("Google", Modifier.weight(1f)) { signInSocial(services, nav, scope) }
+                SocialContinue("Phone OTP", Modifier.weight(1f)) { phoneDialog = true }
+            }
+            Row(
+                Modifier.padding(top = 20.dp).fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("New to Penny? ", color = PennyPalette.muted, style = PennyType.secondaryPlain)
+                TextLink("Create account", { nav.toSignUp() }, tag = "login-signup-link")
             }
         }
-        Spacer(Modifier.height(30.dp))
-        SwitchLink("Don't have an account? ", "Sign Up", "login-signup-link", nav.toSignUp)
+        if (phoneDialog) {
+            PhoneOtpDialog(services, nav, onDismiss = { phoneDialog = false })
+        }
     }
 }
 
-/** SignUpPage (signup.dart): email + password, social row, sign-in link. */
+private fun signInSocial(services: PennyServices, nav: AuthNav, scope: kotlinx.coroutines.CoroutineScope) {
+    scope.launch {
+        val result = services.auth.signInWithProvider(com.penny.app.core.SocialProvider.GOOGLE)
+        when (AuthFlows.afterGoogle(result)) {
+            AuthNext.HOME -> nav.toHome()
+            AuthNext.ONBOARDING -> nav.toOnboarding()
+            AuthNext.NOTHING -> Unit
+        }
+    }
+}
+
+@Composable
+private fun SocialContinue(label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    PennyButton(label, onClick, modifier, kind = BtnKind.SECONDARY, tag = "social-${label.lowercase().replace(' ', '-')}")
+}
+
+/** Phone OTP: verify → code → sign-in; new accounts complete onboarding (v1 parity). */
+@Composable
+private fun PhoneOtpDialog(services: PennyServices, nav: AuthNav, onDismiss: () -> Unit) {
+    var phone by remember { mutableStateOf("") }
+    var sent by remember { mutableStateOf(false) }
+    var code by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+
+    ConfirmModal(
+        if (sent) "Enter the 6-digit code" else "Sign in with your phone",
+        onDismiss = onDismiss,
+        tag = if (sent) "code-dialog" else "phone-dialog",
+    ) {
+        if (error != null) {
+            Notice(error!!, Modifier.padding(top = 12.dp), NoticeKind.NEG, tag = "otp-error")
+        }
+        if (!sent) {
+            Field("Phone number", phone, { phone = it }, prefix = "+", keyboardDecimal = true, tag = "phone-input")
+            PennyButton(
+                "Send code",
+                {
+                    scope.launch {
+                        if (services.auth.verifyPhoneNumber("+${phone.trim()}")) {
+                            sent = true; error = null
+                        } else {
+                            error = "That number doesn't look valid. Use the full international format."
+                        }
+                    }
+                },
+                Modifier.padding(top = 14.dp),
+                tag = "phone-submit",
+            )
+        } else {
+            Field("6-digit code", code, { code = it }, keyboardDecimal = true, tag = "code-input")
+            PennyButton(
+                "Verify & continue",
+                {
+                    scope.launch {
+                        if (services.auth.signInWithSmsCode(code.trim())) {
+                            nav.toOnboarding()
+                        } else {
+                            error = "That code doesn't match. Request a new one and try again."
+                        }
+                    }
+                },
+                Modifier.padding(top = 14.dp),
+                tag = "code-submit",
+            )
+        }
+    }
+}
+
+// ── 02 · Account Recovery ─────────────────────────────────────────────────
+
+@Composable
+fun RecoveryScreen(services: PennyServices, nav: AuthNav) {
+    val scope = rememberCoroutineScope()
+    var email by remember { mutableStateOf("") }
+    var sent by remember { mutableStateOf(false) }
+    var code by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var codeError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+    var done by remember { mutableStateOf(false) }
+
+    Column(
+        Modifier
+            .tag("recovery-page")
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 18.dp)
+            .padding(top = 5.dp, bottom = 24.dp),
+    ) {
+        NavBar("Reset password", { nav.toLogin() })
+        Text("Check your inbox", style = PennyType.phoneTitle)
+        if (!sent) {
+            Text(
+                "Enter the email on your account and we'll send a 6-digit reset code.",
+                color = PennyPalette.muted,
+                style = PennyType.secondaryPlain,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Field("Email", email, { email = it }, placeholder = "demo@penny.app", tag = "recovery-email")
+            PennyButton(
+                "Send reset code",
+                {
+                    scope.launch {
+                        if (services.auth.requestPasswordReset(email.trim())) {
+                            sent = true
+                        } else {
+                            codeError = "We couldn't find that account. Check the email and try again."
+                        }
+                    }
+                },
+                Modifier.padding(top = 12.dp),
+                tag = "recovery-send",
+            )
+            if (codeError != null) {
+                Notice(codeError!!, Modifier.padding(top = 12.dp), NoticeKind.NEG, tag = "recovery-error")
+            }
+        } else {
+            Text(
+                "We sent a 6-digit reset code to ${masked(email)}.",
+                color = PennyPalette.muted,
+                style = PennyType.secondaryPlain,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Field(
+                "Reset code", code, { code = it; codeError = null },
+                keyboardDecimal = true, error = codeError, placeholder = "6 digits",
+                tag = "recovery-code",
+            )
+            TextLink("Resend code", {
+                scope.launch {
+                    services.auth.requestPasswordReset(email.trim())
+                    codeError = "A new code is on its way. The previous one no longer works."
+                }
+            }, Modifier.padding(top = 2.dp), tag = "recovery-resend")
+            Field(
+                "New password", newPassword, { newPassword = it; passwordError = null },
+                password = true, error = passwordError,
+                hint = "Use at least 6 characters. Avoid reusing an old password.",
+                tag = "recovery-password",
+            )
+            PennyButton(
+                "Save New Password",
+                {
+                    scope.launch {
+                        when (services.auth.completePasswordReset(email.trim(), code.trim(), newPassword)) {
+                            ResetResult.Success -> done = true
+                            ResetResult.InvalidCode -> codeError = "That code doesn't match. Check the 6 digits and try again."
+                            ResetResult.ExpiredCode -> codeError = "This code expired. Request a new code, then try again."
+                            ResetResult.WeakPassword -> passwordError = "Use at least 6 characters."
+                        }
+                    }
+                },
+                Modifier.padding(top = 16.dp),
+                tag = "recovery-submit",
+            )
+            if (done) {
+                Notice(
+                    "Password saved. Return to Sign In — existing sessions were signed out.",
+                    Modifier.padding(top = 16.dp), NoticeKind.POS,
+                    icon = Icons.Filled.Check, tag = "recovery-done",
+                )
+                PennyButton("Back to Sign In", { nav.toLogin() }, Modifier.padding(top = 12.dp), tag = "recovery-back")
+            } else {
+                Notice(
+                    "After a successful reset, return to Sign In. Existing sessions will be signed out.",
+                    Modifier.padding(top = 18.dp),
+                )
+            }
+        }
+    }
+}
+
+private fun masked(email: String): String {
+    val at = email.indexOf('@')
+    if (at <= 0) return email
+    return "${email.first()}•••${email.substring(at)}"
+}
+
+// ── 03 · Create Account ───────────────────────────────────────────────────
+
 @Composable
 fun SignUpScreen(services: PennyServices, nav: AuthNav) {
     val scope = rememberCoroutineScope()
+    var name by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    AuthPage(tag = "signup-page", title = "Welcome!") {
-        UnderlineField(
-            email, { email = it }, "Email", Icons.Outlined.Email, "signup-email",
-            keyboardType = KeyboardType.Email,
+    var usernameError by remember { mutableStateOf<String?>(null) }
+    var formError by remember { mutableStateOf<String?>(null) }
+    var busy by remember { mutableStateOf(false) }
+
+    Column(
+        Modifier
+            .tag("signup-page")
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 26.dp)
+            .padding(top = 20.dp, bottom = 24.dp),
+    ) {
+        BrandMark(58)
+        AuthHeading("Create your account", "One profile for your budget and learning progress.")
+        Field("Full name", name, { name = it }, tag = "signup-name")
+        Field(
+            "Choose your username", username, { username = it; usernameError = null },
+            prefix = "@", error = usernameError,
+            hint = "Your permanent public identity. We check availability before locking it.",
+            tag = "signup-username",
         )
-        Spacer(Modifier.height(14.dp))
-        PasswordField(password, { password = it }, "signup-password")
-        Spacer(Modifier.height(25.dp))
-        SocialRow(services, nav, onLoginPage = false)
-        Spacer(Modifier.height(20.dp))
-        PrimaryButton("Sign Up", "signup-submit") {
-            scope.launch { nav.go(AuthFlows.signUp(email, password, services.auth)) }
+        Field("Email", email, { email = it }, tag = "signup-email")
+        Field(
+            "Password", password, { password = it },
+            password = true, hint = "Use at least 6 characters.", tag = "signup-password",
+        )
+        Field(
+            "Default display currency", "Indian Rupee · INR (₹)", {},
+            readOnly = true, tag = "signup-currency",
+            hint = "Display formatting only. Transactions keep their original amount and currency; no FX conversion is applied.",
+        )
+        if (formError != null) {
+            Notice(formError!!, Modifier.padding(top = 12.dp), NoticeKind.NEG, tag = "signup-error")
         }
-        Spacer(Modifier.height(30.dp))
-        SwitchLink("Already have an account? ", "Sign In", "signup-signin-link", nav.toLogin)
+        PennyButton(
+            if (busy) "Creating…" else "Create Account",
+            {
+                if (busy) return@PennyButton
+                busy = true
+                scope.launch {
+                    when (AuthFlows.signUpWithProfile(
+                        name.trim(), username.trim(), email.trim(), password, services.users, services.auth,
+                    )) {
+                        com.penny.app.core.AuthFlows.SignUpResult.Home -> nav.toHome()
+                        com.penny.app.core.AuthFlows.SignUpResult.UsernameTaken ->
+                            usernameError = "That username is already taken. Choose another."
+                        com.penny.app.core.AuthFlows.SignUpResult.InvalidUsername ->
+                            usernameError = "Usernames can't be empty or contain '/'."
+                        com.penny.app.core.AuthFlows.SignUpResult.Failed ->
+                            formError = "Could not create your account. Check your details and try again."
+                    }
+                    busy = false
+                }
+            },
+            Modifier.padding(top = 18.dp),
+            tag = "signup-submit",
+        )
+        Row(
+            Modifier.padding(top = 20.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Already have an account? ", color = PennyPalette.muted, style = PennyType.secondaryPlain)
+            TextLink("Sign In", { nav.toLogin() }, tag = "signup-signin-link")
+        }
     }
 }
 
-/** OnboardingPage (onboarding_page.dart): profile form → Home. */
+// ── Onboarding (social/OTP completion only, v2.1) ──────────────────────────
+
 @Composable
 fun OnboardingScreen(services: PennyServices, nav: AuthNav) {
     val scope = rememberCoroutineScope()
-    val snackbar = remember { SnackbarHostState() }
     var username by remember { mutableStateOf("") }
-    var firstName by remember { mutableStateOf("") }
-    var lastName by remember { mutableStateOf("") }
+    var first by remember { mutableStateOf("") }
+    var last by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbar, Modifier.testTag("onb-snackbar")) },
-        containerColor = PennyPalette.background,
-    ) { inner ->
-        Column(
-            Modifier.fillMaxSize().padding(inner).verticalScroll(rememberScrollState()).padding(28.dp)
-                .testTag("onboarding-page"),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text("Let's Get Started!", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = PennyPalette.text)
-            Spacer(Modifier.height(20.dp))
-            // Avatar picker: image upload (POST /prof) is not mimicked yet.
-            Box(
-                Modifier.size(100.dp).background(Color(0xFFE0E0E0), CircleShape).testTag("onb-avatar"),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(Icons.Outlined.AddAPhoto, null, Modifier.size(40.dp), tint = Color(0xFF757575))
-            }
-            listOf(
-                Triple("Username", "onb-username", username to { v: String -> username = v }),
-                Triple("First Name", "onb-first", firstName to { v: String -> firstName = v }),
-                Triple("Last Name", "onb-last", lastName to { v: String -> lastName = v }),
-                Triple("Email", "onb-email", email to { v: String -> email = v }),
-                Triple("Phone No.", "onb-phone", phone to { v: String -> phone = v }),
-            ).forEach { (label, tag, binding) ->
-                Spacer(Modifier.height(20.dp))
-                OutlinedTextField(
-                    binding.first, binding.second, Modifier.fillMaxWidth().testTag(tag),
-                    label = { Text(label) }, singleLine = true,
-                )
-            }
-            Spacer(Modifier.height(15.dp))
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                TextButton(
-                    onClick = {
-                        scope.launch {
-                            val user = NewUser(username, firstName, lastName, email, phone)
-                            when (val r = AuthFlows.submitOnboarding(user, services.users, services.auth)) {
-                                AuthFlows.OnboardingResult.Home -> nav.toHome()
-                                is AuthFlows.OnboardingResult.Error -> snackbar.showSnackbar(r.snackbar)
-                            }
-                        }
-                    },
-                    modifier = Modifier.testTag("onb-submit"),
-                ) {
-                    Text("Submit", fontSize = 22.sp, color = PennyPalette.text)
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = PennyPalette.text)
+    var error by remember { mutableStateOf<String?>(null) }
+
+    Column(
+        Modifier
+            .tag("onboarding-page")
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 26.dp)
+            .padding(top = 20.dp, bottom = 24.dp),
+    ) {
+        Text("Complete your profile", style = PennyType.phoneTitle)
+        Text(
+            "Almost there — tell Penny who you are.",
+            color = PennyPalette.muted,
+            style = PennyType.secondaryPlain,
+            modifier = Modifier.padding(top = 6.dp),
+        )
+        Field("Username", username, { username = it; error = null }, tag = "onb-username")
+        Field("First name", first, { first = it; error = null }, tag = "onb-first")
+        Field("Last name", last, { last = it; error = null }, tag = "onb-last")
+        Field("Email", email, { email = it; error = null }, tag = "onb-email")
+        Field("Phone", phone, { phone = it; error = null }, tag = "onb-phone")
+        if (error != null) {
+            Notice(error!!, Modifier.padding(top = 12.dp), NoticeKind.NEG, tag = "onb-snackbar")
+        }
+        PennyButton(
+            "Submit",
+            {
+                scope.launch {
+                    val result = AuthFlows.submitOnboarding(
+                        NewUser(username.trim(), first.trim(), last.trim(), email.trim(), phone.trim()),
+                        services.users, services.auth,
+                    )
+                    when (result) {
+                        is com.penny.app.core.AuthFlows.OnboardingResult.Home -> nav.toHome()
+                        is com.penny.app.core.AuthFlows.OnboardingResult.Error -> error = result.snackbar
+                    }
                 }
-            }
-        }
+            },
+            Modifier.padding(top = 18.dp),
+            tag = "onb-submit",
+        )
     }
-}
-
-@Composable
-private fun AuthPage(tag: String, title: String, content: @Composable () -> Unit) {
-    Surface(Modifier.fillMaxSize(), color = PennyPalette.background) {
-        Column(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(28.dp).testTag(tag),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Image(painterResource(R.drawable.title), "Penny", Modifier.width(200.dp))
-            Spacer(Modifier.height(20.dp))
-            Text(title, fontSize = 36.sp, fontWeight = FontWeight.Bold, color = PennyPalette.text,
-                modifier = Modifier.testTag("$tag-title"))
-            Spacer(Modifier.height(26.dp))
-            content()
-        }
-    }
-}
-
-@Composable
-private fun UnderlineField(
-    value: String,
-    onChange: (String) -> Unit,
-    hint: String,
-    icon: ImageVector,
-    tag: String,
-    keyboardType: KeyboardType = KeyboardType.Text,
-) {
-    TextField(
-        value, onChange, Modifier.fillMaxWidth().testTag(tag),
-        placeholder = { Text(hint) },
-        leadingIcon = { Icon(icon, null, Modifier.size(36.dp), tint = PennyPalette.text) },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-        ),
-    )
-}
-
-/** PasswordField (input_field.dart:59-105): obscured by default, eye toggle. */
-@Composable
-private fun PasswordField(value: String, onChange: (String) -> Unit, tag: String) {
-    var obscured by remember { mutableStateOf(true) }
-    TextField(
-        value, onChange, Modifier.fillMaxWidth().testTag(tag),
-        placeholder = { Text("Password") },
-        leadingIcon = {
-            Icon(if (obscured) Icons.Outlined.Lock else Icons.Outlined.LockOpen, null, Modifier.size(36.dp),
-                tint = PennyPalette.text)
-        },
-        trailingIcon = {
-            IconButton(onClick = { obscured = !obscured }, modifier = Modifier.testTag("$tag-toggle")) {
-                Icon(if (obscured) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility, null,
-                    tint = PennyPalette.text)
-            }
-        },
-        visualTransformation = if (obscured) PasswordVisualTransformation() else VisualTransformation.None,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        singleLine = true,
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-        ),
-    )
-}
-
-/** "or continue with" + Google / GitHub / phone (login.dart:100-178). */
-@Composable
-private fun SocialRow(services: PennyServices, nav: AuthNav, onLoginPage: Boolean) {
-    val scope = rememberCoroutineScope()
-    var phoneDialog by remember { mutableStateOf(false) }
-    var codeDialog by remember { mutableStateOf(false) }
-    Text("or continue with", fontSize = 16.sp, color = PennyPalette.text)
-    Spacer(Modifier.height(10.dp))
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        SocialButton("social-google", "G") {
-            scope.launch { nav.go(AuthFlows.afterGoogle(services.auth.signInWithProvider(SocialProvider.GOOGLE))) }
-        }
-        SocialButton("social-github", "GH") {
-            scope.launch {
-                val result = services.auth.signInWithProvider(SocialProvider.GITHUB)
-                nav.go(AuthFlows.afterGithub(result, onLoginPage))
-            }
-        }
-        SocialButton("social-phone", null) { phoneDialog = true }
-    }
-    if (phoneDialog) {
-        InputDialog("Enter your phone number", "Phone Number", "phone-dialog", KeyboardType.Phone,
-            onDismiss = { phoneDialog = false }) { number ->
-            phoneDialog = false
-            scope.launch { if (services.auth.verifyPhoneNumber(number)) codeDialog = true }
-        }
-    }
-    if (codeDialog) {
-        InputDialog("Enter the verification code", "Verification Code", "code-dialog", KeyboardType.Number,
-            onDismiss = { codeDialog = false }) { code ->
-            codeDialog = false
-            // _handleRouting: isFirstTime is a hard-coded true → always onboarding.
-            scope.launch { if (services.auth.signInWithSmsCode(code)) nav.toOnboarding() }
-        }
-    }
-}
-
-@Composable
-private fun SocialButton(tag: String, label: String?, onClick: () -> Unit) {
-    Box(
-        Modifier.size(56.dp).background(PennyPalette.card, CircleShape).clickable(onClick = onClick).testTag(tag),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (label != null) {
-            Text(label, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = PennyPalette.text)
-        } else {
-            Icon(Icons.Filled.Phone, "Phone", tint = PennyPalette.text)
-        }
-    }
-}
-
-@Composable
-private fun InputDialog(
-    title: String,
-    label: String,
-    tag: String,
-    keyboardType: KeyboardType,
-    onDismiss: () -> Unit,
-    onSubmit: (String) -> Unit,
-) {
-    var text by remember { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            OutlinedTextField(text, { text = it }, Modifier.testTag("$tag-input"), label = { Text(label) },
-                keyboardOptions = KeyboardOptions(keyboardType = keyboardType), singleLine = true)
-        },
-        confirmButton = { TextButton({ onSubmit(text) }, Modifier.testTag("$tag-submit")) { Text("Submit") } },
-        dismissButton = { TextButton(onDismiss, Modifier.testTag("$tag-cancel")) { Text("Cancel") } },
-    )
-}
-
-@Composable
-private fun PrimaryButton(label: String, tag: String, onClick: () -> Unit) {
-    Button(
-        onClick,
-        Modifier.fillMaxWidth().padding(horizontal = 40.dp).testTag(tag),
-        shape = RoundedCornerShape(34.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = PennyPalette.button),
-    ) {
-        Text(label, fontSize = 20.sp, color = PennyPalette.background, modifier = Modifier.padding(vertical = 6.dp))
-    }
-}
-
-@Composable
-private fun SwitchLink(prefix: String, link: String, tag: String, onClick: () -> Unit) {
-    Text(
-        buildAnnotatedString {
-            append(prefix)
-            withStyle(SpanStyle(color = PennyPalette.button, textDecoration = TextDecoration.Underline)) { append(link) }
-        },
-        fontSize = 16.sp,
-        color = Color.Black,
-        modifier = Modifier.clickable(onClick = onClick).testTag(tag),
-    )
 }

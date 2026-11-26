@@ -1,37 +1,27 @@
 package com.penny.app.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.Chat
-import androidx.compose.material.icons.rounded.PersonOutline
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.TrendingDown
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,204 +32,343 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.SubcomposeAsyncImage
 import com.penny.app.PennyServices
 import com.penny.app.R
+import com.penny.app.core.Allocations
+import com.penny.app.core.BudgetCategories
+import com.penny.app.core.DashboardFlows
+import com.penny.app.core.ExpenseDashboardText
 import com.penny.app.core.HomeLogic
-import kotlinx.coroutines.delay
+import com.penny.app.core.Inr
+import com.penny.app.core.LearnRules
+import com.penny.app.core.PlanMath
+import com.penny.app.core.PlanMonth
+import com.penny.app.core.PlanSummary
+import kotlinx.coroutines.flow.first
+import java.time.LocalDate
+import java.time.LocalTime
 
-private val TILE_IMAGES = listOf(R.drawable.course_page, R.drawable.expense_tracker, R.drawable.predict_stocks, R.drawable.practice)
-
-/** Flutter draws an asset's pixels as logical pixels: PNG size (px) → dp. */
-private val TILE_IMAGE_DP = listOf(47 to 47, 63 to 86, 69 to 83, 115 to 111)
-
-private fun tileImageModifier(index: Int) = Modifier.size(TILE_IMAGE_DP[index].first.dp, TILE_IMAGE_DP[index].second.dp)
-
-/** Home (Pages/home/home.dart): greeting + avatar, 2×2 grid, Finance News, bottom bar. */
+/**
+ * v2.1 Home (artboard frame 04 + S03 first-run): the month's hero (net cash
+ * retained, never called "invested savings"), top spending, and the next
+ * learning step — with the dock's repeated Add in thumb reach. Replaces the
+ * old greeting/2×2-tiles/news-carousel page; the news surface is dropped by
+ * the v2.1 IA (ledger).
+ */
 @Composable
-fun HomeScreen(services: PennyServices, navigate: (String) -> Unit) {
-    var fullName by remember { mutableStateOf<String?>(null) }
-    var imageUrl by remember { mutableStateOf<String?>(null) }
-    val context = LocalContext.current
-    val articles = remember {
-        HomeLogic.articles(context.assets.open("finance.json").bufferedReader().use { it.readText() })
-    }
+fun HomeScreen(services: PennyServices, navigate: (String) -> Unit, tab: PennyTab = PennyTab.HOME) {
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var identity by remember { mutableStateOf<Pair<String?, String?>>(null to null) }
+    var avatarUrl by remember { mutableStateOf<String?>(null) }
+    var plan by remember { mutableStateOf<PlanSummary?>(null) }
+    var ranked by remember { mutableStateOf<List<Pair<String, Pair<Double, Int>>>>(emptyList()) }
+    var learn by remember { mutableStateOf(services.learn.state.value) }
+    val today = remember { LocalDate.now() }
+    val month = remember { ExpenseDashboardText.initialMonth(today.monthValue) }
 
     LaunchedEffect(Unit) {
-        val (u, f) = HomeLogic.identity(services.auth.customClaims(), services.prefs.username(), services.prefs.fullName())
-        fullName = f
-        if (u != null) {
-            // _loadProfileImage now and every 50 minutes; errors keep the old URL.
-            while (true) {
-                runCatching { services.profileImages.imageUrl(u) }.onSuccess { imageUrl = it }
-                delay(HomeLogic.PROFILE_REFRESH_MINUTES * 60_000)
-            }
+        val claims = services.auth.customClaims()
+        identity = HomeLogic.identity(claims, services.prefs.username(), services.prefs.fullName())
+        avatarUrl = try {
+            services.profileImages.imageUrl(identity.first ?: "")
+        } catch (e: Exception) {
+            null
         }
+        val user = DashboardFlows.username(claims, services.prefs.username()) ?: ""
+        val api = services.expenses(user)
+        val expenses = try {
+            api.getExpenses(today.year, month)
+        } catch (e: Exception) {
+            kotlinx.serialization.json.JsonObject(emptyMap())
+        }
+        val income = try {
+            api.getIncome(today.year, month)
+        } catch (e: Exception) {
+            kotlinx.serialization.json.JsonObject(emptyMap())
+        }
+        val allocations = services.allocations.forMonth(user, today.year, month)
+        val monthData = PlanMonth(
+            income = PlanMath.income(income, today.year, month),
+            categories = PlanMath.monthCategories(expenses, today.year, month),
+            sipRecorded = Allocations.sipTotal(allocations),
+            goalAllocated = Allocations.goalTotal(allocations),
+        )
+        plan = PlanMath.summary(monthData)
+        ranked = PlanMath.rankedCategories(monthData)
+    }
+    LaunchedEffect(services.learn.state) {
+        services.learn.state.collect { learn = it }
     }
 
-    Scaffold(
-        containerColor = PennyPalette.background,
-        bottomBar = { HomeBottomBar(navigate) },
-    ) { inner ->
+    val (username, fullName) = identity
+    val initials = (fullName ?: "?").split(' ').filter { it.isNotBlank() }
+        .take(2).joinToString("") { it.first().uppercase() }
+
+    Column(Modifier.fillMaxSize().tag("home-page")) {
         Column(
-            Modifier.fillMaxSize().padding(inner).verticalScroll(rememberScrollState()).padding(16.dp)
-                .testTag("home-page"),
+            Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp)
+                .padding(top = 5.dp, bottom = 24.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    HomeLogic.greeting(fullName),
-                    Modifier.weight(1f).testTag("home-greeting"),
-                    fontSize = 34.sp, fontWeight = FontWeight.Medium, color = PennyPalette.text,
-                    lineHeight = 40.sp, maxLines = 2, overflow = TextOverflow.Ellipsis,
-                )
-                Avatar(imageUrl)
-            }
-            Spacer(Modifier.height(15.dp))
-            HomeLogic.TILES.chunked(2).forEachIndexed { row, pair ->
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    pair.forEachIndexed { col, tile ->
-                        val index = row * 2 + col
-                        GridTile(index, tile, Modifier.weight(1f)) { navigate(tile.route) }
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
-            }
-            Spacer(Modifier.height(12.dp))
-            Text("Finance News", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = PennyPalette.text,
-                modifier = Modifier.testTag("home-news-title"))
-            Spacer(Modifier.height(8.dp))
-            val pager = rememberPagerState { HomeLogic.NEWS_PAGES }
-            val uri = LocalUriHandler.current
-            HorizontalPager(pager, Modifier.fillMaxWidth().height(260.dp).testTag("home-news-pager")) { page ->
-                val card = HomeLogic.newsCard(articles, page)
-                if (card != null) {
-                    NewsCardView(page, card) { card.url?.let { runCatching { uri.openUri(it) } } }
-                }
-            }
-            Spacer(Modifier.height(12.dp))
-            Row(Modifier.fillMaxWidth().testTag("home-news-dots"), horizontalArrangement = Arrangement.Center) {
-                repeat(HomeLogic.NEWS_PAGES) { i ->
-                    Box(
-                        Modifier.padding(horizontal = 3.dp).size(5.dp).background(
-                            if (pager.currentPage == i) PennyPalette.button else PennyPalette.card, CircleShape,
-                        ),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun Avatar(url: String?) {
-    if (url != null) {
-        SubcomposeAsyncImage(
-            model = url, contentDescription = "Profile picture",
-            modifier = Modifier.size(60.dp).clip(CircleShape).testTag("home-avatar-image"),
-            contentScale = ContentScale.Crop,
-            loading = { CircularProgressIndicator() },
-            error = { Icon(Icons.Filled.Error, null) },
-        )
-    } else {
-        Box(
-            Modifier.size(60.dp).background(PennyPalette.button, CircleShape).testTag("home-avatar-default"),
-            contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Filled.Person, null, tint = PennyPalette.background, modifier = Modifier.size(30.dp)) }
-    }
-}
-
-@Composable
-private fun GridTile(index: Int, tile: HomeLogic.Tile, modifier: Modifier, onClick: () -> Unit) {
-    Card(
-        modifier.aspectRatio(1f).clickable(onClick = onClick).testTag("home-tile-$index"),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = PennyPalette.card),
-        elevation = CardDefaults.cardElevation(10.dp),
-    ) {
-        Column(Modifier.fillMaxSize().padding(10.dp)) {
-            Text(tile.title, fontSize = 28.sp, fontWeight = FontWeight.SemiBold, color = PennyPalette.text,
-                lineHeight = 30.sp)
-            if (index == 0) {
-                Row(
-                    Modifier.fillMaxWidth().weight(1f),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(HomeLogic.COURSE_PROGRESS_LABEL, fontSize = 28.sp, fontWeight = FontWeight.SemiBold,
-                        color = PennyPalette.text, modifier = Modifier.testTag("home-course-progress"))
-                    Box(contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(
-                            progress = { HomeLogic.COURSE_PROGRESS },
-                            modifier = Modifier.size(80.dp),
-                            color = PennyPalette.button, trackColor = Color.Transparent,
-                        )
-                        Image(painterResource(TILE_IMAGES[index]), null, tileImageModifier(index))
-                    }
-                }
+            HomeHeader(
+                hello = HomeLogic.hello(fullName, LocalTime.now().hour),
+                sub = "${PlanMath.monthLabel(today.year, month)} · SIP goal recorded",
+                avatarUrl = avatarUrl,
+                initials = initials,
+                onAi = { navigate("ai") },
+                onProfile = { navigate("/profilesettings") },
+            )
+            val summary = plan
+            if (summary == null) {
+                HomeSkeleton()
+            } else if (PlanMath.isEmpty(summary)) {
+                FirstRun(navigate)
             } else {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
-                    Image(painterResource(TILE_IMAGES[index]), null, tileImageModifier(index))
+                HomeHero(summary)
+                SectionHead("Top Spending") {
+                    TextLink("See all →", { navigate("/budget") }, tag = "home-see-all")
                 }
+                CardBox(tag = "home-top-spending") {
+                    Column {
+                        ranked.take(3).forEachIndexed { i, (category, total) ->
+                            SpendRow(
+                                name = category,
+                                meta = "${Inr.share1(total.first, summary.spent)} of spend · ${total.second} items",
+                                amount = Inr.spent(total.first),
+                                dot = dotOf(category),
+                                miniTrack = total.first / summary.spent,
+                                tag = "home-spend-$i",
+                            )
+                        }
+                    }
+                }
+                ContinueLearning(learn, navigate)
             }
         }
-    }
-}
-
-@Composable
-private fun NewsCardView(page: Int, card: com.penny.app.core.NewsCard, onClick: () -> Unit) {
-    Card(
-        Modifier.fillMaxSize().padding(horizontal = 4.dp).clickable(onClick = onClick).testTag("news-card-$page"),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = PennyPalette.button),
-        elevation = CardDefaults.cardElevation(1.5.dp),
-    ) {
-        SubcomposeAsyncImage(
-            model = card.imageUrl, contentDescription = null,
-            modifier = Modifier.fillMaxWidth().height(160.dp)
-                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)),
-            contentScale = ContentScale.Crop,
-            error = {
-                Box(Modifier.fillMaxWidth().height(150.dp).background(PennyPalette.button), Alignment.Center) {
-                    Icon(Icons.Filled.Error, null)
-                }
-            },
-        )
-        Column(Modifier.padding(8.dp)) {
-            Text(card.title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = PennyPalette.background,
-                maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.testTag("news-title-$page"))
-            Spacer(Modifier.height(4.dp))
-            Text(card.description, fontSize = 12.sp, color = PennyPalette.background, overflow = TextOverflow.Clip)
+        val summary = plan
+        if (summary != null && !PlanMath.isEmpty(summary)) {
+            Dock(
+                "Log Expense" to { navigate("/budget?add=true") },
+                "50/30/20 Plan" to { navigate("/budget?tab=plan") },
+            )
         }
+        BottomNavBar(tab, { tabSelected -> navigate(tabRoute(tabSelected)) })
     }
 }
 
+/** Tabs route home via the root (AuthWrapper shows Home when signed in). */
+fun tabRoute(tab: PennyTab): String = when (tab) {
+    PennyTab.HOME -> "/home"
+    PennyTab.BUDGET -> "/budget"
+    PennyTab.LEARN -> "/learn"
+    PennyTab.PROFILE -> "/profilesettings"
+}
+
 @Composable
-private fun HomeBottomBar(navigate: (String) -> Unit) {
+private fun HomeHeader(
+    hello: String,
+    sub: String,
+    avatarUrl: String?,
+    initials: String,
+    onAi: () -> Unit,
+    onProfile: () -> Unit,
+) {
     Row(
-        Modifier.fillMaxWidth().padding(bottom = 14.dp).testTag("home-bottom-bar"),
-        horizontalArrangement = Arrangement.SpaceAround,
+        Modifier.padding(top = 7.dp, bottom = 15.dp).tag("home-head"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        IconButton(onClick = {}, enabled = false, modifier = Modifier.testTag("home-nav-home")) {
-            Icon(Icons.Filled.Home, "Home", Modifier.size(40.dp), tint = PennyPalette.text)
+        Icon(
+            painterResource(R.drawable.title),
+            contentDescription = "Penny",
+            tint = PennyPalette.brand,
+            modifier = Modifier.size(width = 32.dp, height = 32.dp),
+        )
+        Column(Modifier.weight(1f)) {
+            Text(hello, style = PennyType.secondary, modifier = Modifier.tag("home-greeting"))
+            Text(sub, color = PennyPalette.muted, style = PennyType.meta, modifier = Modifier.padding(top = 2.dp))
         }
-        IconButton(onClick = { navigate(com.penny.app.core.AppRoutes.CHATBOT) }, modifier = Modifier.testTag("home-nav-chat")) {
-            Icon(Icons.Outlined.Chat, "Chatbot", Modifier.size(38.dp), tint = PennyPalette.text)
-        }
-        IconButton(
-            onClick = { navigate(com.penny.app.core.AppRoutes.PROFILE_SETTINGS) },
-            modifier = Modifier.testTag("home-nav-profile"),
-        ) {
-            Icon(Icons.Rounded.PersonOutline, "Profile", Modifier.size(40.dp), tint = PennyPalette.text)
+        IconBtn(Icons.Filled.AutoAwesome, "Open Penny AI", onAi, tag = "home-ai")
+        Avatar(
+            initials,
+            avatarUrl,
+            tag = if (avatarUrl != null) "home-avatar-image" else "home-avatar-default",
+            onClick = onProfile,
+        )
+    }
+}
+
+@Composable
+private fun HomeSkeleton() {
+    Skeleton(Modifier.fillMaxWidth().size(240.dp))
+}
+
+@Composable
+private fun HomeHero(summary: PlanSummary) {
+    Box(
+        Modifier
+            .tag("home-hero")
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(22.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(PennyPalette.heroInk, PennyPalette.heroShade),
+                    start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                    end = androidx.compose.ui.geometry.Offset(600f, 400f),
+                ),
+            )
+            .padding(20.dp),
+    ) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Eyebrow(
+                    "${PlanMath.monthLabel(LocalDate.now().year, ExpenseDashboardText.initialMonth(LocalDate.now().monthValue))} net cash retained",
+                    color = PennyPalette.bg.copy(alpha = 0.82f),
+                )
+                Spacer(Modifier.weight(1f))
+                Tag("${Inr.share0(summary.retained, summary.income)} of inflow", kind = TagKind.PLAIN)
+            }
+            Text(
+                Inr.signed(summary.retained),
+                color = PennyPalette.bg,
+                style = PennyType.hero.merge(MoneyStyle),
+                modifier = Modifier.padding(top = 9.dp).tag("home-hero-amount"),
+            )
+            Text(
+                "Income minus spending; not all invested",
+                color = PennyPalette.bg.copy(alpha = 0.80f),
+                style = PennyType.meta,
+                modifier = Modifier.padding(top = 3.dp),
+            )
+            Row(
+                Modifier
+                    .padding(top = 16.dp)
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(14.dp))
+                    .background(PennyPalette.bg.copy(alpha = 0.08f))
+                    .padding(vertical = 10.dp),
+            ) {
+                HeroSplit("↑ Income", Inr.signed(summary.income), Icons.Filled.TrendingUp)
+                HeroSplit("↓ Spent", Inr.spent(summary.spent), Icons.Filled.TrendingDown)
+            }
+            Track(
+                summary.spent / summary.income,
+                Modifier.padding(top = 15.dp),
+                color = PennyPalette.blush,
+            )
+            Text(
+                "${Inr.plain(summary.sipRecorded)} SIP recorded · ${Inr.plain(summary.unallocated)} remains unallocated",
+                color = PennyPalette.bg.copy(alpha = 0.80f),
+                style = TextStyle(fontSize = 11.sp, lineHeight = 16.sp),
+                modifier = Modifier.padding(top = 8.dp),
+            )
         }
     }
 }
+
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.HeroSplit(label: String, amount: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    Row(
+        Modifier.weight(1f).padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(icon, contentDescription = null, tint = PennyPalette.bg.copy(alpha = 0.82f), modifier = Modifier.size(14.dp))
+        Column {
+            Text(label, color = PennyPalette.bg.copy(alpha = 0.82f), style = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.W700))
+            Text(
+                amount,
+                color = PennyPalette.bg,
+                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.W800).merge(MoneyStyle),
+                modifier = Modifier.padding(top = 3.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ContinueLearning(
+    learn: com.penny.app.core.LearnState,
+    navigate: (String) -> Unit,
+) {
+    val unit = com.penny.app.core.FakeCourseContent.SAMPLE.keys.first()
+    val completed = LearnRules.completedCount(learn, unit)
+    val next = completed.coerceAtMost(com.penny.app.core.FakeCourseContent.SAMPLE[unit]!!.size - 1)
+    CardBox(Modifier.padding(top = 16.dp), soft = true, tag = "home-learn") {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(Modifier.weight(1f)) {
+                Eyebrow("Continue learning")
+                Text(
+                    com.penny.app.core.FakeCourseContent.SAMPLE[unit]!![next],
+                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.W800),
+                    modifier = Modifier.padding(top = 5.dp),
+                )
+                Text(
+                    "Lesson ${next + 1} of ${com.penny.app.core.LearnRules.LESSONS_PER_UNIT} · $completed complete · 🎧",
+                    color = PennyPalette.muted,
+                    style = PennyType.meta,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+            Icon(Icons.Filled.Headphones, contentDescription = null, tint = PennyPalette.brand, modifier = Modifier.size(20.dp))
+            PennyButton("Start", { navigate("lesson/$unit/$next") }, Modifier, small = true, full = false, tag = "home-learn-start")
+        }
+    }
+}
+
+// ── S03 · First run ───────────────────────────────────────────────────────
+
+@Composable
+private fun FirstRun(navigate: (String) -> Unit) {
+    CardBox(Modifier.tag("home-empty")) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+        ) {
+            Box(
+                Modifier.size(72.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(24.dp)).background(PennyPalette.soft),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.Wallet, contentDescription = null, tint = PennyPalette.brand, modifier = Modifier.size(34.dp))
+            }
+            Text("No activity yet", style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.W800), modifier = Modifier.padding(top = 16.dp))
+            Text(
+                "Add income or your first expense. Penny will calculate cashflow, categories, and your 50/30/20 plan from there.",
+                color = PennyPalette.muted,
+                style = PennyType.secondaryPlain,
+                modifier = Modifier.padding(top = 8.dp, bottom = 18.dp),
+            )
+            PennyButton("Add First Transaction", { navigate("/budget?add=true") }, tag = "home-empty-add")
+            TextLink("Add Monthly Income", { navigate("/budget?income=true") }, tag = "home-empty-income")
+        }
+    }
+    SectionHead("Your learning path is ready")
+    CardBox(soft = true, tag = "home-empty-learn") {
+        Column {
+            Eyebrow("Start with the basics")
+            Text("The 50/30/20 Rule", style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.W800), modifier = Modifier.padding(top = 5.dp))
+            Text(
+                "Lesson 1 of ${LearnRules.LESSONS_PER_UNIT} · 4 min · 🎧",
+                color = PennyPalette.muted,
+                style = PennyType.meta,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            PennyButton("Start Lesson 1", { navigate("lesson/${com.penny.app.core.FakeCourseContent.SAMPLE.keys.first()}/0") }, Modifier.padding(top = 12.dp), tag = "home-empty-lesson")
+        }
+    }
+    Notice(
+        "Empty is not an error. No fake ₹0 charts or \"315% saved\" claims appear before real data exists.",
+        Modifier.padding(top = 16.dp),
+        tag = "home-empty-notice",
+    )
+}
+
+private fun dotOf(category: String): Color = Color(BudgetCategories.COLORS[category] ?: 0xFFA35555)

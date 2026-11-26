@@ -31,6 +31,13 @@ interface UserDirectory {
 
     /** `DELETE /delete-custom-claims/{uid}` (response ignored by the app). */
     suspend fun deleteCustomClaims(uid: String)
+
+    /**
+     * v2.1 "Email or username" sign-in needs an email → username lookup the
+     * old backend never had. Default null (no such account); fakes implement
+     * it by scanning. **Needs maintainer eyes for the real stack.**
+     */
+    suspend fun usernameForEmail(email: String): String? = null
 }
 
 /** NewUser (onboarding_page.dart:15-29). */
@@ -113,6 +120,15 @@ class FakeUserDirectory(
 
     override suspend fun deleteCustomClaims(uid: String) {
         auth.deleteCustomClaims(uid)
+    }
+
+    /** v2.1 email → username (case-insensitive), by scanning the docs. */
+    override suspend fun usernameForEmail(email: String): String? {
+        val wanted = email.lowercase()
+        return docs.entries.firstOrNull { (_, doc) ->
+            val user = doc["user"] as? JsonObject
+            (user?.get("email") as? JsonPrimitive)?.takeIf { it.isString }?.content?.lowercase() == wanted
+        }?.key
     }
 
     companion object {
@@ -255,5 +271,48 @@ object AuthFlows {
         // Dart `catch (e)` catches everything (review 007): a real
         // implementation's transport error must still become the SnackBar.
         OnboardingResult.Error("An error occurred: $e")
+    }
+
+    /** v2.1 sign-up-with-profile outcomes (artboard frame 03). */
+    sealed interface SignUpResult {
+        data object Home : SignUpResult
+        data object UsernameTaken : SignUpResult
+        data object InvalidUsername : SignUpResult
+        data object Failed : SignUpResult
+    }
+
+    /**
+     * Frame 03: "Choose your username … We check availability before locking
+     * it." Availability is checked BEFORE the auth account is created, so a
+     * taken name never strands an account. Then the old onboarding submit
+     * (profile doc + claims) runs; the Onboarding screen survives only for
+     * social/OTP accounts that still need a profile.
+     */
+    suspend fun signUpWithProfile(
+        fullName: String,
+        username: String,
+        email: String,
+        password: String,
+        directory: UserDirectory,
+        auth: AuthService,
+    ): SignUpResult {
+        if (username.isBlank() || '/' in username) return SignUpResult.InvalidUsername
+        if (directory.getUser(username) != null) return SignUpResult.UsernameTaken
+        if (auth.signUp(email, password) == null) return SignUpResult.Failed
+        val first = fullName.trim().substringBefore(' ')
+        val last = fullName.trim().substringAfter(' ', "")
+        val result = submitOnboarding(NewUser(username, first, last, email, ""), directory, auth)
+        return if (result is OnboardingResult.Home) SignUpResult.Home else SignUpResult.Failed
+    }
+
+    /**
+     * Frame 01's "Email or username" field: an input containing '@' resolves
+     * through the directory; anything else is a username already. Null = no
+     * such account (the caller stays on the page, silently like Flutter).
+     */
+    suspend fun resolveLoginIdentifier(input: String, directory: UserDirectory): String? {
+        val text = input.trim()
+        if (text.isEmpty()) return null
+        return if ('@' in text) directory.usernameForEmail(text) else text
     }
 }

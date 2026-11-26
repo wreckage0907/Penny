@@ -10,6 +10,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 /**
@@ -149,10 +150,9 @@ class McqServiceContractTest {
         assertEquals(listOf("A) a", "B) b", "C) c"), q.options)
         assertEquals("b", q.answer)
         for (i in q.options.indices) {
-            assertEquals(
-                McqOptionState.NEUTRAL,
-                McqState.optionState(null, McqState.optionLetter(i).toString(), q.answer, true),
-            )
+            // The wire answer is a letter; 'b' never matches "A"+i, so
+            // nothing is ever green (same contract v1 pinned via McqState).
+            assertFalse(QuizText.isCorrect(q, i))
         }
         server.takeRequest()
     }
