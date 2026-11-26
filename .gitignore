@@ -44,3 +44,6 @@ captures/
 
 # Session-handoff plans (local working memory, not repo history)
 plan_*
+
+# Lavish review artifacts / artboards
+.lavish/
