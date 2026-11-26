@@ -56,6 +56,7 @@ class AiE2eTest {
     fun movingSavingsIntoTheEmergencyFundRequiresAnExplicitConfirmation() {
         val services = boot()
         compose.onNodeWithTag("ai-input").performTextInput("Move that into my emergency fund?")
+        compose.waitForIdle()
         compose.onNodeWithTag("ai-send").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("ai-action") }
 
@@ -63,6 +64,7 @@ class AiE2eTest {
         compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("Allocation cancelled. No budget change was made.") }
 
         compose.onNodeWithTag("ai-input").performTextInput("Move it into my emergency fund")
+        compose.waitForIdle()
         compose.onNodeWithTag("ai-send").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("ai-action") }
         compose.onNodeWithTag("ai-action-confirm").performClick()
@@ -88,6 +90,7 @@ class AiE2eTest {
         }
         boot(exploding)
         compose.onNodeWithTag("ai-input").performTextInput("Can I increase my SIP next month?")
+        compose.waitForIdle()
         compose.onNodeWithTag("ai-send").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("ai-error") }
         assertTrue(compose.onAllNodesWithTextExists("Penny couldn't answer right now.", substring = true))

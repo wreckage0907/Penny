@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -710,6 +711,46 @@ fun ConfirmModal(
                 Text(title, style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.W800))
                 body?.invoke(this)
             }
+        }
+    }
+}
+
+/**
+ * Artboard bottom sheet: a grab handle, scrim and rounded top corners.
+ * Rendered IN the screen (not a separate ModalBottomSheet window) so every
+ * target shares one semantics tree — stable on slower devices and in CI.
+ */
+@Composable
+fun PennySheet(
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    tag: String? = null,
+    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
+) {
+    Box(Modifier.fillMaxSize().tag(tag)) {
+        Box(
+            Modifier
+                .matchParentSize()
+                .background(PennyPalette.ink.copy(alpha = 0.40f))
+                .clickable(onClick = onDismiss),
+        )
+        Column(
+            modifier = modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .clip(PennyShape.sheet)
+                .background(PennyPalette.surface)
+                .padding(horizontal = 18.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                Modifier
+                    .size(width = 40.dp, height = 5.dp)
+                    .clip(PennyShape.pill)
+                    .background(PennyPalette.ink.copy(alpha = 0.18f)),
+            )
+            Spacer(Modifier.height(12.dp))
+            content()
         }
     }
 }

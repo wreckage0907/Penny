@@ -297,12 +297,8 @@ fun PennyAiScreen(services: PennyServices, navigate: (String) -> Unit) {
     }
 
     if (threadsOpen) {
-        ModalBottomSheet(
-            onDismissRequest = { threadsOpen = false },
-            shape = PennyShape.sheet,
-            containerColor = PennyPalette.surface,
-        ) {
-            Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 16.dp)) {
+        PennySheet(onDismiss = { threadsOpen = false }, tag = "ai-threads-sheet") {
+            Column(Modifier.fillMaxWidth().padding(bottom = 6.dp)) {
                 Text("Threads", style = PennyType.sheetTitle, modifier = Modifier.padding(bottom = 10.dp).testTag("ai-threads-title"))
                 PennyButton("New Thread", { newThread() }, Modifier.padding(bottom = 10.dp), tag = "ai-new-thread")
                 threads.reversed().forEach { id ->

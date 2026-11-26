@@ -94,6 +94,7 @@ class BudgetE2eTest {
 
         // The sheet's quick add books straight into the open category.
         compose.onNodeWithTag("category-quick-amount-input").performTextInput("150")
+        compose.waitForIdle() // apply the typed value before any click reads it
         compose.onNodeWithTag("category-quick-add").performScrollTo().performClick()
         compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("Expense saved · Undo") }
         // …and undo takes it right back out.
@@ -132,11 +133,13 @@ class BudgetE2eTest {
         compose.onNodeWithTag("quicklog-submit").performClick()
         compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("Amount is required.") }
         compose.onNodeWithTag("quicklog-amount-input").performTextInput("999")
+        compose.waitForIdle() // apply the typed value before any click reads it
         compose.onNodeWithTag("quicklog-submit").performClick()
         compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("Choose a category.") }
 
         compose.onNodeWithTag("quicklog-cat-0").performClick() // Food & Dining
         compose.onNodeWithTag("quicklog-merchant-input").performTextInput("Test Kettle")
+        compose.waitForIdle() // apply the typed value before any click reads it
         compose.onNodeWithTag("quicklog-submit").performClick()
         compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("Expense saved · Undo") }
         compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("₹32,449") } // 31,450 + 999

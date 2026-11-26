@@ -293,12 +293,8 @@ private fun ChangePasswordSheet(services: PennyServices, onDismiss: () -> Unit) 
     var error by remember { mutableStateOf<String?>(null) }
     var done by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    androidx.compose.material3.ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        shape = PennyShape.sheet,
-        containerColor = PennyPalette.surface,
-    ) {
-        Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 16.dp).tag("pw-sheet")) {
+    PennySheet(onDismiss = onDismiss, tag = "pw-sheet") {
+        Column(Modifier.fillMaxWidth().padding(bottom = 6.dp)) {
             Text("Change Password", style = PennyType.sheetTitle)
             Field("Current password", current, { current = it; error = null }, password = true, tag = "pw-current")
             Field("New password", new, { new = it; error = null }, password = true, hint = "Use at least 6 characters.", tag = "pw-new")

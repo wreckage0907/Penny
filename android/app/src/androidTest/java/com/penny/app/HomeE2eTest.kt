@@ -65,9 +65,13 @@ class HomeE2eTest {
         // Sign up a brand-new user with an empty month.
         compose.onNodeWithTag("login-signup-link").performClick()
         compose.onNodeWithTag("signup-name-input").performTextInput("Empty User")
+        compose.waitForIdle()
         compose.onNodeWithTag("signup-username-input").performTextInput("empty")
+        compose.waitForIdle()
         compose.onNodeWithTag("signup-email-input").performTextInput("empty@penny.app")
+        compose.waitForIdle()
         compose.onNodeWithTag("signup-password-input").performTextInput("secret1")
+        compose.waitForIdle()
         compose.onNodeWithTag("signup-submit").performScrollTo().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-empty") }
 

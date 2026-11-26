@@ -29,7 +29,9 @@ class AuthE2eTest {
         compose.setContent { PennyApp(services) }
 
         compose.onNodeWithTag("login-id-input").performTextInput("demo")
+        compose.waitForIdle()
         compose.onNodeWithTag("login-password-input").performTextInput("nope42")
+        compose.waitForIdle()
         compose.onNodeWithTag("login-submit").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("Could not sign in", substring = true) }
         compose.onNodeWithTag("login-error").assertIsDisplayed()
@@ -44,9 +46,13 @@ class AuthE2eTest {
         compose.onNodeWithTag("login-signup-link").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("signup-page") }
         compose.onNodeWithTag("signup-name-input").performTextInput("New Bie")
+        compose.waitForIdle()
         compose.onNodeWithTag("signup-username-input").performTextInput("newbie")
+        compose.waitForIdle()
         compose.onNodeWithTag("signup-email-input").performTextInput("new@bie.io")
+        compose.waitForIdle()
         compose.onNodeWithTag("signup-password-input").performTextInput("secret1")
+        compose.waitForIdle()
         compose.onNodeWithTag("signup-submit").performScrollTo().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
         assertTrue(compose.onAllNodesWithTextExists(", New", substring = true))
@@ -61,9 +67,13 @@ class AuthE2eTest {
         compose.onNodeWithTag("login-signup-link").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("signup-page") }
         compose.onNodeWithTag("signup-name-input").performTextInput("Demo Two")
+        compose.waitForIdle()
         compose.onNodeWithTag("signup-username-input").performTextInput("demo")
+        compose.waitForIdle()
         compose.onNodeWithTag("signup-email-input").performTextInput("d2@penny.app")
+        compose.waitForIdle()
         compose.onNodeWithTag("signup-password-input").performTextInput("secret1")
+        compose.waitForIdle()
         compose.onNodeWithTag("signup-submit").performScrollTo().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("That username is already taken", substring = true) }
         // Still on the sign-up page, no auth account was created.
@@ -78,15 +88,21 @@ class AuthE2eTest {
 
         compose.onNodeWithTag("social-phone-otp").performClick()
         compose.onNodeWithTag("phone-input-input").performTextInput("1 555 0100")
+        compose.waitForIdle()
         compose.onNodeWithTag("phone-submit").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("code-dialog") }
         compose.onNodeWithTag("code-input-input").performTextInput(com.penny.app.core.FakeAuthService.FAKE_SMS_CODE)
+        compose.waitForIdle()
         compose.onNodeWithTag("code-submit").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("onboarding-page") }
         compose.onNodeWithTag("onb-username-input").performTextInput("phonie")
+        compose.waitForIdle()
         compose.onNodeWithTag("onb-first-input").performTextInput("Phone")
+        compose.waitForIdle()
         compose.onNodeWithTag("onb-last-input").performTextInput("User")
+        compose.waitForIdle()
         compose.onNodeWithTag("onb-email-input").performTextInput("phone@penny.app")
+        compose.waitForIdle()
         compose.onNodeWithTag("onb-submit").performScrollTo().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
         runBlocking { assertEquals("phonie", services.prefs.username()) }

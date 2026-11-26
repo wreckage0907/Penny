@@ -56,13 +56,17 @@ class ProfileE2eTest {
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("pw-sheet") }
 
         compose.onNodeWithTag("pw-current-input").performTextInput("penny123")
+        compose.waitForIdle()
         compose.onNodeWithTag("pw-new-input").performTextInput("newpass1")
+        compose.waitForIdle()
         compose.onNodeWithTag("pw-confirm-input").performTextInput("newpass2")
+        compose.waitForIdle()
         compose.onNodeWithTag("pw-change").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("New passwords do not match") }
 
         compose.onNodeWithTag("pw-confirm-input").performTextClearance()
         compose.onNodeWithTag("pw-confirm-input").performTextInput("newpass1")
+        compose.waitForIdle()
         compose.onNodeWithTag("pw-change").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("Password changed successfully", substring = true) }
         runBlocking { assertTrue(services.auth.login("demo@penny.app", "newpass1") != null) }
@@ -87,6 +91,7 @@ class ProfileE2eTest {
         compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("Demo User") }
         compose.onNodeWithTag("edit-name-input").performTextClearance()
         compose.onNodeWithTag("edit-name-input").performTextInput("Demo User Jr.")
+        compose.waitForIdle()
         assertTrue(compose.onAllNodesWithTextExists("Unsaved changes"))
         compose.onNodeWithTag("back").performClick() // the guard opens, nothing is lost silently
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("unsaved-modal") }
@@ -124,11 +129,13 @@ class ProfileE2eTest {
         assertTrue(compose.onAllNodesWithTextExists("Course progress, streaks, badges, and 240 coins", substring = true))
 
         compose.onNodeWithTag("delete-password-input").performTextInput("wrongpass")
+        compose.waitForIdle()
         compose.onNodeWithTag("delete-account-confirm").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("That password doesn't match. Try again.") }
 
         compose.onNodeWithTag("delete-password-input").performTextClearance()
         compose.onNodeWithTag("delete-password-input").performTextInput("penny123")
+        compose.waitForIdle()
         compose.onNodeWithTag("delete-account-confirm").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("login-page") }
         runBlocking {

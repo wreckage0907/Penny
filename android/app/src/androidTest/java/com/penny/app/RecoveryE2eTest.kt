@@ -31,12 +31,15 @@ class RecoveryE2eTest {
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("recovery-page") }
 
         compose.onNodeWithTag("recovery-email-input").performTextInput("demo@penny.app")
+        compose.waitForIdle()
         compose.onNodeWithTag("recovery-send").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("recovery-code") }
 
         // The seeded 824109 is expired — frame 02's state.
         compose.onNodeWithTag("recovery-code-input").performTextInput("824109")
+        compose.waitForIdle()
         compose.onNodeWithTag("recovery-password-input").performTextInput("newpassword")
+        compose.waitForIdle()
         compose.onNodeWithTag("recovery-submit").performScrollTo().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("This code expired. Request a new code, then try again.") }
 
@@ -44,6 +47,7 @@ class RecoveryE2eTest {
         compose.onNodeWithTag("recovery-resend").performClick()
         compose.onNodeWithTag("recovery-code-input").performTextClearance()
         compose.onNodeWithTag("recovery-code-input").performTextInput("123456")
+        compose.waitForIdle()
         compose.onNodeWithTag("recovery-submit").performScrollTo().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("recovery-done") }
         assertTrue(compose.onAllNodesWithTextExists("Password saved. Return to Sign In — existing sessions were signed out.", substring = true))
@@ -53,11 +57,14 @@ class RecoveryE2eTest {
 
         // The old password is dead; the new one signs in.
         compose.onNodeWithTag("login-id-input").performTextInput("demo@penny.app")
+        compose.waitForIdle()
         compose.onNodeWithTag("login-password-input").performTextInput("penny123")
+        compose.waitForIdle()
         compose.onNodeWithTag("login-submit").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("Could not sign in", substring = true) }
         compose.onNodeWithTag("login-password-input").performTextClearance()
         compose.onNodeWithTag("login-password-input").performTextInput("newpassword")
+        compose.waitForIdle()
         compose.onNodeWithTag("login-submit").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
     }
@@ -70,6 +77,7 @@ class RecoveryE2eTest {
         compose.onNodeWithTag("login-forgot").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("recovery-page") }
         compose.onNodeWithTag("recovery-email-input").performTextInput("who@penny.app")
+        compose.waitForIdle()
         compose.onNodeWithTag("recovery-send").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("We couldn't find that account.", substring = true) }
         assertNull(services.auth.state.value as? com.penny.app.core.AuthState.SignedIn)

@@ -319,10 +319,10 @@ fun BudgetScreen(
                 onAction = undo?.let { action -> { scope.launch { action(); reload() } } },
                 tag = "budget-toast",
             )
-            LaunchedEffect(message) {
-                kotlinx.coroutines.delay(5000)
-                if (toast?.first == message) toast = null
-            }
+            // No timer: the artboard keeps "Transaction deleted · Undo"
+            // visible until the change is permanently committed. The next
+            // toast replaces this one; a timed dismissal races the UI on
+            // slower devices and hides the Undo affordance.
         }
     }
 }
@@ -736,13 +736,7 @@ private fun QuickLogSheet(
     var categoryError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        shape = PennyShape.sheet,
-        containerColor = PennyPalette.surface,
-        scrimColor = PennyPalette.ink.copy(alpha = 0.40f),
-        modifier = Modifier.testTag("quicklog-sheet"),
-    ) {
+    PennySheet(onDismiss = onDismiss, tag = "quicklog-sheet") {
         Column(
             Modifier
                 .fillMaxWidth()
@@ -922,13 +916,7 @@ private fun CategorySheet(
         monthSpend = ExpenseAggregation.categoryTotals(categories).sumOf { it.second }
     }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        shape = PennyShape.sheet,
-        containerColor = PennyPalette.surface,
-        scrimColor = PennyPalette.ink.copy(alpha = 0.40f),
-        modifier = Modifier.testTag("category-sheet"),
-    ) {
+    PennySheet(onDismiss = onDismiss, tag = "category-sheet") {
         Column(
             Modifier
                 .fillMaxWidth()
@@ -1076,13 +1064,7 @@ private fun DeleteTransactionModal(row: TxRow, monthLabel: String, onCancel: () 
 private fun IncomeSheet(year: Int, month: String, onDismiss: () -> Unit, onSave: (Double) -> Unit) {
     var amount by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        shape = PennyShape.sheet,
-        containerColor = PennyPalette.surface,
-        scrimColor = PennyPalette.ink.copy(alpha = 0.40f),
-        modifier = Modifier.testTag("income-sheet"),
-    ) {
+    PennySheet(onDismiss = onDismiss, tag = "income-sheet") {
         Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp).padding(bottom = 16.dp)) {
             Text("Add Monthly Income", style = PennyType.sheetTitle, modifier = Modifier.tag("income-title"))
             Text(
