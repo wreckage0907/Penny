@@ -29,7 +29,9 @@ class BudgetE2eTest {
 
     private fun boot() = PennyServices.fakes(signedIn = true, today = today).also { services ->
         compose.setContent { BudgetScreen(services, navigate = {}, today = today) }
-        compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("₹31,450") }
+        // 10s windows: the undo toasts live ~5s and a loaded CI runner can
+        // take several seconds between frames — same conditions, more patience.
+        compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("₹31,450") }
     }
 
     @Test
@@ -54,7 +56,7 @@ class BudgetE2eTest {
     fun thePlanTabShowsTargetsRemaindersAndTheCorrectedSip() {
         boot()
         compose.onNodeWithTag("budget-tab-plan").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("plan-needs") }
+        compose.waitUntil(10_000) { compose.onAllNodesWithTagExists("plan-needs") }
 
         compose.onNodeWithTag("plan-needs-actual").assertTextEquals("−₹23,800")
         assertTrue(compose.onAllNodesWithTextExists("₹42,500 target"))
@@ -81,7 +83,7 @@ class BudgetE2eTest {
     fun theCategorySheetListsTransactionsWithTheirMetadataAndQuickAdds() {
         val services = boot()
         compose.onNodeWithTag("budget-category-0").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("category-sheet") }
+        compose.waitUntil(10_000) { compose.onAllNodesWithTagExists("category-sheet") }
 
         compose.onNodeWithTag("category-title").assertTextEquals("Food & Dining")
         compose.onNodeWithTag("category-tx-0").assertIsDisplayed()
@@ -93,10 +95,10 @@ class BudgetE2eTest {
         // The sheet's quick add books straight into the open category.
         compose.onNodeWithTag("category-quick-amount-input").performTextInput("150")
         compose.onNodeWithTag("category-quick-add").performScrollTo().performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("Expense saved · Undo") }
+        compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("Expense saved · Undo") }
         // …and undo takes it right back out.
         compose.onNodeWithTag("budget-toast-action").performClick()
-        compose.waitUntil(5_000) { !compose.onAllNodesWithTextExists("−₹11,350") }
+        compose.waitUntil(10_000) { !compose.onAllNodesWithTextExists("−₹11,350") }
         assertTrue(compose.onAllNodesWithTextExists("−₹11,200"))
     }
 
@@ -104,51 +106,51 @@ class BudgetE2eTest {
     fun deletingAsksFirstAndUndoes() {
         boot()
         compose.onNodeWithTag("budget-category-0").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("category-sheet") }
+        compose.waitUntil(10_000) { compose.onAllNodesWithTagExists("category-sheet") }
 
         compose.onNodeWithTag("category-delete-1").performClick() // Swiggy Family Dinner
         compose.onNodeWithTag("delete-tx-modal").assertIsDisplayed()
         assertTrue(compose.onAllNodesWithTextExists("Swiggy Family Dinner"))
         assertTrue(compose.onAllNodesWithTextExists("This updates Food & Dining, monthly totals, insights, and future AI answers."))
         compose.onNodeWithTag("delete-tx-cancel").performClick()
-        compose.waitUntil(5_000) { !compose.onAllNodesWithTagExists("delete-tx-modal") }
+        compose.waitUntil(10_000) { !compose.onAllNodesWithTagExists("delete-tx-modal") }
 
         compose.onNodeWithTag("category-delete-1").performClick()
         compose.onNodeWithTag("delete-tx-confirm").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("Transaction deleted · Undo") }
+        compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("Transaction deleted · Undo") }
         compose.onNodeWithTag("budget-toast-action").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("Swiggy Family Dinner") }
+        compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("Swiggy Family Dinner") }
     }
 
     @Test
     fun quickLogValidatesBothRequiredFieldsThenSavesWithUndo() {
         val services = boot()
         compose.onNodeWithTag("dock-0").performClick() // Add Expense
-        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("quicklog-sheet") }
+        compose.waitUntil(10_000) { compose.onAllNodesWithTagExists("quicklog-sheet") }
 
         // Empty submit points at the amount, then the category.
         compose.onNodeWithTag("quicklog-submit").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("Amount is required.") }
+        compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("Amount is required.") }
         compose.onNodeWithTag("quicklog-amount-input").performTextInput("999")
         compose.onNodeWithTag("quicklog-submit").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("Choose a category.") }
+        compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("Choose a category.") }
 
         compose.onNodeWithTag("quicklog-cat-0").performClick() // Food & Dining
         compose.onNodeWithTag("quicklog-merchant-input").performTextInput("Test Kettle")
         compose.onNodeWithTag("quicklog-submit").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("Expense saved · Undo") }
-        compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("₹32,449") } // 31,450 + 999
+        compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("Expense saved · Undo") }
+        compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("₹32,449") } // 31,450 + 999
 
         compose.onNodeWithTag("budget-toast-action").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("₹31,450") }
+        compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("₹31,450") }
     }
 
     @Test
     fun monthSteppingCrossesMonthsAndEmptyMonthsTellTheTruth() {
         boot()
         compose.onNodeWithTag("budget-prev").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("Nothing logged for Oct 2026") }
+        compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("Nothing logged for Oct 2026") }
         compose.onNodeWithTag("budget-next").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("₹31,450") }
+        compose.waitUntil(10_000) { compose.onAllNodesWithTextExists("₹31,450") }
     }
 }
