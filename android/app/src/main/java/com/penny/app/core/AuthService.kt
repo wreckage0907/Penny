@@ -52,6 +52,30 @@ interface AuthService {
 
     /** `user.delete()` (profile_settings.dart:155): removes the account, signs out. */
     suspend fun deleteCurrentUser()
+
+    /**
+     * v2.1 account recovery (artboard frame 02). Requests a reset code for
+     * the email; false = no such account. New behaviour — the Flutter app
+     * had no recovery flow at all.
+     */
+    suspend fun requestPasswordReset(email: String): Boolean
+
+    /** Verify the code, set the new password, and sign out existing sessions. */
+    suspend fun completePasswordReset(email: String, code: String, newPassword: String): ResetResult
+
+    /**
+     * v2.1 (S02): reconfirm the password before a destructive action
+     * (Firebase's reauthenticateWithCredential). False = wrong password.
+     */
+    suspend fun reauthenticate(email: String, password: String): Boolean
+}
+
+/** Outcome of [AuthService.completePasswordReset]. */
+sealed interface ResetResult {
+    data object Success : ResetResult
+    data object InvalidCode : ResetResult
+    data object ExpiredCode : ResetResult
+    data object WeakPassword : ResetResult
 }
 
 /** A Firebase/Dart error whose `toString()` the pages show verbatim. */
@@ -79,6 +103,8 @@ data class SocialSignIn(
 class FakeAuthService(
     seedAccounts: Map<String, String> = emptyMap(),
     signedInAs: String? = null,
+    /** Injectable clock so the recovery TTL is deterministic in tests. */
+    private val nowMs: () -> Long = { System.currentTimeMillis() },
 ) : AuthService {
     private val passwords = linkedMapOf<String, String>()
     private val users = linkedMapOf<String, PennyUser>()
@@ -200,6 +226,52 @@ class FakeAuthService(
         return user
     }
 
+    /**
+     * One pending reset per email. Requesting again supersedes the previous
+     * code: an older code (seeded or requested) then reads EXPIRED, matching
+     * frame 02's recoverable state, while the newest stays valid for the TTL.
+     */
+    private data class PendingReset(val code: String, val expiresAt: Long, val superseded: Boolean = false)
+    private val pendingResets = linkedMapOf<String, MutableList<PendingReset>>()
+
+    override suspend fun requestPasswordReset(email: String): Boolean {
+        if (!users.containsKey(email.lowercase())) return false
+        val key = email.lowercase()
+        val list = pendingResets.getOrPut(key) { mutableListOf() }
+        list.forEachIndexed { i, r -> list[i] = r.copy(superseded = true) }
+        list.add(PendingReset(RESET_CODE, nowMs() + RESET_TTL_MS))
+        return true
+    }
+
+    override suspend fun completePasswordReset(email: String, code: String, newPassword: String): ResetResult {
+        val key = email.lowercase()
+        val list = pendingResets[key] ?: return ResetResult.InvalidCode
+        // The newest matching entry is authoritative; older ones are dead.
+        // Dead codes keep answering "expired" (consistent copy); only a
+        // successful reset consumes the list.
+        val hit = list.indexOfLast { it.code == code }
+        if (hit < 0) return ResetResult.InvalidCode
+        val pending = list[hit]
+        if (pending.superseded || nowMs() >= pending.expiresAt) {
+            return ResetResult.ExpiredCode
+        }
+        if (newPassword.length < MIN_PASSWORD) return ResetResult.WeakPassword
+        passwords[key] = newPassword
+        pendingResets.remove(key)
+        _state.value = AuthState.SignedOut
+        return ResetResult.Success
+    }
+
+    /** Seed an already-expired code (the artboard's frame-02 expired state). */
+    fun seedExpiredReset(email: String, code: String) {
+        pendingResets.getOrPut(email.lowercase()) { mutableListOf() }
+            .add(PendingReset(code, nowMs() - 1))
+    }
+
+    /** v2.1 (S02): the stored password must match; phone accounts have none. */
+    override suspend fun reauthenticate(email: String, password: String): Boolean =
+        email.isNotEmpty() && passwords[email.lowercase()] == password
+
     companion object {
         /** Firebase's minimum password length (`weak-password` below it). */
         const val MIN_PASSWORD = 6
@@ -222,6 +294,11 @@ class FakeAuthService(
 
         const val DEMO_EMAIL = "demo@penny.app"
         const val DEMO_PASSWORD = "penny123"
+
+        /** v2.1 recovery: the code a fresh request issues, and its TTL. */
+        const val RESET_CODE = "123456"
+        const val EXPIRED_DEMO_CODE = "824109"
+        const val RESET_TTL_MS = 10 * 60 * 1000L
 
         /** What the app ships with until a real auth stack is chosen. */
         fun demo(): FakeAuthService = FakeAuthService(mapOf(DEMO_EMAIL to DEMO_PASSWORD))

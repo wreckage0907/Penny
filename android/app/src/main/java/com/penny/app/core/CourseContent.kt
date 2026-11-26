@@ -37,6 +37,12 @@ class FakeCourseContent(
 
     override suspend fun file(subfolder: String, fileName: String): JsonObject {
         val lessons = modules[subfolder] ?: throw CourseContentException("500")
+        // v2.1: the Learn path asks for the unit's lesson titles in one call.
+        if (fileName == "titles") {
+            return JsonObject(
+                mapOf("titles" to JsonArray(lessons.map { JsonPrimitive(it) })),
+            )
+        }
         val prefix = subfolder.split('_')[0]
         val index = fileName.removePrefix("${prefix}_").toIntOrNull()?.minus(1)
         val title = index?.let { lessons.getOrNull(it) } ?: throw CourseContentException("500")
@@ -153,7 +159,7 @@ object LearningPath {
 
 /** Text-to-speech seam (flutter_tts). Android implementation lives in the UI layer. */
 interface Speech {
-    suspend fun speak(text: String, language: String, pitch: Float)
+    suspend fun speak(text: String, language: String, pitch: Float, rate: Double = 1.0)
     suspend fun stop()
     fun setOnComplete(onComplete: () -> Unit)
 
@@ -169,5 +175,21 @@ interface Speech {
 object LessonSpeech {
     const val LANGUAGE = "en-US"
     const val PITCH = 0.8f
+
+    /** v2.1 narration speeds (frame 10's 1.0× button). */
+    val RATES = listOf(0.8, 1.0, 1.2, 1.5)
+    const val DEFAULT_RATE_INDEX = 1
+
     fun spokenText(markdown: String): String = LessonText.cleanMarkdownText(markdown)
+}
+
+/** v2.1: lesson titles for the Learn path (frame 09's stop cards). */
+suspend fun CourseContent.lessonTitles(subfolder: String): List<String> {
+    val response = try {
+        file(subfolder, "titles")
+    } catch (e: Exception) {
+        return emptyList()
+    }
+    val titles = (response["titles"] as? kotlinx.serialization.json.JsonArray) ?: return emptyList()
+    return titles.mapNotNull { (it as? kotlinx.serialization.json.JsonPrimitive)?.takeIf { p -> p.isString }?.content }
 }

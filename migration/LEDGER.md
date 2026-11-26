@@ -3,6 +3,70 @@
 Status of the Flutter → native Kotlin port. Update after every chunk.
 Statuses: `not started` → `in progress` → `ported (tests green)` → `verified (e2e + visual)` → `merged`.
 
+## v2.1 redesign (2026-11-26) — SUPERSEDES selected parity surfaces
+
+The maintainer approved implementing the v2.1 artboard
+(`.lavish/penny-v21-artboard.html`: 15 core screens + 6 state screens,
+"implement fully") as a deliberate redesign of the Flutter-parity app.
+Parity remains the reference for everything NOT touched below; the
+redesign's divergences are explicit decisions recorded here.
+
+**Retired quirks (behaviour changes, each tested in its new form):**
+- Int-income TypeError wipe: income extraction is lenient (`PlanMath.income`);
+  an int `0` month is simply income 0. The fake still emits int 0
+  (`FakeExpenseBackendTest` keeps that wire contract pinned).
+- `\$x.toStringAsFixed(2)` money labels → `Inr` (en-IN grouping, explicit
+  +/− U+2212, tabular figures, lakh short forms).
+- Delete-account-with-picture failure (012's mimicked storage quirk) →
+  deletion completes as designed; `ProfileFlowsTest` updated accordingly.
+- Four-toast save celebration + delete-picture-after-save quirk → one
+  "Profile saved." banner; photo removal staged and reversible (S05 guard).
+- Silent login failure → inline "Could not sign in." error.
+- "Chapter 1" hard-coded quiz title + reveal-only MCQ (no scoring) →
+  scored boss quiz (5 of the fake's 10 questions), saved/resumed sessions,
+  +15/correct settled once, 4/5 badge, results screen.
+- GitHub social button dropped (v2.1 IA: Google + Phone OTP).
+- Home news carousel + 2×2 tiles dropped by the v2.1 IA (finance.json
+  stays bundled; `HomeLogicTest` still pins the parser).
+- Analysis screen + 5-year/4-type projection superseded by the Budget →
+  50/30/20 Plan tab with the corrected 10-year SIP illustration
+  (`SipIllustration`: beginning-of-month, 7% ₹29.6L / 10% ₹35.1L /
+  12% ₹39.5L).
+
+**Deleted (superseded, with their tests):** `ui/ExpenseTrackerScreen.kt`,
+`ui/AnalysisTab.kt`, `AnalysisScreen.kt`, `ui/ChatbotScreen.kt`,
+`ui/CourseScreens.kt`, `ui/PracticeScreens.kt`, `core/AnalysisLogic.kt`,
+`core/InvestmentProjection.kt`, `core/McqState.kt` (+ `AnalysisLogicTest`,
+`InvestmentProjectionTest`, `McqStateTest`, and six e2e classes replaced by
+the v2.1 suites). `AndroidSpeech` moved to `ui/LearnScreens.kt`.
+`DashboardFlows`, `ExpenseAggregation`, `Money`, `HomeLogic`, `LessonText`
+survive (still used / still tested).
+
+**Artboard deviations (v2.1 is self-inconsistent there):**
+- Lesson reward is a flat +25 ◈ (frame 09 shows two completed lessons at
+  +25; frame 10's single "+30 ◈" outlier not adopted).
+- No seek slider in the lesson audio bar — Android TTS exposes no reliable
+  position; the bar offers real play/stop + 0.8×–1.5× speeds instead.
+- Rewards vault previews only, matching the artboard's own "No instant
+  redemption" hint.
+
+**New seams a real backend must fill (fakes ship today; ASK-FIRST when
+implementing for real):**
+- `TransactionMeta` (per-tx day · subcategory · payment) — backend has no
+  columns for these; screens degrade gracefully without it.
+- `AllocationStore` (recorded SIP / goal allocations) — the 20% "Actual SIP"
+  tab and unallocated math need a store.
+- `LearnStore` (progress, coins, streak, badges, saved quiz sessions).
+- `AuthService.requestPasswordReset/completePasswordReset/reauthenticate`
+  and `UserDirectory.usernameForEmail` (email-or-username login) — new
+  backend capabilities the v2.1 flows assume.
+- `Connectivity` (S04 offline state) + the `com.penny.app.SET_OFFLINE`
+  broadcast lever in MainActivity used by the e2e suite.
+- `ChatModel.reply(question, AiContext)` now grounds replies in the
+  month's numbers and can emit `Proposal` events (confirm-before-acting);
+  the provider decision is still pending (015).
+
+
 ## Feature parity
 
 | Feature | Flutter source (`mobile/lib/`) | Native status | Chunk / PR | Notes |
@@ -624,3 +688,42 @@ implementation.
 - Tests: JVM 209 (+ChatLogicTest 4); e2e 48/48 (+StockE2eTest 1; ChatbotE2eTest 3: streamed
   markdown reply, numbered chats keep separate history, empty input + bottom
   bar). Screenshot `migration/shots/slice015-chat.png`.
+
+### 016 — v2.1 Warm Terracotta redesign (artboard → app)
+
+Source of truth: `.lavish/penny-v21-artboard.html` (gitignored Lavish
+artboard; frame numbers cited below). One branch, maintainer-approved full
+redesign: 15 core screens + the 6-screen state library.
+
+- Design system: `PennyTheme` (Warm Terracotta tokens = the four existing
+  brand colours + sand/soft/sage/gold/neg washes) + `PennyKit` (48dp
+  targets, pill buttons, notices, tags, cards, sheets, the labelled
+  bottom navigation Home/Budget/Learn/Profile).
+- New pure core (all JVM-tested against the artboard's own "Dataset
+  check": income ₹85,000, spend ₹31,450, SIP ₹17,000 → retained ₹53,550,
+  unallocated ₹36,550): `PlanMath` (targets/remainders, lenient income,
+  month stepper), `Inr`, `SipIllustration`, `QuickLog`, `LearnProgress`
+  (+`McqChapters`/`QuizText` moved out of the retired McqState),
+  `LearnStore`, `Allocations`, `TransactionMeta`, `Connectivity`,
+  `ProfileExtras` (S02 impact list, S05 dirty guard, CSV export),
+  recovery on `AuthService`/`FakeAuthService` (deterministic clock,
+  seeded expired 824109, fresh code 123456), `AuthFlows.signUpWithProfile`
+  + email/username resolution, `HomeLogic.daypart/hello`.
+- Screens: Login (01), Recovery (02), SignUp (03, folds onboarding;
+  social/OTP accounts still complete via Onboarding), Home (04 + S03
+  first-run), Budget with Spending/Plan segments + Quick Log sheet (06) +
+  category sheet (07) + S01 delete-with-undo + S04 offline, Learn path
+  (09) + lesson reader (10) + boss quiz (11) + results (12), Penny AI
+  (13 + S06 states, threads), Profile (14) + edit (15) + S02 delete
+  modal + S05 unsaved guard. Stocks re-themed, reached from Profile →
+  Tools (v2.1 IA drops the home grid; feature kept).
+- Demo world: `DemoMonth` seeds the artboard's 18-transaction November.
+  Tests: JVM 235 (12 new/rewritten suites); e2e rewritten for v2.1, 46/46
+  green on the emulator (AppShell, Auth, Recovery, Home incl. first-run,
+  Budget, Learn, Quiz, Ai, Offline, Profile, Stock + the on-device core
+  suites). Screenshot set: `migration/shots/v21-*.png` (13 screens).
+- e2e-loop lessons (the suite found real app bugs, all fixed): clickable
+  scrim merging modal children away (ConfirmModal restructured), tags on
+  clickable nodes not their children, chat lists must anchor newest at
+  the bottom, streaming replies race immediate asserts, and
+  performTextInput appends (tests must clear).

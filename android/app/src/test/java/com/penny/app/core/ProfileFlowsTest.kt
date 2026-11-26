@@ -54,7 +54,7 @@ class ProfileFlowsTest {
         val w = World()
         w.prefs.saveUsername("demo")
         assertEquals(ProfileFlows.Outcome.Done("Account deleted successfully"),
-            ProfileFlows.deleteAccount(w.auth, w.dir, w.prefs, "demo", profileImageUrl = null))
+            ProfileFlows.deleteAccount(w.auth, w.dir, w.prefs, "demo"))
         assertNull(w.dir.getUser("demo"))
         assertEquals(listOf("demo"), w.deleted)
         assertEquals(AuthState.SignedOut, w.auth.state.value)
@@ -63,23 +63,23 @@ class ProfileFlowsTest {
     }
 
     @Test
-    fun `delete account with a picture fails after the server data is gone`() = runBlocking {
+    fun `v21 delete succeeds even with a picture - the storage quirk is retired`() = runBlocking {
         val w = World()
-        assertEquals(
-            ProfileFlows.Outcome.Failed("An error occurred while deleting account: ${ProfileFlows.STORAGE_OBJECT_NOT_FOUND}"),
-            ProfileFlows.deleteAccount(w.auth, w.dir, w.prefs, "demo", profileImageUrl = "https://signed.example/p.jpg"),
-        )
-        assertNull(w.dir.getUser("demo")) // backend already deleted it
-        assertEquals(AuthState.SignedIn::class, w.auth.state.value::class) // but the account survives
+        w.images.upload("demo", "content://picked/pic")
+        assertEquals(ProfileFlows.Outcome.Done("Account deleted successfully"),
+            ProfileFlows.deleteAccount(w.auth, w.dir, w.prefs, "demo"))
+        assertNull(w.dir.getUser("demo")) // backend doc gone
+        assertEquals(AuthState.SignedOut, w.auth.state.value) // account gone too, nothing half-deleted
+        assertNull(w.auth.login(FakeAuthService.DEMO_EMAIL, FakeAuthService.DEMO_PASSWORD))
     }
 
     @Test
     fun `delete account guard and server failure texts`() = runBlocking {
         val w = World()
         assertEquals(ProfileFlows.Outcome.Failed("An error occurred while deleting account: Exception: Failed to delete account on server"),
-            ProfileFlows.deleteAccount(w.auth, w.dir, w.prefs, "nobody", null))
+            ProfileFlows.deleteAccount(w.auth, w.dir, w.prefs, "nobody"))
         assertEquals(ProfileFlows.Outcome.Failed("An error occurred while deleting account: Exception: No user currently signed in"),
-            ProfileFlows.deleteAccount(w.auth, w.dir, w.prefs, null, null))
+            ProfileFlows.deleteAccount(w.auth, w.dir, w.prefs, null))
     }
 
     @Test
@@ -133,6 +133,6 @@ class ProfileFlowsTest {
             override suspend fun deleteUser(username: String): Boolean = throw java.io.IOException("reset")
         }
         assertEquals(ProfileFlows.Outcome.Failed("An error occurred while deleting account: java.io.IOException: reset"),
-            ProfileFlows.deleteAccount(w.auth, failing, w.prefs, "demo", null))
+            ProfileFlows.deleteAccount(w.auth, failing, w.prefs, "demo"))
     }
 }

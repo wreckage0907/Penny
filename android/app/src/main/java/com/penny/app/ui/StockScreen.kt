@@ -114,16 +114,16 @@ fun StockScreen(services: PennyServices, onBack: () -> Unit, now: () -> ZonedDat
     }
 
     Scaffold(
-        containerColor = PennyPalette.background,
+        containerColor = PennyPalette.bg,
         topBar = {
             TopAppBar(
                 title = { Text("Market", modifier = Modifier.testTag("stock-title")) },
                 navigationIcon = {
                     IconButton(onClick = onBack, modifier = Modifier.testTag("back")) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = PennyPalette.text)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = PennyPalette.ink)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = PennyPalette.background),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = PennyPalette.bg),
             )
         },
     ) { inner ->
@@ -141,12 +141,12 @@ fun StockScreen(services: PennyServices, onBack: () -> Unit, now: () -> ZonedDat
                     Text("Search stocks", color = Color.White, fontSize = 18.sp)
                 }
                 Card(Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = PennyPalette.card)) {
+                    colors = CardDefaults.cardColors(containerColor = PennyPalette.blush)) {
                     Column(Modifier.padding(16.dp)) {
-                        Text(StockLogic.header(ticker), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = PennyPalette.text,
+                        Text(StockLogic.header(ticker), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = PennyPalette.ink,
                             modifier = Modifier.testTag("stock-header"))
                         Spacer(Modifier.height(5.dp))
-                        Text(StockLogic.PRICE, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = PennyPalette.text,
+                        Text(StockLogic.PRICE, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = PennyPalette.ink,
                             modifier = Modifier.testTag("stock-price"))
                         Spacer(Modifier.height(5.dp))
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -157,13 +157,13 @@ fun StockScreen(services: PennyServices, onBack: () -> Unit, now: () -> ZonedDat
                     }
                 }
                 Spacer(Modifier.height(15.dp))
-                Text(StockLogic.holdingsText(holdings, ticker), fontSize = 18.sp, color = PennyPalette.text,
+                Text(StockLogic.holdingsText(holdings, ticker), fontSize = 18.sp, color = PennyPalette.ink,
                     modifier = Modifier.testTag("stock-holdings"))
                 Spacer(Modifier.height(15.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     StockLogic.RANGES.forEach { r ->
                         Text(r, Modifier.clickable { range = r; rangeTaps++ }.testTag("stock-range-$r"), fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold, color = if (r == range) PennyPalette.button else PennyPalette.text)
+                            fontWeight = FontWeight.SemiBold, color = if (r == range) PennyPalette.brand else PennyPalette.ink)
                     }
                 }
                 LineChart(points)
@@ -192,8 +192,8 @@ fun StockScreen(services: PennyServices, onBack: () -> Unit, now: () -> ZonedDat
 @Composable
 private fun InfoItem(label: String, value: String) {
     Column {
-        Text(label, fontSize = 14.sp, color = PennyPalette.text.copy(alpha = 0.7f))
-        Text(value, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = PennyPalette.text,
+        Text(label, fontSize = 14.sp, color = PennyPalette.ink.copy(alpha = 0.7f))
+        Text(value, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = PennyPalette.ink,
             modifier = Modifier.testTag("stock-${label.lowercase()}"))
     }
 }
@@ -245,7 +245,7 @@ private fun TradeDialog(kind: String, ticker: String, available: Double, onDismi
 @Composable
 private fun StockSearch(onClose: (String?) -> Unit) {
     var query by remember { mutableStateOf("") }
-    Column(Modifier.fillMaxSize().background(PennyPalette.background).testTag("stock-search-page")) {
+    Column(Modifier.fillMaxSize().background(PennyPalette.bg).testTag("stock-search-page")) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton({ onClose("") }, Modifier.testTag("search-back")) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") }
             TextField(query, { query = it }, Modifier.weight(1f).testTag("search-query"), singleLine = true,
@@ -254,8 +254,8 @@ private fun StockSearch(onClose: (String?) -> Unit) {
         }
         StockLogic.search(query).forEach { t ->
             Column(Modifier.fillMaxWidth().clickable { onClose(t) }.padding(16.dp).testTag("search-result-$t")) {
-                Text(t, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = PennyPalette.text)
-                Text(StockLogic.NAMES.getValue(t), color = PennyPalette.text.copy(alpha = 0.7f))
+                Text(t, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = PennyPalette.ink)
+                Text(StockLogic.NAMES.getValue(t), color = PennyPalette.ink.copy(alpha = 0.7f))
             }
         }
     }

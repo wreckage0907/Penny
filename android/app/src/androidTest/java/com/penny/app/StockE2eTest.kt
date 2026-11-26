@@ -20,7 +20,10 @@ class StockE2eTest {
     private fun open() {
         compose.setContent { PennyApp(PennyServices.fakes(signedIn = true)) }
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
-        compose.onNodeWithTag("home-tile-2").performScrollTo().performClick()
+        // v2.1: the market screen lives under Profile → Tools.
+        compose.onNodeWithTag("nav-profile").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("profile-page") }
+        compose.onNodeWithTag("tools-stocks").performScrollTo().performClick()
         compose.onNodeWithTag("stock-page").assertIsDisplayed()
     }
 
@@ -77,7 +80,9 @@ class StockE2eTest {
                 base.speech, base.mcq, base.pickImage, stocks = market))
         }
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
-        compose.onNodeWithTag("home-tile-2").performScrollTo().performClick()
+        compose.onNodeWithTag("nav-profile").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("profile-page") }
+        compose.onNodeWithTag("tools-stocks").performScrollTo().performClick()
         compose.waitUntil(5_000) { calls.get() == 1 }
         compose.onNodeWithTag("stock-range-1D").performScrollTo().performClick() // already selected
         compose.waitUntil(5_000) { calls.get() == 2 }

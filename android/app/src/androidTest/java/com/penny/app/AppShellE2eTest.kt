@@ -1,43 +1,50 @@
 package com.penny.app
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import com.penny.app.ui.PennyApp
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
-/** 006: AuthWrapper routing + named routes on fake services. */
+/** v2.1 shell: demo login reaches Home, and the four-tab round trip works. */
 class AppShellE2eTest {
 
     @get:Rule
     val compose = createComposeRule()
 
     @Test
-    fun signedOutLandsOnLoginThenDemoLoginReachesHomeAndRoutes() {
+    fun signedOutLandsOnLoginThenDemoLoginReachesHomeAndRoundsTheTabs() {
         val services = PennyServices.fakes()
         compose.setContent { PennyApp(services) }
 
-        // 007 replaced the temporary shell login with the real LoginPage.
         compose.onNodeWithTag("login-page").assertIsDisplayed()
-        compose.onNodeWithTag("login-username").performScrollTo().performTextInput("demo")
-        compose.onNodeWithTag("login-password").performScrollTo().performTextInput("penny123")
+        compose.onNodeWithTag("login-id-input").performScrollTo().performTextInput("demo")
+        compose.onNodeWithTag("login-password-input").performScrollTo().performTextInput("penny123")
         compose.onNodeWithTag("login-submit").performScrollTo().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
 
-        // 015: every Flutter route is migrated; a bottom-bar round trip.
-        compose.onNodeWithTag("home-nav-chat").performClick()
-        compose.onNodeWithTag("chat-page").assertIsDisplayed()
-        compose.onNodeWithTag("chat-nav-home").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
+        // The labelled bottom navigation (frame 04) reaches every tab.
+        compose.onNodeWithTag("nav-budget").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("budget-page") }
+        compose.onNodeWithTag("nav-learn").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("learn-page") }
+        compose.onNodeWithTag("nav-home").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTextExists(", Demo", substring = true) }
+        compose.onNodeWithTag("nav-profile").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("profile-page") }
 
-        compose.onNodeWithTag("home-nav-profile").performClick()
-        compose.onNodeWithTag("profile-sign-out").performClick()
+        // Sign out from the profile tab (frame 14's ghost button).
+        compose.onNodeWithTag("profile-sign-out").performScrollTo().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("login-page") }
+        assertEquals(
+            com.penny.app.core.AuthState.SignedOut,
+            services.auth.state.value,
+        )
     }
 
     @Test

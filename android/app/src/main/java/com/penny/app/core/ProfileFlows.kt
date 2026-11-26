@@ -34,28 +34,25 @@ object ProfileFlows {
     }
 
     /** Storage `refFromURL(url).delete()` after the backend already removed the blob (mimicked). */
-    const val STORAGE_OBJECT_NOT_FOUND =
-        "[firebase_storage/object-not-found] No object exists at the desired reference."
-
     /**
-     * _deleteAccount (:127-170), in order: DELETE /onboarding/{username}
-     * (non-200 → "Failed to delete account on server"); if a picture URL is
-     * loaded, delete it from Storage — but delete_user ALREADY removed the
-     * profile blobs, so this throws object-not-found AFTER the server data is
-     * gone and the account survives (mimicked, unverified on a live project);
-     * DELETE claims; `user.delete()`; then sign out + clear prefs → login.
+     * v2.1 delete flow (artboard S02): the profile doc, claims, auth account
+     * and prefs go, then Sign In. The reauthentication happens in the modal
+     * before this runs.
+     *
+     * LEDGER DECISION (redesign): the v1 flow reproduced Flutter's bug where
+     * deleting with a profile picture loaded threw object-not-found AFTER the
+     * server data was gone, leaving a half-deleted account. The v2.1
+     * redesign implements deletion as designed — the quirk is retired.
      */
     suspend fun deleteAccount(
         auth: AuthService,
         directory: UserDirectory,
         prefs: UserPrefs,
         username: String?,
-        profileImageUrl: String?,
     ): Outcome = try {
         val user = (auth.state.value as? AuthState.SignedIn)?.user
         if (user == null || username == null) throw AuthFailure("Exception: No user currently signed in")
         if (!directory.deleteUser(username)) throw AuthFailure("Exception: Failed to delete account on server")
-        if (profileImageUrl != null) throw AuthFailure(STORAGE_OBJECT_NOT_FOUND)
         directory.deleteCustomClaims(user.uid)
         auth.deleteCurrentUser()
         AuthFlows.signOut(auth, prefs)

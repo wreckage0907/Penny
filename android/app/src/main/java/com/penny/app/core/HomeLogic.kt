@@ -60,6 +60,17 @@ object HomeLogic {
     /** `'WELCOME,\n$fullName'` (:241) — Dart prints a null name as "null". */
     fun greeting(fullName: String?): String = "WELCOME,\n${fullName ?: "null"}"
 
+    /** v2.1 frame 04: "Good evening, Demo" — hour → daypart greeting. */
+    fun daypart(hour: Int): String = when {
+        hour < 12 -> "Good morning"
+        hour < 17 -> "Good afternoon"
+        else -> "Good evening"
+    }
+
+    /** "Good evening, Demo" — the first name only (v2.1, no shouting caps). */
+    fun hello(fullName: String?, hour: Int): String =
+        "${daypart(hour)}, ${(fullName ?: "there").trim().substringBefore(' ')}"
+
     /** Profile picture refresh period (:56-57). */
     const val PROFILE_REFRESH_MINUTES = 50L
 
