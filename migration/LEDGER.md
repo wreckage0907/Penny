@@ -718,6 +718,12 @@ redesign: 15 core screens + the 6-screen state library.
   modal + S05 unsaved guard. Stocks re-themed, reached from Profile →
   Tools (v2.1 IA drops the home grid; feature kept).
 - Demo world: `DemoMonth` seeds the artboard's 18-transaction November.
-  Tests: JVM 235 (12 new/rewritten suites); e2e rewritten for v2.1:
-  AppShell, Auth, Recovery, Home (incl. first-run), Budget, Learn, Quiz,
-  Ai, Offline, Profile, Stock + the on-device core suites.
+  Tests: JVM 235 (12 new/rewritten suites); e2e rewritten for v2.1, 46/46
+  green on the emulator (AppShell, Auth, Recovery, Home incl. first-run,
+  Budget, Learn, Quiz, Ai, Offline, Profile, Stock + the on-device core
+  suites). Screenshot set: `migration/shots/v21-*.png` (13 screens).
+- e2e-loop lessons (the suite found real app bugs, all fixed): clickable
+  scrim merging modal children away (ConfirmModal restructured), tags on
+  clickable nodes not their children, chat lists must anchor newest at
+  the bottom, streaming replies race immediate asserts, and
+  performTextInput appends (tests must clear).
