@@ -45,7 +45,7 @@ class FakeChatModel(private val chunkDelayMs: Long = 120) : ChatModel {
     override fun reply(question: String, context: AiContext): Flow<ChatEvent> = flow {
         val q = question.lowercase()
         val events: List<ChatEvent> = when {
-            "budget" in q -> listOf(ChatEvent.Text(listOf(AiReplies.budgetCheck(context))))
+            "budget" in q || "50/30/20" in q -> listOf(ChatEvent.Text(listOf(AiReplies.budgetCheck(context))))
             ("move" in q || "put" in q) && "emergency" in q ->
                 listOf(ChatEvent.Text(listOf(AiReplies.assumption(context))), ChatEvent.Proposal(
                     amount = AiReplies.diningSwapSavings(context),

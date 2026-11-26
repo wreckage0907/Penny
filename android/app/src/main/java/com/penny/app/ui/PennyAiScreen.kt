@@ -214,14 +214,29 @@ fun PennyAiScreen(services: PennyServices, navigate: (String) -> Unit) {
             }
         }
         val messages = history[current] ?: emptyList()
+        // Chat anchoring: reverseLayout keeps the NEWEST message at the
+        // bottom of the viewport (visible, clickable), older ones above.
         LazyColumn(
             Modifier
                 .weight(1f)
                 .fillMaxWidth()
                 .padding(horizontal = 18.dp),
+            reverseLayout = true,
         ) {
-            items(messages.asReversed().mapIndexed { i, m -> i to m }, key = { (i, _) -> "m$i" }) { (position, message) ->
-                val index = messages.size - 1 - position
+            item { Hint(AiReplies.CAUTION, Modifier.padding(vertical = 8.dp)) }
+            item {
+                if (pending) {
+                    PendingBubble(sourceNote)
+                } else if (failed) {
+                    ErrorNotice(
+                        onRetry = {
+                            failed = false
+                            send(messages.firstOrNull()?.text ?: "")
+                        },
+                    )
+                }
+            }
+            items(messages.mapIndexed { i, m -> i to m }, key = { (i, _) -> "m$i" }) { (index, message) ->
                 when {
                     message.proposal != null -> ActionCard(
                         message.proposal!!,
@@ -238,21 +253,6 @@ fun PennyAiScreen(services: PennyServices, navigate: (String) -> Unit) {
                     message.author == ChatLogic.Author.USER -> Bubble(message.text, mine = true, tag = "ai-user-$index")
                     else -> AiBubble(message.text, sourceNote, tag = "ai-text-$index")
                 }
-            }
-            item {
-                if (pending) {
-                    PendingBubble(sourceNote)
-                } else if (failed) {
-                    ErrorNotice(
-                        onRetry = {
-                            failed = false
-                            send(messages.firstOrNull()?.text ?: "")
-                        },
-                    )
-                }
-            }
-            item {
-                Hint(AiReplies.CAUTION, Modifier.padding(vertical = 8.dp))
             }
         }
         Row(

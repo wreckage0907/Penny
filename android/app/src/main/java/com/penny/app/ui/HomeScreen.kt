@@ -143,7 +143,7 @@ fun HomeScreen(services: PennyServices, navigate: (String) -> Unit, tab: PennyTa
                         ranked.take(3).forEachIndexed { i, (category, total) ->
                             SpendRow(
                                 name = category,
-                                meta = "${Inr.share1(total.first, summary.spent)} of spend · ${total.second} items",
+                                meta = "${Inr.share0(total.first, summary.spent)} of spend · ${total.second} items",
                                 amount = Inr.spent(total.first),
                                 dot = dotOf(category),
                                 miniTrack = total.first / summary.spent,

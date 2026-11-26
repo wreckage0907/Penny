@@ -408,7 +408,11 @@ fun SignUpScreen(services: PennyServices, nav: AuthNav) {
                     when (AuthFlows.signUpWithProfile(
                         name.trim(), username.trim(), email.trim(), password, services.users, services.auth,
                     )) {
-                        com.penny.app.core.AuthFlows.SignUpResult.Home -> nav.toHome()
+                        com.penny.app.core.AuthFlows.SignUpResult.Home -> {
+                            services.prefs.saveUsername(username.trim())
+                            services.prefs.saveFullName(name.trim())
+                            nav.toHome()
+                        }
                         com.penny.app.core.AuthFlows.SignUpResult.UsernameTaken ->
                             usernameError = "That username is already taken. Choose another."
                         com.penny.app.core.AuthFlows.SignUpResult.InvalidUsername ->
@@ -477,7 +481,11 @@ fun OnboardingScreen(services: PennyServices, nav: AuthNav) {
                         services.users, services.auth,
                     )
                     when (result) {
-                        is com.penny.app.core.AuthFlows.OnboardingResult.Home -> nav.toHome()
+                        is com.penny.app.core.AuthFlows.OnboardingResult.Home -> {
+                            services.prefs.saveUsername(username.trim())
+                            services.prefs.saveFullName("${first.trim()} ${last.trim()}".trim())
+                            nav.toHome()
+                        }
                         is com.penny.app.core.AuthFlows.OnboardingResult.Error -> error = result.snackbar
                     }
                 }

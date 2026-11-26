@@ -402,13 +402,13 @@ fun SpendRow(
     ) {
         Box(Modifier.size(11.dp).clip(RoundedCornerShape(4.dp)).background(dot))
         Column(Modifier.weight(1f)) {
-            Text(name, style = PennyType.secondary)
-            Text(meta, color = PennyPalette.muted, style = PennyType.meta, modifier = Modifier.padding(top = 3.dp))
+            Text(name, style = PennyType.secondary, modifier = Modifier.tag(tag?.let { "$it-name" }))
+            Text(meta, color = PennyPalette.muted, style = PennyType.meta, modifier = Modifier.padding(top = 3.dp).tag(tag?.let { "$it-meta" }))
             if (miniTrack != null) {
                 Track(miniTrack, Modifier.padding(top = 7.dp), color = dot, height = 5)
             }
         }
-        Text(amount, color = PennyPalette.neg, style = PennyType.amountS.merge(MoneyStyle))
+        Text(amount, color = PennyPalette.neg, style = PennyType.amountS.merge(MoneyStyle), modifier = Modifier.tag(tag?.let { "$it-amount" }))
         trailing?.invoke()
     }
 }
@@ -600,6 +600,7 @@ fun BottomNavBar(current: PennyTab, onSelect: (PennyTab) -> Unit, tag: String? =
                     modifier = Modifier
                         .weight(1f)
                         .defaultMinSize(minHeight = 56.dp)
+                        .tag("nav-${tab.label.lowercase()}")
                         .clickable { onSelect(tab) }
                         .padding(top = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -607,7 +608,6 @@ fun BottomNavBar(current: PennyTab, onSelect: (PennyTab) -> Unit, tag: String? =
                 ) {
                     Box(
                         modifier = Modifier
-                            .tag("nav-${tab.label.lowercase()}")
                             .size(width = 44.dp, height = 30.dp)
                             .clip(PennyShape.pill)
                             .background(if (selected) PennyPalette.blush else Color.Transparent),
@@ -675,34 +675,41 @@ fun ConfirmModal(
     tag: String? = "modal",
     body: (@Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit)? = null,
 ) {
+    // The scrim is clickable (tap-outside dismisses) but the card sits on
+    // top as a SIBLING, so the card's own fields/buttons keep their
+    // semantics instead of being merged into the scrim.
     Box(
         Modifier
             .tag(tag)
             .fillMaxWidth()
-            .height(844.dp)
-            .background(PennyPalette.ink.copy(alpha = 0.48f))
-            .clickable(onClick = onDismiss),
-        contentAlignment = Alignment.Center,
+            .height(844.dp),
     ) {
-        Column(
-            modifier = modifier
-                .padding(20.dp)
-                .clip(PennyShape.modal)
-                .background(PennyPalette.surface)
-                .clickable(enabled = false, onClick = {})
-                .padding(20.dp),
-        ) {
-            if (headerIcon != null) {
-                Box(
-                    Modifier.size(48.dp).clip(CircleShape).background(headerBg),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(headerIcon, contentDescription = null, tint = headerTint)
+        Box(
+            Modifier
+                .matchParentSize()
+                .background(PennyPalette.ink.copy(alpha = 0.48f))
+                .clickable(onClick = onDismiss),
+        )
+        Box(Modifier.fillMaxWidth().height(844.dp), contentAlignment = Alignment.Center) {
+            Column(
+                modifier = modifier
+                    .padding(20.dp)
+                    .clip(PennyShape.modal)
+                    .background(PennyPalette.surface)
+                    .padding(20.dp),
+            ) {
+                if (headerIcon != null) {
+                    Box(
+                        Modifier.size(48.dp).clip(CircleShape).background(headerBg),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(headerIcon, contentDescription = null, tint = headerTint)
+                    }
+                    Spacer(Modifier.height(14.dp))
                 }
-                Spacer(Modifier.height(14.dp))
+                Text(title, style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.W800))
+                body?.invoke(this)
             }
-            Text(title, style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.W800))
-            body?.invoke(this)
         }
     }
 }
@@ -731,7 +738,11 @@ fun ToastBar(
                 actionLabel,
                 color = Color(0xFFF1C6C6),
                 style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.W800),
-                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onAction).padding(4.dp),
+                modifier = Modifier
+                    .tag(tag?.let { "$it-action" })
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable(onClick = onAction)
+                    .padding(4.dp),
             )
         }
     }

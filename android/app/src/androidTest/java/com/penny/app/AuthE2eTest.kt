@@ -1,110 +1,103 @@
 package com.penny.app
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import com.penny.app.core.AuthFlows
 import com.penny.app.ui.PennyApp
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
-/** 007: login / sign-up / onboarding / phone flows on the fake services. */
+/**
+ * v2.1 auth (frames 01–03): inline login errors, sign-up-with-profile
+ * (username taken checked live), and the social/OTP completion path.
+ */
 class AuthE2eTest {
 
     @get:Rule
     val compose = createComposeRule()
 
-    private fun start(): PennyServices = PennyServices.fakes().also { s -> compose.setContent { PennyApp(s) } }
+    @Test
+    fun wrongPasswordShowsAnInlineErrorAndStaysPut() {
+        val services = PennyServices.fakes()
+        compose.setContent { PennyApp(services) }
 
-    private fun type(tag: String, text: String) = compose.onNodeWithTag(tag).performScrollTo().performTextInput(text)
-    private fun tap(tag: String) = compose.onNodeWithTag(tag).performScrollTo().performClick()
-
-    // Dialog content is not inside a scroll container.
-    private fun dialogType(tag: String, text: String) = compose.onNodeWithTag(tag).performTextInput(text)
-    private fun dialogTap(tag: String) = compose.onNodeWithTag(tag).performClick()
+        compose.onNodeWithTag("login-id-input").performTextInput("demo")
+        compose.onNodeWithTag("login-password-input").performTextInput("nope42")
+        compose.onNodeWithTag("login-submit").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("Could not sign in", substring = true) }
+        compose.onNodeWithTag("login-error").assertIsDisplayed()
+        assertEquals(com.penny.app.core.AuthState.SignedOut, services.auth.state.value)
+    }
 
     @Test
-    fun usernameLoginReachesHome() {
-        start()
-        compose.onNodeWithTag("login-page-title").assertIsDisplayed()
-        type("login-username", "demo")
-        type("login-password", "penny123")
-        tap("login-submit")
+    fun signUpCreatesTheProfileAndLandsHomeWithTheFirstNameGreeting() {
+        val services = PennyServices.fakes()
+        compose.setContent { PennyApp(services) }
+
+        compose.onNodeWithTag("login-signup-link").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("signup-page") }
+        compose.onNodeWithTag("signup-name-input").performTextInput("New Bie")
+        compose.onNodeWithTag("signup-username-input").performTextInput("newbie")
+        compose.onNodeWithTag("signup-email-input").performTextInput("new@bie.io")
+        compose.onNodeWithTag("signup-password-input").performTextInput("secret1")
+        compose.onNodeWithTag("signup-submit").performScrollTo().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
+        assertTrue(compose.onAllNodesWithTextExists(", New", substring = true))
+        runBlocking { assertEquals("newbie", services.prefs.username()) }
     }
 
     @Test
-    fun wrongPasswordIsSilent() {
-        val services = start()
-        type("login-username", "demo")
-        type("login-password", "nope")
-        tap("login-submit")
-        compose.waitForIdle()
-        // Silent failure = no navigation, no session, no prefs (login.dart:185-203).
-        // (Asserting on-screen visibility raced the IME animation intermittently.)
-        check(!compose.onAllNodesWithTagExists("home-page"))
-        compose.onNodeWithTag("login-submit").assertExists()
-        check(services.auth.state.value == com.penny.app.core.AuthState.SignedOut)
-        check(kotlinx.coroutines.runBlocking { services.prefs.username() } == null)
+    fun aTakenUsernameIsCaughtBeforeAnAccountIsStranded() {
+        val services = PennyServices.fakes()
+        compose.setContent { PennyApp(services) }
+
+        compose.onNodeWithTag("login-signup-link").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("signup-page") }
+        compose.onNodeWithTag("signup-name-input").performTextInput("Demo Two")
+        compose.onNodeWithTag("signup-username-input").performTextInput("demo")
+        compose.onNodeWithTag("signup-email-input").performTextInput("d2@penny.app")
+        compose.onNodeWithTag("signup-password-input").performTextInput("secret1")
+        compose.onNodeWithTag("signup-submit").performScrollTo().performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTextExists("That username is already taken", substring = true) }
+        // Still on the sign-up page, no auth account was created.
+        compose.onNodeWithTag("signup-page").assertIsDisplayed()
+        assertEquals(com.penny.app.core.AuthState.SignedOut, services.auth.state.value)
     }
 
     @Test
-    fun signUpOnboardThenLogBackInWithTheNewUsername() {
-        val services = start()
-        tap("login-signup-link")
-        type("signup-email", "new@penny.app")
-        type("signup-password", "secret1")
-        tap("signup-submit")
+    fun phoneOtpSignsInAndCompletesTheProfileOnboarding() {
+        val services = PennyServices.fakes()
+        compose.setContent { PennyApp(services) }
+
+        compose.onNodeWithTag("social-phone-otp").performClick()
+        compose.onNodeWithTag("phone-input-input").performTextInput("1 555 0100")
+        compose.onNodeWithTag("phone-submit").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("code-dialog") }
+        compose.onNodeWithTag("code-input-input").performTextInput(com.penny.app.core.FakeAuthService.FAKE_SMS_CODE)
+        compose.onNodeWithTag("code-submit").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("onboarding-page") }
-        type("onb-username", "newbie")
-        type("onb-first", "New")
-        type("onb-last", "Bie")
-        type("onb-email", "new@penny.app")
-        type("onb-phone", "+1 555 0199")
-        tap("onb-submit")
+        compose.onNodeWithTag("onb-username-input").performTextInput("phonie")
+        compose.onNodeWithTag("onb-first-input").performTextInput("Phone")
+        compose.onNodeWithTag("onb-last-input").performTextInput("User")
+        compose.onNodeWithTag("onb-email-input").performTextInput("phone@penny.app")
+        compose.onNodeWithTag("onb-submit").performScrollTo().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
-
-        compose.onNodeWithTag("home-nav-profile").performClick()
-        compose.onNodeWithTag("profile-sign-out").performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("login-page") }
-        type("login-username", "newbie")
-        type("login-password", "secret1")
-        tap("login-submit")
-        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
-        check(kotlinx.coroutines.runBlocking { services.prefs.fullName() } == "New Bie")
-        compose.onNodeWithTag("home-greeting").assertTextEquals("WELCOME,\nNew Bie")
+        runBlocking { assertEquals("phonie", services.prefs.username()) }
     }
 
     @Test
-    fun onboardingWithoutUsernameShowsDartError() {
-        start()
-        tap("login-signup-link")
-        type("signup-email", "x@penny.app")
-        type("signup-password", "secret1")
-        tap("signup-submit")
-        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("onboarding-page") }
-        tap("onb-submit")
-        compose.waitUntil(5_000) {
-            compose.onAllNodesWithTextExists(
-                "An error occurred: Exception: Failed to post user data: {\"detail\":\"Not Found\"}",
-            )
-        }
-    }
+    fun googleContinuesFirstRunIntoOnboarding() {
+        val services = PennyServices.fakes()
+        compose.setContent { PennyApp(services) }
 
-    @Test
-    fun phoneSignInAlwaysGoesToOnboarding() {
-        start()
-        tap("social-phone")
-        dialogType("phone-dialog-input", "+1 555 0100")
-        dialogTap("phone-dialog-submit")
-        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("code-dialog-input") }
-        dialogType("code-dialog-input", "123456")
-        dialogTap("code-dialog-submit")
+        compose.onNodeWithTag("social-google").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("onboarding-page") }
-        compose.onNodeWithText("Let's Get Started!").assertIsDisplayed()
     }
 }

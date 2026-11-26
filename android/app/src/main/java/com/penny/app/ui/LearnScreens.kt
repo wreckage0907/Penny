@@ -198,6 +198,7 @@ fun LearnScreen(
                                 current = unlocked,
                                 actionLabel = "Start Boss Quiz",
                                 onOpen = if (unlocked) ({ navigate("quiz/$unit") }) else null,
+                                actionTag = "boss-start",
                             )
                         },
                         tag = "learn-boss",
@@ -210,8 +211,8 @@ fun LearnScreen(
             CardBox(tag = "learn-vault") {
                 Column {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        RewardPill("🛡️ Streak Freeze · 100 ◈", Modifier.weight(1f)) { rewardPreview = "freeze" }
-                        RewardPill("📊 Tax & SIP Sheet · 150 ◈", Modifier.weight(1f)) { rewardPreview = "sheet" }
+                        RewardPill("🛡️ Streak Freeze · 100 ◈", Modifier.weight(1f), "reward-freeze") { rewardPreview = "freeze" }
+                        RewardPill("📊 Tax & SIP Sheet · 150 ◈", Modifier.weight(1f), "reward-sheet") { rewardPreview = "sheet" }
                     }
                     Hint("Tap to preview the reward, cost, and effect before spending coins. No instant redemption.")
                 }
@@ -239,8 +240,8 @@ fun LearnScreen(
 }
 
 @Composable
-private fun RewardPill(label: String, modifier: Modifier = Modifier, onPreview: () -> Unit) {
-    PillBtn(label, onPreview, modifier, goldy = true, tag = "reward-${label.take(1)}")
+private fun RewardPill(label: String, modifier: Modifier = Modifier, tag: String, onPreview: () -> Unit) {
+    PillBtn(label, onPreview, modifier, goldy = true, tag = tag)
 }
 
 private enum class MedalKind { DONE, CURRENT, LOCKED, BOSS, BOSS_DONE }
@@ -307,6 +308,7 @@ private fun StopCard(
     current: Boolean,
     actionLabel: String,
     onOpen: (() -> Unit)?,
+    actionTag: String = "stop-action",
 ) {
     Column(
         Modifier
@@ -323,7 +325,7 @@ private fun StopCard(
         Text(title, style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.W800, lineHeight = 18.sp))
         Text(meta, color = PennyPalette.muted, style = TextStyle(fontSize = 11.sp, lineHeight = 16.sp), modifier = Modifier.padding(top = 4.dp))
         if (current && onOpen != null) {
-            PennyButton(actionLabel, onOpen, Modifier.padding(top = 9.dp), small = true, tag = "stop-action")
+            PennyButton(actionLabel, onOpen, Modifier.padding(top = 9.dp), small = true, tag = actionTag)
         }
     }
 }

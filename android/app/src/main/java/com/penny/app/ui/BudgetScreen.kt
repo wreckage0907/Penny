@@ -120,7 +120,7 @@ fun BudgetScreen(
     var incomeOpen by remember { mutableStateOf(openIncome) }
     var categoryOpen by remember { mutableStateOf<String?>(null) }
     var deleteTarget by remember { mutableStateOf<TxRow?>(null) }
-    var toast by remember { mutableStateOf<Pair<String, (() -> Unit)?>?>(null) }
+    var toast by remember { mutableStateOf<Pair<String, (suspend () -> Unit)?>?>(null) }
     val online by services.connectivity.online.collectAsState()
 
     var user by remember { mutableStateOf<String?>(null) }
@@ -161,9 +161,11 @@ fun BudgetScreen(
     }
 
     LaunchedEffect(user, year, month) { reload() }
+    // S04: coming back online refreshes on its own — no stale "Couldn't refresh".
+    LaunchedEffect(online) { if (online) reload() }
     LaunchedEffect(Unit) { if (openAdd) quickLog = QuickLogOpen(null, null) }
 
-    fun toastNow(message: String, undo: (() -> Unit)?) {
+    fun toastNow(message: String, undo: (suspend () -> Unit)?) {
         toast = message to undo
     }
 
@@ -276,15 +278,12 @@ fun BudgetScreen(
                         try {
                             services.expenses(u).deleteExpense(year, month, row.category, row.name)
                             toastNow("Transaction deleted · Undo") {
-                                scope.launch {
-                                    try {
-                                        services.expenses(u).addExpense(
-                                            Expense(row.name, row.amount, row.category, year, month),
-                                        )
-                                        services.meta.put(u, year, month, row.category, row.name, row.detail)
-                                        reload()
-                                    } catch (e: Exception) { }
-                                }
+                                try {
+                                    services.expenses(u).addExpense(
+                                        Expense(row.name, row.amount, row.category, year, month),
+                                    )
+                                    services.meta.put(u, year, month, row.category, row.name, row.detail)
+                                } catch (e: Exception) { }
                             }
                             reload()
                         } catch (e: Exception) {
@@ -317,7 +316,7 @@ fun BudgetScreen(
                     .align(Alignment.BottomCenter)
                     .padding(start = 16.dp, end = 16.dp, bottom = 92.dp),
                 actionLabel = if (undo != null) "Undo" else null,
-                onAction = undo?.let { action -> { action(); scope.launch { reload() } } },
+                onAction = undo?.let { action -> { scope.launch { action(); reload() } } },
                 tag = "budget-toast",
             )
             LaunchedEffect(message) {
@@ -649,7 +648,7 @@ private fun SipCard(plan: PlanSummary) {
                         )
                     }
                     Text(
-                        "12% exact → ${Inr.plain(SipIllustration.futureValue(plan.sipRecorded, 120, 0.12))}",
+                        "12% exact → ${Inr.plain(Math.round(SipIllustration.futureValue(plan.sipRecorded, 120, 0.12)).toDouble())}",
                         color = PennyPalette.muted,
                         style = PennyType.meta,
                     )
@@ -726,7 +725,7 @@ private fun QuickLogSheet(
     editRow: TxRow?,
     user: String,
     onDismiss: () -> Unit,
-    onSaved: (String, (() -> Unit)?) -> Unit,
+    onSaved: (String, (suspend () -> Unit)?) -> Unit,
 ) {
     var amount by remember { mutableStateOf(editRow?.let { Inr.plain(it.amount).removePrefix(Inr.SYMBOL) } ?: "") }
     var category by remember { mutableStateOf(editRow?.category ?: presetCategory) }
@@ -855,11 +854,9 @@ private fun QuickLogSheet(
                                             TxDetail(result.day, null, result.payment),
                                         )
                                         onSaved("Expense saved · Undo") {
-                                            scope.launch {
-                                                try {
-                                                    api.deleteExpense(year, month, result.category, name)
-                                                } catch (e: Exception) { }
-                                            }
+                                            try {
+                                                api.deleteExpense(year, month, result.category, name)
+                                            } catch (e: Exception) { }
                                         }
                                     } catch (e: Exception) {
                                         onSaved("Could not save: ${e.message}", null)
@@ -896,7 +893,7 @@ private fun CategorySheet(
     onDismiss: () -> Unit,
     onEdit: (TxRow) -> Unit,
     onDelete: (TxRow) -> Unit,
-    onQuickAdd: (String, (() -> Unit)?) -> Unit,
+    onQuickAdd: (String, (suspend () -> Unit)?) -> Unit,
 ) {
     var rows by remember { mutableStateOf<List<TxRow>>(emptyList()) }
     var total by remember { mutableStateOf(0.0) }
@@ -965,48 +962,50 @@ private fun CategorySheet(
                 rows.forEachIndexed { i, row ->
                     CategoryRow(row, month.take(3), onEdit, onDelete, i)
                 }
-            }
-            // Footer: quick add into this category (artboard's "Add to Food").
-            Row(
-                Modifier.padding(top = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Field(
-                    "Quick $category expense", quickAmount, { quickAmount = it; quickError = null },
-                    prefix = Inr.SYMBOL, keyboardDecimal = true, placeholder = "Amount",
-                    modifier = Modifier.weight(1f), error = quickError, tag = "category-quick-amount",
-                )
-                PennyButton(
-                    "Add to ${category.take(4)}",
-                    {
-                        val parsed = QuickLog.parse(quickAmount, category, "", LocalDate.now().dayOfMonth, "UPI")
-                        when (parsed) {
-                            is QuickLog.Result.Valid -> {
-                                scope.launch {
-                                    val name = "${category} expense ${rows.size + 1}"
-                                    services.expenses(user).addExpense(Expense(name, parsed.amount, category, year, month))
-                                    services.meta.put(user, year, month, category, name, TxDetail(parsed.day, null, "UPI"))
-                                    // Keep the open sheet in sync with the store.
-                                    rows = rows + TxRow(name, parsed.amount, category, TxDetail(parsed.day, null, "UPI"))
-                                    total += parsed.amount
-                                    quickAmount = ""
-                                    onQuickAdd("Expense saved · Undo") {
-                                        scope.launch {
+                // Footer: quick add into this category (artboard's "Add to
+                // Food") — INSIDE the scroll so long lists never bury it.
+                Row(
+                    Modifier.padding(top = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Field(
+                        "Quick $category expense", quickAmount, { quickAmount = it; quickError = null },
+                        prefix = Inr.SYMBOL, keyboardDecimal = true, placeholder = "Amount",
+                        modifier = Modifier.weight(1f), error = quickError, tag = "category-quick-amount",
+                    )
+                    PennyButton(
+                        "Add to ${category.take(4)}",
+                        {
+                            val parsed = QuickLog.parse(quickAmount, category, "", LocalDate.now().dayOfMonth, "UPI")
+                            when (parsed) {
+                                is QuickLog.Result.Valid -> {
+                                    scope.launch {
+                                        val name = "${category} expense ${rows.size + 1}"
+                                        services.expenses(user).addExpense(Expense(name, parsed.amount, category, year, month))
+                                        services.meta.put(user, year, month, category, name, TxDetail(parsed.day, null, "UPI"))
+                                        // Keep the open sheet in sync with the store.
+                                        rows = rows + TxRow(name, parsed.amount, category, TxDetail(parsed.day, null, "UPI"))
+                                        total += parsed.amount
+                                        quickAmount = ""
+                                        onQuickAdd("Expense saved · Undo") {
                                             try {
                                                 services.expenses(user).deleteExpense(year, month, category, name)
                                             } catch (e: Exception) { }
+                                            // The open sheet tracks its own rows — undo reverts them too.
+                                            rows = rows.filterNot { it.name == name }
+                                            total -= parsed.amount
                                         }
                                     }
                                 }
+                                else -> quickError = "Enter a positive amount."
                             }
-                            else -> quickError = "Enter a positive amount."
-                        }
-                    },
-                    Modifier.padding(top = 14.dp).tag("category-quick-add"),
-                )
+                        },
+                        Modifier.padding(top = 14.dp).tag("category-quick-add"),
+                    )
+                }
+                Hint("All ${rows.size} rows sum to ${Inr.plain(total)}. Long lists scroll here while Quick Log stays fixed.")
             }
-            Hint("All ${rows.size} rows sum to ${Inr.plain(total)}. Long lists scroll here while Quick Log stays fixed.")
         }
     }
 }

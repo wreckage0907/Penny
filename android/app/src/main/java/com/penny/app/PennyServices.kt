@@ -71,7 +71,11 @@ class PennyServices(
 ) {
     companion object {
         /** Demo world: account demo@penny.app / penny123, onboarded as "demo". */
-        fun fakes(signedIn: Boolean = false, today: LocalDate = LocalDate.now()): PennyServices {
+        fun fakes(
+            signedIn: Boolean = false,
+            today: LocalDate = LocalDate.now(),
+            pickImage: (suspend () -> String?)? = null,
+        ): PennyServices {
             val auth = FakeAuthService(
                 mapOf(FakeAuthService.DEMO_EMAIL to FakeAuthService.DEMO_PASSWORD),
                 signedInAs = if (signedIn) FakeAuthService.DEMO_EMAIL else null,
@@ -95,6 +99,7 @@ class PennyServices(
                 auth, users, profileImages = images, expenses = registry::forUser,
                 meta = meta, allocations = allocations,
                 learn = InMemoryLearnStore(LearnStores.demo(today)),
+                pickImage = pickImage,
             )
         }
     }

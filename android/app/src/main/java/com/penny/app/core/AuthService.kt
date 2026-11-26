@@ -226,23 +226,35 @@ class FakeAuthService(
         return user
     }
 
-    private data class PendingReset(val code: String, val expiresAt: Long)
-    private val pendingResets = mutableMapOf<String, PendingReset>()
+    /**
+     * One pending reset per email. Requesting again supersedes the previous
+     * code: an older code (seeded or requested) then reads EXPIRED, matching
+     * frame 02's recoverable state, while the newest stays valid for the TTL.
+     */
+    private data class PendingReset(val code: String, val expiresAt: Long, val superseded: Boolean = false)
+    private val pendingResets = linkedMapOf<String, MutableList<PendingReset>>()
 
     override suspend fun requestPasswordReset(email: String): Boolean {
         if (!users.containsKey(email.lowercase())) return false
-        pendingResets[email.lowercase()] = PendingReset(RESET_CODE, nowMs() + RESET_TTL_MS)
+        val key = email.lowercase()
+        val list = pendingResets.getOrPut(key) { mutableListOf() }
+        list.forEachIndexed { i, r -> list[i] = r.copy(superseded = true) }
+        list.add(PendingReset(RESET_CODE, nowMs() + RESET_TTL_MS))
         return true
     }
 
     override suspend fun completePasswordReset(email: String, code: String, newPassword: String): ResetResult {
         val key = email.lowercase()
-        val pending = pendingResets[key] ?: return ResetResult.InvalidCode
-        if (nowMs() >= pending.expiresAt) {
-            pendingResets.remove(key)
+        val list = pendingResets[key] ?: return ResetResult.InvalidCode
+        // The newest matching entry is authoritative; older ones are dead.
+        // Dead codes keep answering "expired" (consistent copy); only a
+        // successful reset consumes the list.
+        val hit = list.indexOfLast { it.code == code }
+        if (hit < 0) return ResetResult.InvalidCode
+        val pending = list[hit]
+        if (pending.superseded || nowMs() >= pending.expiresAt) {
             return ResetResult.ExpiredCode
         }
-        if (code != pending.code) return ResetResult.InvalidCode
         if (newPassword.length < MIN_PASSWORD) return ResetResult.WeakPassword
         passwords[key] = newPassword
         pendingResets.remove(key)
@@ -252,7 +264,8 @@ class FakeAuthService(
 
     /** Seed an already-expired code (the artboard's frame-02 expired state). */
     fun seedExpiredReset(email: String, code: String) {
-        pendingResets[email.lowercase()] = PendingReset(code, nowMs() - 1)
+        pendingResets.getOrPut(email.lowercase()) { mutableListOf() }
+            .add(PendingReset(code, nowMs() - 1))
     }
 
     /** v2.1 (S02): the stored password must match; phone accounts have none. */

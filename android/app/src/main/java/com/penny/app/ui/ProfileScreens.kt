@@ -191,14 +191,15 @@ fun ProfileScreen(
                 Modifier
                     .padding(top = 6.dp)
                     .clickable { deleteOpen = true }
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .tag("profile-delete"),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     "Delete Account",
                     color = PennyPalette.neg,
                     style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.W800),
-                    modifier = Modifier.padding(vertical = 16.dp).tag("profile-delete"),
+                    modifier = Modifier.padding(vertical = 16.dp),
                 )
             }
         }
@@ -411,8 +412,13 @@ fun EditProfileScreen(services: PennyServices, onBack: () -> Unit, saved: () -> 
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
+    // The SAVED doc, captured once after prefill — the dirty check compares
+    // against this, never against the live fields (S05).
+    var saved by remember { mutableStateOf<ProfileExtras.ProfileDraft?>(null) }
     var avatarUrl by remember { mutableStateOf<String?>(null) }
     var photoStage by remember { mutableStateOf<ProfileExtras.PhotoStage>(ProfileExtras.PhotoStage.Unchanged) }
+    // Undo Remove goes back to what was staged before the removal (frame 15).
+    var stageBeforeRemoval by remember { mutableStateOf<ProfileExtras.PhotoStage?>(null) }
     var nameError by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
     var confirmDiscard by remember { mutableStateOf(false) }
@@ -427,11 +433,11 @@ fun EditProfileScreen(services: PennyServices, onBack: () -> Unit, saved: () -> 
         email = fields.email
         phone = fields.phone
         avatarUrl = try { services.profileImages.imageUrl(user) } catch (e: Exception) { null }
+        saved = ProfileExtras.ProfileDraft(fullName, email, phone, ProfileExtras.PhotoStage.Unchanged)
     }
 
-    val original = ProfileExtras.ProfileDraft(fullName, email, phone, ProfileExtras.PhotoStage.Unchanged)
-    val draft = ProfileExtras.ProfileDraft(fullName, email, phone, photoStage)
-    val dirty = ProfileExtras.isDirty(original, draft) && fullName.isNotEmpty()
+    val dirty = saved?.let { ProfileExtras.isDirty(it, ProfileExtras.ProfileDraft(fullName, email, phone, photoStage)) }
+        ?: false
 
     Column(
         Modifier
@@ -474,11 +480,17 @@ fun EditProfileScreen(services: PennyServices, onBack: () -> Unit, saved: () -> 
                 )
                 when (photoStage) {
                     is ProfileExtras.PhotoStage.Removed -> PennyButton(
-                        "Undo Remove", { photoStage = ProfileExtras.PhotoStage.Unchanged },
+                        "Undo Remove", {
+                            photoStage = stageBeforeRemoval ?: ProfileExtras.PhotoStage.Unchanged
+                            stageBeforeRemoval = null
+                        },
                         small = true, full = false, kind = BtnKind.GHOST, tag = "edit-undo-remove",
                     )
                     else -> PennyButton(
-                        "Remove Photo", { photoStage = ProfileExtras.PhotoStage.Removed },
+                        "Remove Photo", {
+                            stageBeforeRemoval = photoStage
+                            photoStage = ProfileExtras.PhotoStage.Removed
+                        },
                         small = true, full = false, kind = BtnKind.GHOST, tag = "edit-remove-picture",
                     )
                 }

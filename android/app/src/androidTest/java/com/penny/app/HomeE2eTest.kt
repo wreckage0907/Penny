@@ -1,80 +1,82 @@
 package com.penny.app
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.swipeLeft
-import com.penny.app.core.FakeProfileImages
+import androidx.compose.ui.test.performTextInput
 import com.penny.app.ui.PennyApp
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
-/** 008: Home (home.dart) on the fake services. */
+/**
+ * v2.1 Home (frame 04 + S03): the month hero with reconciled money, top
+ * spending, the learning shortcut, and the first-run empty state.
+ */
 class HomeE2eTest {
 
     @get:Rule
     val compose = createComposeRule()
 
-    private fun signedIn(images: FakeProfileImages = FakeProfileImages()): PennyServices {
-        val base = PennyServices.fakes(signedIn = true)
-        val services = PennyServices(base.auth, base.users, base.prefs, images)
-        compose.setContent { PennyApp(services) }
+    @Test
+    fun demoHomeShowsTheHeroTopSpendingAndLearningShortcut() {
+        compose.setContent { PennyApp(PennyServices.fakes(signedIn = true)) }
         compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
-        return services
-    }
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-hero") }
 
-    @Test
-    fun greetingFromClaimsDefaultAvatarAndHardCodedCourseProgress() {
-        signedIn()
-        compose.waitUntil(5_000) {
-            runCatching { compose.onNodeWithTag("home-greeting").assertTextEquals("WELCOME,\nDemo User") }.isSuccess
-        }
+        // "Good <daypart>, Demo" — first name only, whatever the clock says.
+        assertTrue(compose.onAllNodesWithTextExists(", Demo", substring = true))
+        compose.onNodeWithTag("home-hero-amount").assertTextEquals("+₹53,550")
+        assertTrue(compose.onAllNodesWithTextExists("₹17,000 SIP recorded · ₹36,550 remains unallocated"))
+
+        compose.onNodeWithTag("home-spend-0-name").assertTextEquals("Food & Dining")
+        assertTrue(compose.onAllNodesWithTextExists("36% of spend · 6 items"))
         compose.onNodeWithTag("home-avatar-default").assertIsDisplayed()
-        compose.onNodeWithTag("home-course-progress", useUnmergedTree = true).assertTextEquals("74%")
-        compose.onNodeWithTag("home-nav-home").assertIsNotEnabled()
+
+        // See all → Budget (frame 04's link).
+        compose.onNodeWithTag("home-see-all").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("budget-page") }
+
+        // The dock's repeated Add opens Quick Log in thumb reach.
+        compose.onNodeWithTag("nav-home").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("dock-0") }
     }
 
     @Test
-    fun profileImageUrlSwitchesToTheImageAvatar() {
-        signedIn(FakeProfileImages().apply { set("demo", "https://example.invalid/demo.jpg") })
-        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-avatar-image") }
+    fun continueLearningOpensTheNextLesson() {
+        compose.setContent { PennyApp(PennyServices.fakes(signedIn = true)) }
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-page") }
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-learn") }
+        assertTrue(compose.onAllNodesWithTextExists("Lesson 3 of 8 · 2 complete", substring = true))
+        compose.onNodeWithTag("home-learn-start").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("lesson-page") }
+        assertTrue(compose.onAllNodesWithTextExists("Lesson 3 of 8", substring = true))
     }
 
     @Test
-    fun tilesAndBottomBarOpenTheirFlutterRoutes() {
-        signedIn()
-        // 009: the Expense Tracker tile opens the real tracker.
-        compose.onNodeWithTag("home-tile-1").performScrollTo().performClick()
-        compose.onNodeWithTag("tracker-tab-dashboard").assertIsDisplayed()
-        compose.onNodeWithTag("tracker-back").performClick()
-        // 011: the Practice tile opens the real practice list.
-        compose.onNodeWithTag("home-tile-3").performScrollTo().performClick()
-        compose.onNodeWithTag("practice-page").assertIsDisplayed()
-        compose.onNodeWithTag("back").performClick()
-        // 014: the Predict Stocks tile opens the Market page.
-        compose.onNodeWithTag("home-tile-2").performScrollTo().performClick()
-        compose.onNodeWithTag("stock-page").assertIsDisplayed()
-        compose.onNodeWithTag("back").performClick()
-        compose.onNodeWithTag("home-nav-chat").performClick()
-        compose.onNodeWithTag("chat-page").assertIsDisplayed() // 015
-    }
+    fun aFreshAccountSeesTheFirstRunStateNotFakeNumbers() {
+        val services = PennyServices.fakes()
+        compose.setContent { PennyApp(services) }
 
-    @Test
-    fun financeNewsShowsBundledArticlesAndSwipes() {
-        signedIn()
-        compose.onNodeWithTag("home-news-pager").performScrollTo()
-        // Clickable cards merge their children; read the title node itself.
-        compose.onNodeWithTag("news-title-0", useUnmergedTree = true)
-            .assertTextEquals("Bajaj Freedom CNG and petrol mileage explained! - BikeWale")
-        compose.onNodeWithTag("home-news-pager").performTouchInput { swipeLeft() }
-        compose.waitUntil(5_000) {
-            compose.onAllNodesWithTag("news-title-1", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
-        }
+        // Sign up a brand-new user with an empty month.
+        compose.onNodeWithTag("login-signup-link").performClick()
+        compose.onNodeWithTag("signup-name-input").performTextInput("Empty User")
+        compose.onNodeWithTag("signup-username-input").performTextInput("empty")
+        compose.onNodeWithTag("signup-email-input").performTextInput("empty@penny.app")
+        compose.onNodeWithTag("signup-password-input").performTextInput("secret1")
+        compose.onNodeWithTag("signup-submit").performScrollTo().performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("home-empty") }
+
+        compose.onNodeWithTag("home-empty").assertIsDisplayed()
+        assertTrue(compose.onAllNodesWithTextExists("No activity yet"))
+        assertTrue(compose.onAllNodesWithTextExists("Empty is not an error", substring = true))
+        compose.onNodeWithTag("home-empty-lesson").assertIsDisplayed()
+        compose.onNodeWithTag("home-empty-add").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("budget-page") }
+        compose.waitUntil(5_000) { compose.onAllNodesWithTagExists("budget-empty") }
     }
 }

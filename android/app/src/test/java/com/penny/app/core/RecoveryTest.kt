@@ -37,8 +37,8 @@ class RecoveryTest {
         assertEquals(ResetResult.InvalidCode, auth.completePasswordReset(FakeAuthService.DEMO_EMAIL, "000000", "newpassword"))
         now = FakeAuthService.RESET_TTL_MS // exactly at the TTL the code is dead
         assertEquals(ResetResult.ExpiredCode, auth.completePasswordReset(FakeAuthService.DEMO_EMAIL, FakeAuthService.RESET_CODE, "newpassword"))
-        // And the expired request is consumed: a retry with the right code is now invalid.
-        assertEquals(ResetResult.InvalidCode, auth.completePasswordReset(FakeAuthService.DEMO_EMAIL, FakeAuthService.RESET_CODE, "newpassword"))
+        // A dead code keeps answering "expired" — only a successful reset consumes the list.
+        assertEquals(ResetResult.ExpiredCode, auth.completePasswordReset(FakeAuthService.DEMO_EMAIL, FakeAuthService.RESET_CODE, "newpassword"))
     }
 
     @Test
@@ -58,6 +58,11 @@ class RecoveryTest {
         val auth = service()
         auth.seedExpiredReset(FakeAuthService.DEMO_EMAIL, FakeAuthService.EXPIRED_DEMO_CODE)
         assertEquals(ResetResult.ExpiredCode, auth.completePasswordReset(FakeAuthService.DEMO_EMAIL, FakeAuthService.EXPIRED_DEMO_CODE, "newpassword"))
+        // A fresh request supersedes the seed; the old digits still read expired,
+        // the new code works.
+        auth.requestPasswordReset(FakeAuthService.DEMO_EMAIL)
+        assertEquals(ResetResult.ExpiredCode, auth.completePasswordReset(FakeAuthService.DEMO_EMAIL, FakeAuthService.EXPIRED_DEMO_CODE, "newpassword"))
+        assertEquals(ResetResult.Success, auth.completePasswordReset(FakeAuthService.DEMO_EMAIL, FakeAuthService.RESET_CODE, "newpassword"))
     }
 
     @Test
